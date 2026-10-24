@@ -5,6 +5,8 @@ import { fmtDate } from "../../lib/dates.js";
 import { daysUntil, urgencyColor, urgencyLabel } from "../../lib/deadlines.js";
 import AttachmentList from "./Attachments.jsx";
 import { useAttachmentDrop } from "./useAttachmentDrop.js";
+import DateInput from "../../lib/DateInput.jsx";
+import { offerUndo } from "../../lib/doneList.js";
 
 export default function AsgnItem({ asgn, courses, dispatch, attachments = [], session, showFlash }) {
   const { t } = useTranslation();
@@ -22,21 +24,21 @@ export default function AsgnItem({ asgn, courses, dispatch, attachments = [], se
   // Clearing the date clears the time with it: a time with no day is not a
   // deadline, and leaving it behind would resurrect it if a date came back.
   const save=()=>{ dispatch({type:"EDIT_ASSIGNMENT",id:asgn.id,title:editTitle.trim()||asgn.title,dueDate:editDate,dueTime:editDate?editTime:"",notes:editNotes}); setEditing(false); };
-  if(editing) return <div className="asgn-item" style={{flexDirection:"column",gap:10}}>
+  if(editing) return <div className="asgn-item" style={{flexDirection:"column",gap:12}}>
     <input type="text" value={editTitle} onChange={e=>setEditTitle(e.target.value)} style={{fontWeight:500}} autoFocus/>
     <div style={{display:"flex",gap:8}}>
-      <input type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} style={{flex:"1 1 auto"}}/>
-      <input type="time" value={editTime} disabled={!editDate} onChange={e=>setEditTime(e.target.value)} style={{flex:"0 1 auto"}} aria-label={t('av.md.dueTimeOpt')}/>
+      <DateInput type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} style={{flex:"1 1 auto"}}/>
+      <DateInput type="time" value={editTime} disabled={!editDate} onChange={e=>setEditTime(e.target.value)} style={{flex:"0 1 auto"}} aria-label={t('av.md.dueTimeOpt')}/>
     </div>
     <textarea value={editNotes} onChange={e=>setEditNotes(e.target.value)} placeholder={t('sv.fNotes')+"…"} style={{minHeight:48,fontSize:12}}/>
-    <div style={{display:"flex",gap:8}}><button className="btn btn-sm" onClick={save}>{t('common.save')}</button><button className="btn-outline btn-sm" onClick={()=>setEditing(false)}>{t('common.cancel')}</button></div>
+    <div style={{display:"flex",gap:8,marginTop:4}}><button className="btn btn-sm" onClick={save}>{t('common.save')}</button><button className="btn-outline btn-sm" onClick={()=>setEditing(false)}>{t('common.cancel')}</button></div>
   </div>;
   return <div
     className={"asgn-item"+(asgn.done?" done":"")+(drop.isOver?" drop-over":"")+(showAt?" has-panel":"")}
     {...drop.dropProps}
     onDrop={(e)=>{ drop.dropProps.onDrop(e); setShowAt(true); }}
   >
-    <div className={"asgn-check"+(asgn.done?" checked":"")} onClick={()=>dispatch({type:"TOGGLE_ASSIGNMENT",id:asgn.id})}/>
+    <div className={"asgn-check"+(asgn.done?" checked":"")} onClick={()=>{ const toggle={type:"TOGGLE_ASSIGNMENT",id:asgn.id}; dispatch(toggle); if(!asgn.done) offerUndo(asgn.title,toggle); }}/>
     <div className="asgn-body">
       <div className={"asgn-title"+(asgn.done?" done":"")}>{asgn.title}</div>
       <div className="asgn-meta">

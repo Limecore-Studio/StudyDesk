@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fmtDateFull, toLocalISO } from "../../lib/dates.js";
+import { doneItems } from "../../lib/doneList.js";
+import DoneList from "../actions/DoneList.jsx";
 import { byDueAsc, byDueDesc } from "../../lib/dueAt.js";
 import AsgnItem from "./AsgnItem.jsx";
 import ExamCard from "./ExamCard.jsx";
@@ -16,6 +19,8 @@ export default function CourseDetailView({ state, dispatch, session, showFlash, 
   const { t } = useTranslation();
   const ac = state.activeCourse;
   const course = ac ? state.courses[ac] : null;
+  // v1.19 (#87) — this course's Done list. Above the early return: a hook.
+  const [showDone, setShowDone] = useState(false);
 
   if (!course || course.deletedAt) {
     return <div className="empty">{t('cal.courseGone')}</div>;
@@ -29,6 +34,7 @@ export default function CourseDetailView({ state, dispatch, session, showFlash, 
   const exams = state.exams.filter(e => e.courseId === ac);
   // v1.18.1 (#148): byDueAsc puts an exam with no date last.
   const openExams = exams.filter(e => !e.done).sort(byDueAsc);
+  const doneCount = doneItems(state, { courseId: ac }).length;
 
   const sessions = (state.studySessions || []).filter(s => !s.deletedAt && s.subjectId === ac);
   const totalMin = sessions.reduce((n, s) => n + (s.durationMinutes || 0), 0);
@@ -90,6 +96,12 @@ export default function CourseDetailView({ state, dispatch, session, showFlash, 
           {done.map(a => <AsgnItem key={a.id} asgn={a} courses={state.courses} dispatch={dispatch} attachments={state.attachments} session={session} showFlash={showFlash} />)}
         </details>
       )}
+      {/* Assignments, exams and Next Up tasks for this course, by the day they
+          were ticked; the fold above only ever held assignments. */}
+      {doneCount > 0 && (
+        <button type="button" className="done-open" onClick={() => setShowDone(true)}>{t('done.open', { count: doneCount })}</button>
+      )}
+      {showDone && <DoneList state={state} dispatch={dispatch} courseId={ac} showFlash={showFlash} onClose={() => setShowDone(false)} />}
 
       <div className="divider" />
       <div className="section-label">

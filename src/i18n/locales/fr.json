@@ -264,7 +264,7 @@
     "scaleDirection": "Quelle extrémité est la meilleure",
     "scaleHighBest": "Haut",
     "scaleLowBest": "Bas",
-    "gradeNoteCustom": "Votre propre échelle numérique — la moyenne est une moyenne pondérée, comme en IB. Enregistrée sur cet appareil uniquement, sans synchronisation. Le calcul officiel de votre établissement fait toujours foi.",
+    "gradeNoteCustom": "Votre propre échelle numérique — la moyenne est une moyenne pondérée de vos notes, ou des notes de bulletin quand le bulletin affiche des notes entières. L'échelle suit votre compte sur vos autres appareils et dans Nexus. Le calcul officiel de votre établissement fait toujours foi.",
     "support": "Soutien",
     "supportDev": "Soutenir le développement",
     "supportDevSub": "Un lien vers Ko-fi. Rien dans l’app n’en dépend.",
@@ -438,7 +438,15 @@
     "otherAccountClearedUnsent_one": "Connexion à un autre compte : les données du compte précédent ont été supprimées de cet appareil, dont {{count}} modification non synchronisée.",
     "otherAccountClearedUnsent_many": "Connexion à un autre compte : les données du compte précédent ont été supprimées de cet appareil, dont {{count}} modifications non synchronisées.",
     "otherAccountClearedUnsent_other": "Connexion à un autre compte : les données du compte précédent ont été supprimées de cet appareil, dont {{count}} modifications non synchronisées.",
-    "otherTabReloaded": "Connexion ou déconnexion dans un autre onglet : cet onglet a été rechargé."
+    "otherTabReloaded": "Connexion ou déconnexion dans un autre onglet : cet onglet a été rechargé.",
+    "scalePresetDe": "Allemagne · DIA 0–15 (1–6)",
+    "reportGrades": "Bulletin",
+    "reportWhole": "Notes entières",
+    "reportFine": "Moyenne des points",
+    "reportMethod": "Ordre",
+    "reportConvertFirst": "Convertir chaque note, puis faire la moyenne",
+    "reportAverageFirst": "Moyenne des points, puis convertir",
+    "reportNote": "Avec les notes entières, chaque matière affiche sa note de bulletin (p. ex. 2) avec la moyenne des points en dessous, et la moyenne générale porte sur les notes de bulletin. Une matière pile entre deux notes affiche les deux (1–2) : l'enseignant décide."
   },
   "sdob": {
     "brand": "Arrête de choisir. Commence à réviser.",
@@ -532,7 +540,11 @@
     "pcErrName": "Donnez un nom au cours.",
     "pcErrCredits": "Les crédits doivent être positifs ou nuls.",
     "weightBlocksAria": "Cette note représente {{pct}} % du cours, l'une des {{n}} notes pondérées",
-    "weightBlocksNoneAria": "{{n}} notes pondérées dans ce cours"
+    "weightBlocksNoneAria": "{{n}} notes pondérées dans ce cours",
+    "reportScale": "Notes de bulletin {{best}}–{{worst}} · {{best}} la meilleure",
+    "reportProjection": "Une matière est entre deux notes de bulletin : c'est une projection",
+    "reportBetween": "Pile entre deux notes : l'enseignant décide",
+    "fGradeCustom": "Note ({{min}}–{{max}})"
   },
   "sv": {
     "today": "Aujourd’hui",
@@ -720,7 +732,12 @@
       "prepareFor": "Préparer : {{label}}",
       "topicMore": " (+{{n}} de plus)",
       "editExam": "Modifier l'examen",
-      "examDate": "Date de l'examen"
+      "examDate": "Date de l'examen",
+      "examToday": "examen aujourd'hui",
+      "examTomorrow": "examen demain",
+      "examInDays": "examen dans {{n}} jours",
+      "startStudyingNow": "Commence à réviser {{label}} ({{difficulty}}), {{when}}",
+      "startStudyingOn": "Commence à réviser {{label}} le {{date}} ({{difficulty}})"
     },
     "md": {
       "addAssignment": "Ajouter un devoir",
@@ -739,7 +756,9 @@
       "difficultyLabel": "Difficulté",
       "examNotesPh": "Sujets, format, points clés...",
       "addCourse": "Ajouter un cours",
-      "typeCustomPh": "Nommez le type (ex. Présentation)"
+      "typeCustomPh": "Nommez le type (ex. Présentation)",
+      "repeatUntil": "Jusqu'au",
+      "examRepeatSummary": "{{count}} examens, le dernier le {{until}}"
     },
     "act": {
       "addManually": "Ajouter manuellement",
@@ -774,7 +793,8 @@
       "logged": "Enregistré {{n}} min",
       "queuedLegacy_one": "{{count}} ancienne tâche en attente de synchronisation",
       "queuedLegacy_many": "{{count}} anciennes tâches en attente de synchronisation",
-      "queuedLegacy_other": "{{count}} anciennes tâches en attente de synchronisation"
+      "queuedLegacy_other": "{{count}} anciennes tâches en attente de synchronisation",
+      "examsAdded": "{{count}} examens ajoutés"
     }
   },
   "widget": {
@@ -1141,7 +1161,13 @@
       "network": "Impossible d'atteindre cette adresse."
     },
     "repeatingNote_one": "{{count}} événement récurrent importé comme une seule date",
-    "repeatingNote_other": "{{count}} événements récurrents importés comme une seule date chacun"
+    "repeatingNote_other": "{{count}} événements récurrents importés comme une seule date chacun",
+    "mapCourses": "Cours",
+    "mapTitle": "Associer les cours",
+    "mapHelp": "Chaque cours de ce calendrier peut aller vers l'un de tes cours StudyDesk. Les éléments d'un cours non associé restent où ils sont.",
+    "mapSource": "{{label}} ({{n}})",
+    "notMapped": "Non associé",
+    "mapSaved": "Cours enregistrés · {{n}} déplacés"
   },
   "att": {
     "tab": "Présence",
@@ -1189,5 +1215,45 @@
     "versions": "Mise à jour de {{current}} vers {{latest}}",
     "open": "Obtenir sur F-Droid",
     "later": "Plus tard"
+  },
+  "dtp": {
+    "date": "Date",
+    "time": "Heure",
+    "prevMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
+    "hour": "Heure",
+    "minute": "Minute",
+    "clear": "Effacer",
+    "set": "Valider"
+  },
+  "pr": {
+    "start": "Démarrer",
+    "startFocus": "Démarrer la concentration",
+    "snooze": "Rappel dans 5 min",
+    "skip": "Passer",
+    "notNow": "Pas maintenant",
+    "startsNow": "Bloc d'étude · maintenant",
+    "scheduledFor": "Bloc d'étude · {{time}}",
+    "minutes": "{{n}} min",
+    "runLabel": "Compte pour : {{title}}",
+    "endRun": "Ne plus compter pour ce bloc",
+    "todayBlocks": "Blocs d'étude du jour"
+  },
+  "done": {
+    "title": "Terminé",
+    "open": "Terminé ({{count}})",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "earlier": "Plus tôt",
+    "empty": "Rien de coché pour l'instant.",
+    "restored": "De retour dans ta liste",
+    "untick": "Décocher : {{title}}",
+    "kind": {
+      "action": "Tâche",
+      "assignment": "Devoir",
+      "exam": "Examen"
+    },
+    "markedDone": "Terminé : {{title}}",
+    "undo": "Annuler"
   }
 }

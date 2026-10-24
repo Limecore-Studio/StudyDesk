@@ -1,0 +1,3 @@
+Planen, dann fokussieren.
+
+Ein geplanter Lernblock startet im Timer und wird als eine Sitzung gespeichert; der Kalender hakt ihn ab. Noten können Tendenzen wie 2+ und 1- haben, mit Zeugnis-Schnitt und DIA-Vorlage. Eine Erledigt-Liste holt versehentlich Abgehaktes zurück, mit sofortigem Rückgängig. Du siehst, wann du für jede Prüfung anfangen solltest, Prüfungen können sich wöchentlich wiederholen, Kalender-Feeds lassen sich Kursen zuordnen, und Datumsfelder klappen auf jedem Handy.

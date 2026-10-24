@@ -261,7 +261,7 @@
     "scaleDirection": "Which end is best",
     "scaleHighBest": "High",
     "scaleLowBest": "Low",
-    "gradeNoteCustom": "Your own numeric scale — the average is a straight weighted mean, as with IB. Stored on this device only; it does not sync. Your school's official calculation is always the one that counts.",
+    "gradeNoteCustom": "Your own numeric scale — the average is a weighted mean of your grades, or of the report grades when the report card shows whole grades. The scale follows your account to your other devices and to Nexus. Your school's official calculation is always the one that counts.",
     "support": "Support",
     "supportDev": "Support development",
     "supportDevSub": "A link to Ko-fi. Nothing in the app is locked behind it.",
@@ -434,7 +434,15 @@
     "otherAccountCleared": "You signed in to a different account, so the previous account's data was removed from this device.",
     "otherAccountClearedUnsent_one": "You signed in to a different account, so the previous account's data was removed from this device, including {{count}} change that had not synced.",
     "otherAccountClearedUnsent_other": "You signed in to a different account, so the previous account's data was removed from this device, including {{count}} changes that had not synced.",
-    "otherTabReloaded": "You signed in or out in another tab, so this tab was reloaded to match."
+    "otherTabReloaded": "You signed in or out in another tab, so this tab was reloaded to match.",
+    "scalePresetDe": "Germany · DIA 0–15 (1–6)",
+    "reportGrades": "Report card",
+    "reportWhole": "Whole grades",
+    "reportFine": "Point average",
+    "reportMethod": "Order",
+    "reportConvertFirst": "Convert each grade, then average",
+    "reportAverageFirst": "Average points, then convert",
+    "reportNote": "With whole grades, each course shows its report grade (e.g. 2) with the point average under it, and the overall average is taken over the report grades. A course exactly between two grades shows both (1–2): the teacher decides."
   },
   "sdob": {
     "brand": "Stop deciding. Start studying.",
@@ -526,7 +534,11 @@
     "pcErrName": "Give the course a name.",
     "pcErrCredits": "Credits must be zero or more.",
     "weightBlocksAria": "This grade is {{pct}}% of the course, one of {{n}} weighted grades",
-    "weightBlocksNoneAria": "{{n}} weighted grades in this course"
+    "weightBlocksNoneAria": "{{n}} weighted grades in this course",
+    "reportScale": "Report grades {{best}}–{{worst}} · {{best}} best",
+    "reportProjection": "A course is between two report grades, so this is a projection",
+    "reportBetween": "Exactly between two grades: the teacher decides",
+    "fGradeCustom": "Grade ({{min}}–{{max}})"
   },
   "sv": {
     "today": "Today",
@@ -713,7 +725,12 @@
       "prepareFor": "Prepare for {{label}}",
       "topicMore": " (+{{n}} more)",
       "editExam": "Edit exam",
-      "examDate": "Exam date"
+      "examDate": "Exam date",
+      "examToday": "exam today",
+      "examTomorrow": "exam tomorrow",
+      "examInDays": "exam in {{n}} days",
+      "startStudyingNow": "Start studying for {{label}} ({{difficulty}}), {{when}}",
+      "startStudyingOn": "Start studying for {{label}} on {{date}} ({{difficulty}})"
     },
     "md": {
       "addAssignment": "Add Assignment",
@@ -732,7 +749,9 @@
       "difficultyLabel": "Difficulty",
       "examNotesPh": "Topics covered, format, what to focus on...",
       "addCourse": "Add a Course",
-      "typeCustomPh": "Name the type (e.g. Presentation)"
+      "typeCustomPh": "Name the type (e.g. Presentation)",
+      "repeatUntil": "Until",
+      "examRepeatSummary": "{{count}} exams, the last on {{until}}"
     },
     "act": {
       "addManually": "Add manually",
@@ -766,7 +785,8 @@
       "examAdded": "Exam added",
       "logged": "Logged {{n}}m",
       "queuedLegacy_one": "{{count}} older to-do waiting to sync",
-      "queuedLegacy_other": "{{count}} older to-dos waiting to sync"
+      "queuedLegacy_other": "{{count}} older to-dos waiting to sync",
+      "examsAdded": "{{count}} exams added"
     }
   },
   "widget": {
@@ -1132,7 +1152,13 @@
       "network": "Could not reach that address."
     },
     "repeatingNote_one": "{{count}} repeating event imported as a single date",
-    "repeatingNote_other": "{{count}} repeating events imported as a single date each"
+    "repeatingNote_other": "{{count}} repeating events imported as a single date each",
+    "mapCourses": "Courses",
+    "mapTitle": "Match courses",
+    "mapHelp": "Each course in this calendar can go to one of your StudyDesk courses. Items from a course left on Not mapped stay where they are.",
+    "mapSource": "{{label}} ({{n}})",
+    "notMapped": "Not mapped",
+    "mapSaved": "Courses saved · {{n}} moved"
   },
   "att": {
     "tab": "Attendance",
@@ -1180,5 +1206,45 @@
     "versions": "Update from {{current}} to {{latest}}",
     "open": "Get it on F-Droid",
     "later": "Later"
+  },
+  "dtp": {
+    "date": "Date",
+    "time": "Time",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "hour": "Hour",
+    "minute": "Minute",
+    "clear": "Clear",
+    "set": "Set"
+  },
+  "pr": {
+    "start": "Start",
+    "startFocus": "Start focus",
+    "snooze": "Snooze 5 min",
+    "skip": "Skip",
+    "notNow": "Not now",
+    "startsNow": "Study block · now",
+    "scheduledFor": "Study block · {{time}}",
+    "minutes": "{{n}} min",
+    "runLabel": "Counts toward: {{title}}",
+    "endRun": "Stop counting toward this block",
+    "todayBlocks": "Study blocks today"
+  },
+  "done": {
+    "title": "Done",
+    "open": "Done ({{count}})",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "earlier": "Earlier",
+    "empty": "Nothing ticked off yet.",
+    "restored": "Back in your list",
+    "untick": "Untick: {{title}}",
+    "kind": {
+      "action": "Task",
+      "assignment": "Assignment",
+      "exam": "Exam"
+    },
+    "markedDone": "Done: {{title}}",
+    "undo": "Undo"
   }
 }

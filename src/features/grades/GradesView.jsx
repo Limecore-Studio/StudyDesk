@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { calculateGPA, subjectEffectiveGrade, subjectsWithEffectiveGrades } from '../../lib/gpa.js';
+import { calculateGPA, overallAverage, subjectEffectiveGrade, subjectsWithEffectiveGrades } from '../../lib/gpa.js';
 import { scaleFor, describeScale } from '../../lib/gradeScale.js';
+import { activeReport, reportText, stepLabel, subjectReport } from '../../lib/reportGrade.js';
 import * as outbox from '../../lib/outbox.js';
 import { stampNow } from '../../lib/serverClock.js';
 import { enterSubmit } from '../../lib/imeSubmit.js';
@@ -12,6 +13,7 @@ import {
 } from '../../lib/gradeWeight.js';
 import PastCourseModal from './PastCourseModal.jsx';
 import { toLocalISO } from '../../lib/dates.js';
+import DateInput from '../../lib/DateInput.jsx';
 
 // Grade rows go straight to Supabase, where `id` is a strict UUID column.
 // crypto.randomUUID() is browser-native (since Chromium 92 / 2021) — Capacitor's
@@ -26,6 +28,10 @@ const css = `
 .gv-gpa-label{font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;color:var(--muted2);text-transform:uppercase;}
 .gv-gpa-value{font-family:var(--font-display);font-size:54px;font-weight:600;line-height:1;letter-spacing:-0.02em;}
 .gv-gpa-scale{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:0.05em;}
+.gv-subject-fine{font-family:var(--font-mono);font-size:10px;font-weight:400;color:var(--muted);text-align:end;margin-top:2px;}
+.gv-steps{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:-4px 0 14px;}
+.gv-step{background:transparent;border:1px solid var(--border2);color:var(--text);font-family:var(--font-mono);font-size:12px;height:32px;border-radius:4px;cursor:pointer;}
+.gv-step.active{background:var(--accent);color:var(--accent-on);border-color:var(--accent);}
 .gv-mode{display:flex;gap:0;border:1px solid var(--border2);border-radius:6px;overflow:hidden;}
 .gv-mode button{background:transparent;border:none;padding:7px 16px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;color:var(--muted);transition:all 0.1s;}
 .gv-mode button.active{background:var(--text);color:var(--bg);}
@@ -109,7 +115,16 @@ export default function GradesView({ state, dispatch, showFlash, session }) {
     () => subjectsWithEffectiveGrades(activeCoursesMap, state.grades || []),
     [activeCoursesMap, state.grades],
   );
-  const gpa = useMemo(() => calculateGPA(subjectAggregates, mode), [subjectAggregates, mode]);
+  // v1.19 (#178) — on a scale whose report-card rule is on, the average is
+  // over whole report grades (lib/reportGrade.js); otherwise the GPA as before.
+  const report = mode === 'custom' ? activeReport(scale) : null;
+  const overall = useMemo(
+    () => (report ? overallAverage(activeCoursesMap, state.grades || [], mode, scale) : { value: calculateGPA(subjectAggregates, mode), projection: false }),
+    // `scale` is rebuilt every render; the stored scale is what it is built from.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeCoursesMap, state.grades, mode, state.customScale, subjectAggregates],
+  );
+  const gpa = overall.value;
 
   const [expandedId, setExpandedId] = useState(null);
   const [editing, setEditing] = useState(null); // grade row being edited
@@ -220,6 +235,10 @@ export default function GradesView({ state, dispatch, showFlash, session }) {
   function renderSubjectCard(s) {
     const own = grades.filter((g) => g.subjectId === s.id);
     const eff = subjectEffectiveGrade(own);
+    // v1.19 (#178) — the report grade ("2", or "1–2" between two), with the
+    // fine average underneath so the precision is not lost.
+    const rep = report ? subjectReport(own, report) : null;
+    const fineStep = rep ? stepLabel(Math.round(rep.fine), scale.steps) : null;
     const isOpen = expandedId === s.id;
     return (
       <div key={s.id} className="gv-subject">
@@ -233,7 +252,14 @@ export default function GradesView({ state, dispatch, showFlash, session }) {
               {` · ${t('gv.grades', { count: own.length })}`}
             </div>
           </div>
-          <div className="gv-subject-grade">{eff == null ? '—' : eff.toFixed(2)}</div>
+          {rep ? (
+            <div className="gv-subject-grade" title={rep.between ? t('gv.reportBetween') : undefined}>
+              {reportText(rep)}
+              <div className="gv-subject-fine">{rep.fine.toFixed(1)}{fineStep ? ` · ${fineStep}` : ''}</div>
+            </div>
+          ) : (
+            <div className="gv-subject-grade">{eff == null ? '—' : eff.toFixed(2)}</div>
+          )}
         </div>
         {isOpen && (
           <div className="gv-rows">
@@ -251,7 +277,8 @@ export default function GradesView({ state, dispatch, showFlash, session }) {
               return (
               <div key={g.id} className="gv-row">
                 <span>
-                  <span className="gv-row-grade">{g.grade}</span>{' '}
+                  <span className="gv-row-grade">{stepLabel(g.grade, scale.steps) ?? g.grade}</span>{' '}
+                  {stepLabel(g.grade, scale.steps) && <span className="gv-row-meta">({g.grade})</span>}{' '}
                   {share === null ? (
                     <span className="gv-row-meta" title={t('gv.weightTitle', { w: g.weight })}>
                       {`× w=${g.weight}`}
@@ -295,9 +322,12 @@ export default function GradesView({ state, dispatch, showFlash, session }) {
                 : mode === 'custom' ? (scale.name || t('gv.customAverage'))
                 : t('gv.ibAverage')}
             </div>
-            <div className="gv-gpa-value">{gpa.toFixed(2)}</div>
+            <div className="gv-gpa-value" title={overall.projection ? t('gv.reportProjection') : undefined}>
+              {overall.projection ? '≈' : ''}{gpa.toFixed(2)}
+            </div>
             <div className="gv-gpa-scale" style={{ textTransform: 'uppercase' }}>
-              {mode === 'custom' ? describeScale(scale, t) : mode === 'us' ? t('gv.usScale') : t('gv.ibScale')}
+              {report ? t('gv.reportScale', { best: report.best, worst: report.worst })
+                : mode === 'custom' ? describeScale(scale, t) : mode === 'us' ? t('gv.usScale') : t('gv.ibScale')}
             </div>
           </div>
           <div className="gv-mode">
@@ -495,7 +525,8 @@ function GradeEditModal({ mode, scale, subjects, archivedSubjects = [], allGrade
         </div>
         <div className="modal-grid">
           <div className="input-group">
-            <div className="input-label">{mode === 'us' ? t('gv.fGradeUs') : t('gv.fGradeIb')}</div>
+            {/* A custom scale said "Grade (1–7)", the IB label, whatever its range. */}
+            <div className="input-label">{mode === 'us' ? t('gv.fGradeUs') : mode === 'custom' ? t('gv.fGradeCustom', { min: scale.min, max: scale.max }) : t('gv.fGradeIb')}</div>
             <input type="number" step="0.01" min={scale.min} max={scale.max} placeholder={placeholder} value={grade} onChange={(e) => setGrade(e.target.value)} autoFocus />
           </div>
           <div className="input-group">
@@ -503,6 +534,23 @@ function GradeEditModal({ mode, scale, subjects, archivedSubjects = [], allGrade
             <input type="number" step="0.05" min="0" placeholder={t(`gv.phWeight_${wMode}`)} value={weight} onChange={(e) => setWeight(e.target.value)} />
           </div>
         </div>
+
+        {/* v1.19 (#178) — a scale with named steps is entered by its names:
+            tapping "2+" stores 12. The number field stays, for a value the
+            steps do not name. */}
+        {scale.steps && (
+          <div className="gv-steps" role="group" aria-label={t('gv.fGradeCustom', { min: scale.min, max: scale.max })}>
+            {scale.steps.map((s) => (
+              <button
+                key={s.label}
+                type="button"
+                className={'gv-step' + (grade !== '' && Number(grade) === s.value ? ' active' : '')}
+                aria-pressed={grade !== '' && Number(grade) === s.value}
+                onClick={() => setGrade(String(s.value))}
+              >{s.label}</button>
+            ))}
+          </div>
+        )}
 
         {/* v1.14 Item 8b — "I don't know if I should put 0.35 for something
             worth 35%". The switch says which of the three you are typing, and
@@ -555,7 +603,7 @@ function GradeEditModal({ mode, scale, subjects, archivedSubjects = [], allGrade
         </div>
         <div className="input-group">
           <div className="input-label">{t('gv.fDate')}</div>
-          <input type="date" value={date || ''} onChange={(e) => setDate(e.target.value)} {...enterSubmit(submit)} />
+          <DateInput type="date" value={date || ''} onChange={(e) => setDate(e.target.value)} {...enterSubmit(submit)} />
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center' }}>
           <button className="btn" onClick={submit}>{isEdit ? t('common.save') : t('gv.bAdd')}</button>

@@ -1,0 +1,3 @@
+Planifier, puis se concentrer.
+
+Un créneau planifié s'ouvre dans le minuteur et s'enregistre en une seule session ; le calendrier le marque comme fait. Les notes acceptent les nuances 2+ et 1-, avec moyenne de bulletin et préréglage allemand DIA. Une liste Terminé récupère ce qui a été coché par erreur, avec Annuler. L'app indique quand commencer à réviser chaque examen, les examens peuvent se répéter chaque semaine, les calendriers s'associent à vos cours et les dates marchent partout.

@@ -14,3 +14,19 @@ export function urgencyLabel(d, t){ if(d===null||!t) return ""; if(d<0) return t
 // nullable), and addDays(null) threw, taking the Plan tab down on every device
 // that pulled the row. No date, no study start.
 export function studyStartDate(e){ if(!e?.dueDate) return null; return addDays(e.dueDate,-DIFFICULTY_DAYS[e.difficulty||"medium"]); }
+
+// v1.19 (#154, quick win) — which exams Next Up suggests, and when to start
+// studying for each. Every exam already has a study start derived from its
+// difficulty; it only drove a reminder. Next Up showed the exam day alone, so
+// with exams close together nothing said which one to start first. Ordered
+// by study start (then exam day), capped like before. An exam is a Today item
+// once its study start has come, or when it is three days out (as before).
+export function examStudyPlan(exams, limit = 3){
+  return (exams||[])
+    .filter(e=>!e.done&&!e.deletedAt&&e.dueDate&&daysUntil(e.dueDate)>-1)
+    .map(e=>{ const start=studyStartDate(e); const startIn=daysUntil(start); const dueIn=daysUntil(e.dueDate);
+      const bucket=(startIn<=0||dueIn<=3)?"today":startIn<=7?"this_week":"later";
+      return { exam:e, start, startIn, dueIn, bucket }; })
+    .sort((a,b)=>(a.start<b.start?-1:a.start>b.start?1:0)||(a.exam.dueDate<b.exam.dueDate?-1:a.exam.dueDate>b.exam.dueDate?1:0))
+    .slice(0,limit);
+}

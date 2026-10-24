@@ -264,7 +264,7 @@
     "scaleDirection": "Qual extremo é o melhor",
     "scaleHighBest": "Alto",
     "scaleLowBest": "Baixo",
-    "gradeNoteCustom": "Sua própria escala numérica — a média é uma média ponderada, como no IB. Guardada apenas neste aparelho e não sincroniza. O cálculo oficial da sua instituição é sempre o que vale.",
+    "gradeNoteCustom": "Sua própria escala numérica — a média é uma média ponderada das suas notas, ou das notas do boletim quando o boletim mostra notas inteiras. A escala acompanha sua conta nos seus outros aparelhos e no Nexus. O cálculo oficial da sua instituição é sempre o que vale.",
     "support": "Apoio",
     "supportDev": "Apoiar o desenvolvimento",
     "supportDevSub": "Um link para o Ko-fi. Nada na app depende disso.",
@@ -438,7 +438,15 @@
     "otherAccountClearedUnsent_one": "Você entrou com outra conta, então os dados da conta anterior foram removidos deste dispositivo, incluindo {{count}} alteração não sincronizada.",
     "otherAccountClearedUnsent_many": "Você entrou com outra conta, então os dados da conta anterior foram removidos deste dispositivo, incluindo {{count}} alterações não sincronizadas.",
     "otherAccountClearedUnsent_other": "Você entrou com outra conta, então os dados da conta anterior foram removidos deste dispositivo, incluindo {{count}} alterações não sincronizadas.",
-    "otherTabReloaded": "Você entrou ou saiu da conta em outra aba, então esta aba foi recarregada."
+    "otherTabReloaded": "Você entrou ou saiu da conta em outra aba, então esta aba foi recarregada.",
+    "scalePresetDe": "Alemanha · DIA 0–15 (1–6)",
+    "reportGrades": "Boletim",
+    "reportWhole": "Notas inteiras",
+    "reportFine": "Média de pontos",
+    "reportMethod": "Ordem",
+    "reportConvertFirst": "Converter cada nota e depois fazer a média",
+    "reportAverageFirst": "Fazer a média dos pontos e depois converter",
+    "reportNote": "Com notas inteiras, cada disciplina mostra a nota do boletim (ex.: 2) com a média de pontos embaixo, e a média geral é feita sobre as notas do boletim. Uma disciplina exatamente entre duas notas mostra as duas (1–2): o professor decide."
   },
   "sdob": {
     "brand": "Pare de decidir. Comece a estudar.",
@@ -532,7 +540,11 @@
     "pcErrName": "Dê um nome à disciplina.",
     "pcErrCredits": "Os créditos têm de ser zero ou mais.",
     "weightBlocksAria": "Esta nota é {{pct}} % do curso, uma de {{n}} notas ponderadas",
-    "weightBlocksNoneAria": "{{n}} notas ponderadas neste curso"
+    "weightBlocksNoneAria": "{{n}} notas ponderadas neste curso",
+    "reportScale": "Notas do boletim {{best}}–{{worst}} · {{best}} a melhor",
+    "reportProjection": "Uma disciplina está entre duas notas do boletim, então é uma projeção",
+    "reportBetween": "Exatamente entre duas notas: o professor decide",
+    "fGradeCustom": "Nota ({{min}}–{{max}})"
   },
   "sv": {
     "today": "Hoje",
@@ -720,7 +732,12 @@
       "prepareFor": "Preparar para {{label}}",
       "topicMore": " (+{{n}} mais)",
       "editExam": "Editar exame",
-      "examDate": "Data do exame"
+      "examDate": "Data do exame",
+      "examToday": "prova hoje",
+      "examTomorrow": "prova amanhã",
+      "examInDays": "prova em {{n}} dias",
+      "startStudyingNow": "Comece a estudar para {{label}} ({{difficulty}}), {{when}}",
+      "startStudyingOn": "Comece a estudar para {{label}} em {{date}} ({{difficulty}})"
     },
     "md": {
       "addAssignment": "Adicionar trabalho",
@@ -739,7 +756,9 @@
       "difficultyLabel": "Dificuldade",
       "examNotesPh": "Conteúdo, formato, no que focar...",
       "addCourse": "Adicionar disciplina",
-      "typeCustomPh": "Nomeie o tipo (ex.: Apresentação)"
+      "typeCustomPh": "Nomeie o tipo (ex.: Apresentação)",
+      "repeatUntil": "Até",
+      "examRepeatSummary": "{{count}} provas, a última em {{until}}"
     },
     "act": {
       "addManually": "Adicionar manualmente",
@@ -774,7 +793,8 @@
       "logged": "{{n}}min registrados",
       "queuedLegacy_one": "{{count}} tarefa antiga aguardando sincronização",
       "queuedLegacy_many": "{{count}} tarefas antigas aguardando sincronização",
-      "queuedLegacy_other": "{{count}} tarefas antigas aguardando sincronização"
+      "queuedLegacy_other": "{{count}} tarefas antigas aguardando sincronização",
+      "examsAdded": "{{count}} provas adicionadas"
     }
   },
   "widget": {
@@ -1141,7 +1161,13 @@
       "network": "Não foi possível contactar esse endereço."
     },
     "repeatingNote_one": "{{count}} evento repetido importado como uma única data",
-    "repeatingNote_other": "{{count}} eventos repetidos importados como uma única data cada"
+    "repeatingNote_other": "{{count}} eventos repetidos importados como uma única data cada",
+    "mapCourses": "Disciplinas",
+    "mapTitle": "Associar disciplinas",
+    "mapHelp": "Cada disciplina deste calendário pode ir para uma das suas disciplinas no StudyDesk. Itens de uma disciplina não associada ficam onde estão.",
+    "mapSource": "{{label}} ({{n}})",
+    "notMapped": "Não associada",
+    "mapSaved": "Disciplinas salvas · {{n}} movidos"
   },
   "att": {
     "tab": "Assiduidade",
@@ -1189,5 +1215,45 @@
     "versions": "Atualizar de {{current}} para {{latest}}",
     "open": "Obter no F-Droid",
     "later": "Mais tarde"
+  },
+  "dtp": {
+    "date": "Data",
+    "time": "Hora",
+    "prevMonth": "Mês anterior",
+    "nextMonth": "Próximo mês",
+    "hour": "Hora",
+    "minute": "Minuto",
+    "clear": "Limpar",
+    "set": "Definir"
+  },
+  "pr": {
+    "start": "Começar",
+    "startFocus": "Começar foco",
+    "snooze": "Adiar 5 min",
+    "skip": "Pular",
+    "notNow": "Agora não",
+    "startsNow": "Bloco de estudo · agora",
+    "scheduledFor": "Bloco de estudo · {{time}}",
+    "minutes": "{{n}} min",
+    "runLabel": "Conta para: {{title}}",
+    "endRun": "Parar de contar para este bloco",
+    "todayBlocks": "Blocos de estudo de hoje"
+  },
+  "done": {
+    "title": "Concluído",
+    "open": "Concluído ({{count}})",
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "earlier": "Antes",
+    "empty": "Nada marcado ainda.",
+    "restored": "De volta à sua lista",
+    "untick": "Desmarcar: {{title}}",
+    "kind": {
+      "action": "Tarefa",
+      "assignment": "Trabalho",
+      "exam": "Prova"
+    },
+    "markedDone": "Concluído: {{title}}",
+    "undo": "Desfazer"
   }
 }

@@ -331,3 +331,17 @@ describe('stale-after cutoff', () => {
     expect(now.extra.sa).toBe(start.getTime() + 15 * 60 * 1000);
   });
 });
+
+// v1.19 (#185) — a block's reminders say which block, so a tap can open its
+// start sheet (and from there the timer, linked to the block).
+describe('plan reminders carry the block id', () => {
+  it('both the lead and the at-start reminder', () => {
+    const start = blockStart();
+    const notes = buildReminders([], [], { c1: { name: 'History' } },
+      [{ id: 'p1', startsAt: start.toISOString(), subjectId: 'c1', durationMinutes: 60 }],
+      { lead: 30, atStart: true }, t);
+    const plan = notes.filter((n) => n.extra?.view === 'timer');
+    expect(plan).toHaveLength(2);
+    expect(plan.every((n) => n.extra.planId === 'p1')).toBe(true);
+  });
+});

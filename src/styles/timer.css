@@ -172,3 +172,7 @@ body.locked-in .content{padding:0;max-width:none;}
   .timer-pill{max-width:none;padding:4px 9px 4px 8px;gap:6px;}
   .timer-pill-label{display:none;}
 }
+/* v1.19 (#185) — the scheduled block this run counts toward. */
+.pomo-plan{display:flex;align-items:center;gap:8px;max-width:340px;margin:16px auto 12px;padding:6px 6px 6px 12px;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+.pomo-plan-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.pomo-plan-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}

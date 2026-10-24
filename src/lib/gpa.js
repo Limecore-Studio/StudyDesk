@@ -2,6 +2,8 @@
 // the same number for the same data. v1.18.1: custom scales and 0-credit
 // courses are handled here first; NCC follows in nexus-command-center#160.
 
+import { activeReport, overallReport, subjectReport } from './reportGrade.js';
+
 /**
  * US percentage → 4.0 grade points (standard letter-grade ladder).
  */
@@ -77,6 +79,29 @@ function gpaCredits(credits) {
   if (credits == null || credits === '') return 1;
   const n = Number(credits);
   return Number.isFinite(n) && n >= 0 ? n : 1;
+}
+
+/**
+ * v1.19 (#178) — the overall average every screen shows, in one place so the
+ * Grades hero, period history and the stats trend cannot disagree.
+ *
+ * On a custom scale whose report-card rule is on, it is the credit-weighted
+ * mean of the subjects' whole report grades (lib/reportGrade.js); otherwise
+ * the GPA exactly as before. `projection` is true when a subject is still
+ * between two report grades.
+ */
+export function overallAverage(subjects, grades, mode, scale) {
+  const report = mode === 'custom' ? activeReport(scale) : null;
+  if (!report) {
+    return { value: calculateGPA(subjectsWithEffectiveGrades(subjects, grades), mode), projection: false, report: false };
+  }
+  const rows = Object.values(subjects)
+    .filter((s) => !s.deletedAt)
+    .map((s) => ({
+      report: subjectReport((grades || []).filter((g) => g.subjectId === s.id && !g.deletedAt), report),
+      credits: gpaCredits(s.credits),
+    }));
+  return { ...overallReport(rows), report: true };
 }
 
 /**

@@ -5,6 +5,8 @@ import { fmtDate, fmtDateFull } from "../../lib/dates.js";
 import { DIFFICULTY_COLORS } from "../../lib/examDifficulty.js";
 import { daysUntil, studyStartDate, urgencyColor, urgencyLabel } from "../../lib/deadlines.js";
 import { enterSubmit } from "../../lib/imeSubmit.js";
+import DateInput from "../../lib/DateInput.jsx";
+import { offerUndo } from "../../lib/doneList.js";
 
 // ── ExamCard ──────────────────────────────────────────────────────────────────
 export default function ExamCard({ exam, courses, dispatch }) {
@@ -47,9 +49,11 @@ export default function ExamCard({ exam, courses, dispatch }) {
   const pct=topics.length>0?Math.round((doneCnt/topics.length)*100):0;
   const progressColor=pct===100?"var(--success)":pct>50?"var(--warning)":"var(--danger)";
   const addTopic=()=>{ if(!topicInput.trim()) return; dispatch({type:"ADD_EXAM_TOPIC",examId:exam.id,title:topicInput.trim()}); setTopicInput(""); };
-  if (editing) return <div className="exam-card" style={{borderInlineStartColor:course?.color||"var(--border2)",flexDirection:"column",gap:10,padding:14}}>
+  // v1.19 — `display:flex`: without it the gap below did nothing and the
+  // fields sat flush against each other and the buttons.
+  if (editing) return <div className="exam-card" style={{borderInlineStartColor:course?.color||"var(--border2)",display:"flex",flexDirection:"column",gap:12,padding:14}}>
     <input type="text" value={eTitle} onChange={e=>setETitle(e.target.value)} style={{fontWeight:500}} autoFocus aria-label={t('av.md.examSubject')}/>
-    <input type="date" value={eDate} onChange={e=>setEDate(e.target.value)} aria-label={t('av.ec.examDate')}/>
+    <DateInput type="date" value={eDate} onChange={e=>setEDate(e.target.value)} aria-label={t('av.ec.examDate')}/>
     <div className="study-plan-bar">
       <span className="study-plan-label">{t('av.ec.difficulty')}</span>
       {["easy","medium","hard","brutal"].map(d=>(
@@ -59,14 +63,14 @@ export default function ExamCard({ exam, courses, dispatch }) {
       ))}
     </div>
     <textarea value={eNotes} onChange={e=>setENotes(e.target.value)} placeholder={t('sv.fNotes')+"…"} style={{minHeight:48,fontSize:12}}/>
-    <div style={{display:"flex",gap:8}}>
+    <div style={{display:"flex",gap:8,marginTop:4}}>
       <button className="btn btn-sm" onClick={saveEdit}>{t('common.save')}</button>
       <button className="btn-outline btn-sm" onClick={()=>setEditing(false)}>{t('common.cancel')}</button>
     </div>
   </div>;
   return <div className={"exam-card"+(exam.done?" done":"")} style={{borderInlineStartColor:course?.color||"var(--border2)"}}>
     <div className="exam-card-header" onClick={()=>setOpen(o=>!o)}>
-      <div className={"asgn-check"+(exam.done?" checked":"")} style={{marginTop:5,flexShrink:0}} onClick={e=>{e.stopPropagation();dispatch({type:"TOGGLE_EXAM",id:exam.id});}}/>
+      <div className={"asgn-check"+(exam.done?" checked":"")} style={{marginTop:5,flexShrink:0}} onClick={e=>{e.stopPropagation();const toggle={type:"TOGGLE_EXAM",id:exam.id};dispatch(toggle);if(!exam.done) offerUndo(exam.title,toggle);}}/>
       <div className="exam-card-header-info">
         <div className={"exam-card-title"+(exam.done?" done":"")}>{exam.title}</div>
         <div className="exam-card-meta">

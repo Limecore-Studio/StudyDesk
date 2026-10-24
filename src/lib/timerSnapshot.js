@@ -87,6 +87,16 @@ export function readTimerSnapshot(now = Date.now()) {
   };
 }
 
+/**
+ * v1.19 (#185) — the scheduled block the timer's current run counts toward,
+ * running or paused; null for a free run. Read from the persisted record, so
+ * it survives a reload or a killed process exactly as the clock does.
+ */
+export function timerPlanId() {
+  const rec = readRaw();
+  return rec && typeof rec.planId === 'string' && rec.planId ? rec.planId : null;
+}
+
 /** mm:ss, or h:mm:ss once past an hour — a 2-hour Lock In block (Item 8a) would
  *  otherwise render as "120:00", which reads as minutes at a glance. */
 export function formatClock(totalSecs) {

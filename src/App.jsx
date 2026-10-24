@@ -31,9 +31,12 @@ import { reconcileUnsynced } from "./lib/reconcile.js";
 import { stampsFromPull, shouldPull } from "./lib/syncStamps.js";
 import SaveSessionSheet from "./features/sessions/SaveSessionSheet.jsx";
 import { pastSessionDraft } from "./lib/pastSession.js";
+import { isOpenPlan, nextPlanStartAt, planSaveSteps, planToOffer } from "./lib/planRun.js";
+import { timerPlanId } from "./lib/timerSnapshot.js";
+import { onUndoOffer, UNDO_MS } from "./lib/doneList.js";
 import "./styles/notebook.css";
 import CoursePicker from "./lib/CoursePicker.jsx";
-import { AddAsgnModal, AddExamModal, EditCourseModal } from "./features/plan/CourseModals.jsx";
+import { AddAsgnModal, EditCourseModal } from "./features/plan/CourseModals.jsx";
 import CourseDetailView from "./features/plan/CourseDetailView.jsx";
 import PlanView from "./features/plan/PlanView.jsx";
 import ActionsView from "./features/actions/ActionsView.jsx";
@@ -78,11 +81,15 @@ const GradesView = lazy(() => import("./features/grades/GradesView.jsx"));
 const SessionsView = lazy(() => import("./features/sessions/SessionsView.jsx"));
 const NotebookView = lazy(() => import("./features/notebook/NotebookView.jsx"));
 const TimerView = lazy(() => import("./features/timer/TimerView.jsx"));
+// v1.19 (#185) — only rendered when a block is offered, so not at launch.
+const PlanStartSheet = lazy(() => import("./features/timer/PlanStartSheet.jsx"));
 const StatsView = lazy(() => import("./features/stats/StatsView.jsx"));
 const CalendarView = lazy(() => import("./features/calendar/CalendarView.jsx"));
 const AnalyticsView = lazy(() => import("./features/analytics/AnalyticsView.jsx"));
 const TimetableView = lazy(() => import("./features/timetable/TimetableView.jsx"));
 const SettingsView = lazy(() => import("./features/settings/SettingsView.jsx"));
+// v1.19 (#158) — on demand: its repeat brings planRepeat.js and timetable.js.
+const AddExamModal = lazy(() => import("./features/plan/AddExamModal.jsx"));
 // v1.17 (limecore#12): only a first run ever shows onboarding.
 const OnboardingView = lazy(() => import("./features/onboarding/OnboardingView.jsx"));
 
@@ -177,7 +184,14 @@ export default function App() {
 
   useOutboxTriggers(requestPullRef);
 
-  useReminderActions(dispatch);
+  // v1.19 (#185) — a scheduled block's start sheet. Held as an id, so the row
+  // is read from state and an edit or a sync shows through. Declared here
+  // because a tapped block reminder opens it (useReminderActions below).
+  const [planOffer, setPlanOffer] = useState(null);
+  const [timerStartReq, setTimerStartReq] = useState(null);
+  const openPlanStart = useCallback((planId) => { if (planId) setPlanOffer(planId); }, []);
+
+  useReminderActions(dispatch, openPlanStart);
   // Notifications are only scheduled after onboarding completes — never on first open
   const handleOnboardingComplete = useCallback((courseData, opts = {}) => {
     if (courseData) {
@@ -201,6 +215,15 @@ export default function App() {
   }, []);
 
   const [flash, setFlash] = useState(null);
+  // v1.19 (#87) — "Marked done · Undo" for a few seconds after any tick, so a
+  // misclick never needs the Done list. See lib/doneList.js.
+  const [undoOffer, setUndoOffer] = useState(null);
+  useEffect(() => onUndoOffer(setUndoOffer), []);
+  useEffect(() => {
+    if (!undoOffer) return undefined;
+    const id = setTimeout(() => setUndoOffer(null), UNDO_MS);
+    return () => clearTimeout(id);
+  }, [undoOffer]);
   const [showAddCourse, setShowAddCourse] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
   const [showAddAsgn, setShowAddAsgn] = useState(false);
@@ -486,7 +509,7 @@ export default function App() {
   }, [session?.user?.id]);
 
   // ── Save-session sheet (raised when timer's focus phase ends) ───────────────
-  const [pendingSession, setPendingSession] = useState(null); // { durationMinutes, task, startedAt } | null
+  const [pendingSession, setPendingSession] = useState(null); // { durationMinutes, task, startedAt, planId? } | null
   // v1.3 — sub-tab within the Timer view (Timer / Log / Stats), so Log + Stats
   // don't need their own bottom-bar slots.
   const [timerSub, setTimerSub] = useState("timer");
@@ -532,6 +555,90 @@ export default function App() {
   }, [state.view]);
 
   useCloudPushers({ session, state, pulledOnce, pulledOnceRef, remoteStampsRef, showFlash, t });
+
+  // ── v1.19 (#185) — scheduled block → timer ────────────────────────────────
+  // Blocks already offered (or snoozed) in this run of the app, so coming
+  // back to the window does not raise the same sheet again.
+  const offeredPlans = useRef(new Set());
+  const snoozeTimers = useRef(new Map());
+  const offerPlan = planOffer ? (state.plannedSessions || []).find((p) => p.id === planOffer && !p.deletedAt) : null;
+
+  // With the app in front, a block's start time raises its sheet. Re-armed
+  // whenever the plans change; checked again when the window comes back,
+  // for a block that started in the last few minutes while it was away.
+  useEffect(() => {
+    if (!onboarded) return undefined;
+    const plans = state.plannedSessions;
+    let timer = null;
+    const check = () => {
+      if (document.visibilityState !== 'visible') return;
+      const skip = new Set(offeredPlans.current);
+      const running = timerPlanId();
+      if (running) skip.add(running);
+      const p = planToOffer(plans, Date.now(), { skip });
+      if (!p) return;
+      offeredPlans.current.add(p.id);
+      setPlanOffer((cur) => cur || p.id);
+    };
+    const arm = () => {
+      clearTimeout(timer);
+      const next = nextPlanStartAt(plans, Date.now());
+      // Capped so a far-off block is re-checked rather than trusted to a
+      // day-long timeout, which a sleeping phone does not keep.
+      if (next != null) timer = setTimeout(() => { check(); arm(); }, Math.min(next - Date.now() + 250, 60 * 60 * 1000));
+    };
+    const onVisible = () => { check(); arm(); };
+    onVisible();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearTimeout(timer); document.removeEventListener('visibilitychange', onVisible); };
+  }, [state.plannedSessions, onboarded]);
+
+  useEffect(() => () => { for (const id of snoozeTimers.current.values()) clearTimeout(id); }, []);
+
+  const startPlanRun = useCallback(() => {
+    if (!offerPlan) return;
+    const c = offerPlan.subjectId ? state.courses[offerPlan.subjectId] : null;
+    setTimerStartReq({
+      nonce: Date.now(),
+      planId: offerPlan.id,
+      subjectId: offerPlan.subjectId || '',
+      minutes: offerPlan.durationMinutes,
+      label: offerPlan.title || c?.name || '',
+    });
+    setTimerSub('timer');
+    dispatch({ type: 'SET_VIEW', view: 'timer' });
+    offeredPlans.current.add(offerPlan.id);
+    setPlanOffer(null);
+  }, [offerPlan, state.courses]);
+
+  const snoozePlanOffer = useCallback(() => {
+    if (!offerPlan) return;
+    const id = offerPlan.id;
+    offeredPlans.current.add(id);
+    clearTimeout(snoozeTimers.current.get(id));
+    snoozeTimers.current.set(id, setTimeout(() => {
+      snoozeTimers.current.delete(id);
+      setPlanOffer((cur) => cur || id);
+    }, 5 * 60 * 1000));
+    setPlanOffer(null);
+  }, [offerPlan]);
+
+  // Skip is the calendar's dismiss: the block is resolved as not done.
+  const skipPlanOffer = useCallback(() => {
+    if (!offerPlan) return;
+    const p = offerPlan;
+    const dismissedAt = new Date().toISOString();
+    dispatch({ type: 'RESOLVE_PLANNED', id: p.id, dismissedAt });
+    if (session) outbox.enqueue('upsert_planned', { id: p.id, subjectId: p.subjectId, startsAt: p.startsAt, durationMinutes: p.durationMinutes, title: p.title, notes: p.notes, fulfilledBy: null, dismissedAt, seriesId: p.seriesId ?? null });
+    offeredPlans.current.add(p.id);
+    setPlanOffer(null);
+    showFlash(t('cal.planDismissed'));
+  }, [offerPlan, session, showFlash, t]);
+
+  const closePlanOffer = useCallback(() => {
+    if (planOffer) offeredPlans.current.add(planOffer);
+    setPlanOffer(null);
+  }, [planOffer]);
 
   // NOTE: the sign-out handler lives in SettingsView.onSignOut (identical logic
   // incl. the guestMode=true anti-auto-re-sign-in fix). An earlier duplicate
@@ -869,7 +976,7 @@ export default function App() {
               <div className="page-turn" key={planSub}>
                 <Suspense fallback={null}>
                 {planSub==="calendar" &&
-                  <CalendarView state={state} dispatch={dispatch} session={session} showFlash={showFlash} tier={shellTier} onAddAsgn={()=>setShowAddAsgn(true)} onAddExam={()=>setShowAddExam(true)}/>}
+                  <CalendarView state={state} dispatch={dispatch} session={session} showFlash={showFlash} tier={shellTier} onAddAsgn={()=>setShowAddAsgn(true)} onAddExam={()=>setShowAddExam(true)} onStartPlan={openPlanStart}/>}
                 {planSub==="timetable" &&
                   <TimetableView state={state} dispatch={dispatch} session={session} showFlash={showFlash}/>}
                 {planSub==="list" &&
@@ -885,7 +992,7 @@ export default function App() {
               the course-detail pane of the three-pane layout, so it lands here
               rather than being patched out of the sidebar. */}
           {state.view==="status" &&<CourseDetailView state={state} dispatch={dispatch} session={session} showFlash={showFlash} tier={shellTier} onAddAsgn={()=>setShowAddAsgn(true)} onAddExam={()=>setShowAddExam(true)} onEditCourse={(c)=>setEditingCourse(c)}/>}
-          {state.view==="actions" &&<ActionsView state={state} dispatch={dispatch} showFlash={showFlash} onAddCourse={()=>setShowAddCourse(true)} onFirstStep={goFirstStep}/>}
+          {state.view==="actions" &&<ActionsView state={state} dispatch={dispatch} showFlash={showFlash} onAddCourse={()=>setShowAddCourse(true)} onFirstStep={goFirstStep} onStartPlan={openPlanStart}/>}
           {/* v1.9 Item 14a — Grades gains a Trends sub-tab. The analytics read
               grades AND study sessions together, and "how am I doing" is the
               question this screen already answers, so it belongs here rather
@@ -919,7 +1026,7 @@ export default function App() {
               </div>}
               <div className="page-turn" key={timerSub}>
                 <Suspense fallback={null}>
-                {timerSub==="timer" &&<TimerView   state={state} dispatch={dispatch} session={session} showFlash={showFlash} onTimerComplete={(payload)=>setPendingSession(payload)}/>}
+                {timerSub==="timer" &&<TimerView   state={state} dispatch={dispatch} session={session} showFlash={showFlash} onTimerComplete={(payload)=>setPendingSession(payload)} startRequest={timerStartReq} onStartHandled={()=>setTimerStartReq(null)}/>}
                 {timerSub==="log"   &&<SessionsView state={state} dispatch={dispatch} showFlash={showFlash} session={session} onLogPast={()=>setPendingSession(pastSessionDraft())}/>}
                 {timerSub==="stats" &&<StatsView    state={state}/>}
                 {/* The mobile home for the notebook. Same component as the
@@ -966,7 +1073,7 @@ export default function App() {
       <div style={{display:"flex",gap:8}}><button className="btn" onClick={addCourse}>{t('av.chrome.addCourse')}</button><button className="btn-outline" onClick={()=>setShowAddCourse(false)}>{t('common.cancel')}</button></div>
     </div></div>}
     {showAddAsgn&&<AddAsgnModal courses={courses} activeCourse={state.activeCourse} onAdd={(data)=>{dispatch({type:"ADD_ASSIGNMENT",title:data.title,courseId:data.courseId,assignType:data.type,dueDate:data.dueDate,dueTime:data.dueTime,notes:data.notes});setShowAddAsgn(false);showFlash(t('av.flash.assignmentAdded'));}} onClose={()=>setShowAddAsgn(false)}/>}
-    {showAddExam&&<AddExamModal courses={courses} activeCourse={state.activeCourse} onAdd={(data)=>{dispatch({type:"ADD_EXAM",...data});setShowAddExam(false);showFlash(t('av.flash.examAdded'));}} onClose={()=>setShowAddExam(false)}/>}
+    {showAddExam&&<Suspense fallback={null}><AddExamModal courses={courses} activeCourse={state.activeCourse} terms={state.academicTerms} onAdd={({dates,...data})=>{const ds=dates?.length?dates:[data.dueDate];for(const dueDate of ds)dispatch({type:"ADD_EXAM",...data,dueDate});setShowAddExam(false);showFlash(ds.length>1?t('av.flash.examsAdded',{count:ds.length}):t('av.flash.examAdded'));}} onClose={()=>setShowAddExam(false)}/></Suspense>}
     {editingCourse&&<EditCourseModal
       course={state.courses[editingCourse.id] || editingCourse}
       courses={state.courses}
@@ -982,22 +1089,42 @@ export default function App() {
         if (session) outbox.enqueue("delete_subject", { id });
       }}
       onClose={()=>setEditingCourse(null)}/>}
+    {offerPlan && isOpenPlan(offerPlan) && (
+      <Suspense fallback={null}><PlanStartSheet
+        plan={offerPlan}
+        course={offerPlan.subjectId ? state.courses[offerPlan.subjectId] : null}
+        onStart={startPlanRun}
+        onSnooze={snoozePlanOffer}
+        onSkip={skipPlanOffer}
+        onClose={closePlanOffer}
+      /></Suspense>
+    )}
     {pendingSession && (
       <SaveSessionSheet
         pending={pendingSession}
         courses={courses}
         canDebrief={!!session && state.aiEnabled}
         onClose={()=>setPendingSession(null)}
-        onSave={async ({subjectId, durationMinutes, notes, startedAt, focusRating, aiDebriefRaw, aiSubjectCovered, aiComprehension, aiConfusionFlags, aiSessionSummary}) => {
-          const id = newSyncId();
-          dispatch({type:"ADD_SESSION", id, subjectId: subjectId||null, startedAt, durationMinutes, notes, focusRating, aiDebriefRaw, aiSubjectCovered, aiComprehension, aiConfusionFlags, aiSessionSummary});
+        onSave={async (save) => {
+          // v1.19 (#185) — a round from a scheduled block's run creates the
+          // block's one session, or adds to it if an earlier round already
+          // did. A free timer run (no planId) is the plain ADD_SESSION it
+          // always was. See lib/planRun.js.
+          const steps = planSaveSteps({ save, planId: pendingSession.planId || null, plans: state.plannedSessions, sessions: state.studySessions, newId: newSyncId() });
+          for (const a of steps.actions) dispatch(a);
           setPendingSession(null);
-          showFlash(t('av.flash.logged', { n: durationMinutes }));
-          if (session) outbox.enqueue("log_session", { id, subjectId, startedAt, durationMinutes, notes, focusRating, aiDebriefRaw, aiSubjectCovered, aiComprehension, aiConfusionFlags, aiSessionSummary });
+          showFlash(t('av.flash.logged', { n: save.durationMinutes }));
+          if (session) for (const [op, payload] of steps.outbox) outbox.enqueue(op, payload);
         }}
       />
     )}
     {flash&&<div className="flash">{flash}</div>}
+    {undoOffer&&(
+      <div className="undo-bar" role="status" key={undoOffer.key}>
+        <span className="undo-bar-text">{t('done.markedDone', { title: undoOffer.title })}</span>
+        <button type="button" onClick={()=>{ dispatch(undoOffer.undo); setUndoOffer(null); }}>{t('done.undo')}</button>
+      </div>
+    )}
     {accountNotice&&(
       <div className="flash flash--notice" role="status">
         <span>{accountNotice}</span>

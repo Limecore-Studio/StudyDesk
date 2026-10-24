@@ -68,7 +68,7 @@ function FocusMinutesInput({ text, setText, commit, disabled, className, label }
 // quick remount, cannot complete the same block twice.
 let completedAwayRun = null;
 
-export default function TimerView({ state, onTimerComplete }) {
+export default function TimerView({ state, onTimerComplete, startRequest, onStartHandled }) {
   const { t } = useTranslation();
   // #54 — the user's day boundary, read once. Declared up here with the rest
   // of this component's stable values rather than beside the session panel
@@ -172,6 +172,15 @@ export default function TimerView({ state, onTimerComplete }) {
   // stale value or force the callback to rebuild on every keystroke.
   const courseIdRef = useRef(courseId);
   useEffect(()=>{ courseIdRef.current = courseId; },[courseId]);
+  // v1.19 (#185) — the scheduled block this run belongs to, or null for a
+  // free run. Persisted with the rest of the timer so a reload or a killed
+  // process keeps the link, and handed to App with every round so the save
+  // makes the block's one session instead of an unlinked one (lib/planRun.js).
+  // The run ends on reset, a mode switch, a course change, or the next block.
+  const [planId, setPlanId] = useState(() => (typeof _saved.planId === 'string' && _saved.planId) || null);
+  const planIdRef = useRef(planId);
+  useEffect(()=>{ planIdRef.current = planId; },[planId]);
+  const runPlan = planId ? (state.plannedSessions || []).find((p) => p.id === planId && !p.deletedAt) : null;
 
   // Background-safe elapsed tracking refs
   const startedAtRef = useRef(null);
@@ -219,6 +228,7 @@ export default function TimerView({ state, onTimerComplete }) {
         task: taskRef.current,
         subjectId: courseIdRef.current || null,
         startedAt: startedAtIso,
+        planId: planIdRef.current,
       });
       phaseStartedAtRef.current = null;
       // Lock In skips break cycling — stays on focus, ready for the next block.
@@ -340,19 +350,21 @@ export default function TimerView({ state, onTimerComplete }) {
         startedAt: startedAtRef.current,
         secsAtStart: secsAtStartRef.current,
         phaseStartedAt: phaseStartedAtRef.current,
+        planId,
       }));
       // v1.12 Item 8e — tell the app-level pill. localStorage does not raise
       // `storage` for same-document writes, so without this the pill would only
       // notice a start or stop on its next one-second tick.
       window.dispatchEvent(new CustomEvent(TIMER_CHANGE_EVENT));
     } catch {}
-  }, [customFocus, phase, secsLeft, running, session, focusDone, task, lockedIn, mode, courseId]);
+  }, [customFocus, phase, secsLeft, running, session, focusDone, task, lockedIn, mode, courseId, planId]);
 
 
   const toggle = () => setRunning(r=>!r);
   const reset = () => {
     setRunning(false);
     harvestFocus();
+    setPlanId(null);
     setSecsLeft(isStopwatch ? 0
       : phase==="focus" ? customFocus*60 : phase==="short" ? SHORT_SECS : LONG_SECS);
   };
@@ -375,6 +387,7 @@ export default function TimerView({ state, onTimerComplete }) {
     if (next === mode) return;
     setRunning(false);
     harvestFocus();
+    setPlanId(null);
     setMode(next);
     setPhase('focus');
     setSecsLeft(next === 'stopwatch' ? 0 : customFocus*60);
@@ -434,9 +447,36 @@ export default function TimerView({ state, onTimerComplete }) {
       task: taskRef.current,
       subjectId: courseIdRef.current || null,
       startedAt: startedAtIso,
+      planId: planIdRef.current,
     });
     phaseStartedAtRef.current = null;
   };
+
+  // v1.19 (#185) — "Start focus" on a scheduled block's start sheet. App
+  // hands the request down; a fresh `nonce` per tap makes each one apply
+  // once. Any focus time already on the clock is offered for saving first,
+  // under the run it belonged to, before the block's run replaces it.
+  const handledStart = useRef(null);
+  useEffect(() => {
+    if (!startRequest || handledStart.current === startRequest.nonce) return;
+    handledStart.current = startRequest.nonce;
+    harvestFocus();
+    const m = clampFocus(startRequest.minutes || customFocusRef.current);
+    setMode('pomodoro');
+    setPhase('focus');
+    setCustomFocus(m);
+    setCustomText(String(m));
+    setSecsLeft(m * 60);
+    setCourseId(startRequest.subjectId || '');
+    if (startRequest.label) setTask(startRequest.label);
+    setPlanId(startRequest.planId);
+    phaseStartedAtRef.current = null;
+    setRunning(true);
+    onStartHandled?.();
+  // harvestFocus reads this render's clock, which is the point; listing it
+  // would re-run the effect every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startRequest]);
 
   // Toggle Lock In: force a clean focus phase, hide nav, no breaks.
   // Exiting Lock In stops the timer cleanly so the user explicitly chooses
@@ -636,6 +676,13 @@ export default function TimerView({ state, onTimerComplete }) {
     {!isStopwatch&&<button className="lockin-enter" onClick={toggleLockIn} title={t('av.tm.lockInTitle')}>
       🔒 {t('av.tm.lockInBtn')}
     </button>}
+    {/* v1.19 (#185) — says which scheduled block these rounds count toward,
+        and lets the user cut the link without resetting the clock. */}
+    {runPlan&&<div className="pomo-plan" role="status">
+      <span className="pomo-plan-dot" style={{background:state.courses?.[runPlan.subjectId]?.color||"var(--border2)"}}/>
+      <span className="pomo-plan-text">{t('pr.runLabel',{title:runPlan.title||state.courses?.[runPlan.subjectId]?.name||t('notif.planFallback')})}</span>
+      <button type="button" className="btn-danger-text" onClick={()=>setPlanId(null)} title={t('pr.endRun')} aria-label={t('pr.endRun')}>×</button>
+    </div>}
     <div className="pomo-task-row">
       <div className="pomo-task-label">{t('av.tm.studying')}</div>
       <input type="text" placeholder={t('av.tm.workingPlaceholder')} value={task} onChange={e=>setTask(e.target.value)} style={{fontSize:14,padding:"10px 12px"}}/>
@@ -650,6 +697,9 @@ export default function TimerView({ state, onTimerComplete }) {
         onChange={e=>{
           const id = e.target.value;
           setCourseId(id);
+          // A different subject is a different piece of study, not more of
+          // the block's (#185): the run ends and later rounds save freely.
+          if (planId) setPlanId(null);
           const c = courses.find(x=>x.id===id);
           // Only fill an EMPTY task line. Overwriting "chapter 7 problems"
           // with "Physics" because the user then picked the course would

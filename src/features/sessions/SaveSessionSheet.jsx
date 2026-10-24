@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { analyseStudySession } from '../../lib/aiStudyDebrief.js';
 import { fmtTime } from '../../lib/dates.js';
 import { enterSubmit } from '../../lib/imeSubmit.js';
+import DateInput from '../../lib/DateInput.jsx';
 
 // `datetime-local` reads and writes LOCAL wall-clock time with no zone, so it
 // must never be fed or read through toISOString(). NCC 1.10.1 shipped exactly
@@ -133,7 +134,7 @@ export default function SaveSessionSheet({ pending, courses, onSave, onClose, ca
           <div className="input-group">
             <div className="input-label">{editableWhen ? t('ss.fWhen') : t('ss.fStarted')}</div>
             {editableWhen ? (
-              <input
+              <DateInput
                 type="datetime-local"
                 value={startedLocal}
                 // A "past session" in the future is a typo, not a record.

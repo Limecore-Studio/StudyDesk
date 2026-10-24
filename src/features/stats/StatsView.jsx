@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { calculateGPA, subjectsWithEffectiveGrades } from '../../lib/gpa.js';
+import { overallAverage } from '../../lib/gpa.js';
+import { scaleFor } from '../../lib/gradeScale.js';
 import { preferredDayStart, studyDayKey, todayStudyDayKey, shiftDayKey } from '../../lib/studyDay.js';
 
 // ── BUG-21: Study Statistics Dashboard ───────────────────────────────────────
@@ -168,13 +169,13 @@ export default function StatsView({ state }) {
     const months = Array.from(new Set(grades.map((g) => g.date.slice(0, 7)))).sort();
     const points = months.map((m) => {
       const upTo = grades.filter((g) => g.date.slice(0, 7) <= m);
-      const aggregates = subjectsWithEffectiveGrades(coursesMap, upTo);
-      return { month: m, gpa: calculateGPA(aggregates, mode) };
+      // v1.19 (#178) — the same average the Grades screen shows, report grades included.
+      return { month: m, gpa: overallAverage(coursesMap, upTo, mode, scaleFor(mode, state.customScale)).value };
     }).filter((p) => Number.isFinite(p.gpa) && p.gpa > 0);
 
     const vals = points.map((p) => p.gpa);
     return { points, min: Math.min(...vals), max: Math.max(...vals) };
-  }, [state.courses, state.grades, mode]);
+  }, [state.courses, state.grades, mode, state.customScale]);
 
   // ── v1.4 AI debrief insights: avg comprehension + recurring confusion ──────
   const aiInsights = useMemo(() => {

@@ -97,7 +97,9 @@ async function sha256(text) {
  * Feed items → assignment payloads.
  *
  * @param {Array} items      from `toFeedItems`
- * @param {string|null} courseId  the course the user filed this feed under
+ * @param {string|null|function} courseId  the course the user filed this feed
+ *   under, or (v1.19, #187) a function from item to course id, so each item can
+ *   go to its own source course's mapping (see courseForItem)
  *
  * The `type` is set to a fixed marker rather than guessed from the title.
  * The build plan is explicit about why:
@@ -118,7 +120,7 @@ export async function toAssignments(items, courseId) {
     if (!item.uid || !item.dueDate) continue;
     out.push({
       id: await idForUid(item.uid),
-      courseId: courseId || null,
+      courseId: (typeof courseId === 'function' ? courseId(item) : courseId) || null,
       title: item.title || item.uid,
       type: 'imported',
       dueDate: item.dueDate,
@@ -151,4 +153,57 @@ function buildNotes(item) {
   // A description in a feed can be kilobytes of boilerplate. Truncated with
   // an ellipsis rather than dropped, so the user can see there was more.
   return joined.length > 2000 ? `${joined.slice(0, 1999)}…` : (joined || null);
+}
+
+// ── v1.19 (#187) — which course an imported item belongs to ──────────────
+//
+// A feed used to be filed under ONE course (or none), so a term of items from
+// six courses all landed on one of them, or on none — and an assignment with
+// no course never syncs (useCloudPushers skips it). The feed itself says which
+// course each item is from. Checked against the generator's own source
+// (instructure/canvas-lms app/models/calendar_event.rb, 2026-10-22), not
+// assumed:
+//
+//   URL      …/calendar?include_contexts=course_<id>&month=…#assignment_<id>
+//   SUMMARY  "<title> [<course_code>]" when the item belongs to a course
+//
+// The course id from the URL is the key (a course code can repeat across
+// sections); the bracketed code is the label. A feed from elsewhere that only
+// brackets a code still groups by it; one with neither is not mappable and
+// stays on the feed's default course, exactly as before.
+
+const CONTEXT_RE = /[?&]include_contexts=(course_\d+)/;
+const CODE_RE = /\s\[([^[\]]+)\]\s*$/;
+
+/** `{ key, label }` for the source course an item came from, or null. */
+export function sourceCourse(item) {
+  const code = CODE_RE.exec(item?.title || '')?.[1]?.trim() || null;
+  const ctx = CONTEXT_RE.exec(item?.url || '')?.[1] || null;
+  if (ctx) return { key: ctx, label: code || `#${ctx.slice('course_'.length)}` };
+  if (code) return { key: `code:${code}`, label: code };
+  return null;
+}
+
+/** The source courses in a feed's items, with how many items each has. */
+export function sourceCourses(items) {
+  const byKey = new Map();
+  for (const it of items || []) {
+    const s = sourceCourse(it);
+    if (!s) continue;
+    const cur = byKey.get(s.key);
+    if (cur) cur.count++;
+    else byKey.set(s.key, { ...s, count: 1 });
+  }
+  return [...byKey.values()].sort((a, b) => a.label.localeCompare(b.label));
+}
+
+/**
+ * The StudyDesk course an item goes to: its source course's mapping when
+ * there is one (and the course still exists), else the feed's default.
+ */
+export function courseForItem(item, feed, courseExists = () => true) {
+  const s = sourceCourse(item);
+  const mapped = s ? feed?.courseMap?.[s.key] : null;
+  if (mapped && courseExists(mapped)) return mapped;
+  return feed?.courseId || null;
 }

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { subjectEffectiveGrade, subjectsWithEffectiveGrades, calculateGPA } from '../../lib/gpa.js';
+import { subjectEffectiveGrade, subjectsWithEffectiveGrades, overallAverage } from '../../lib/gpa.js';
+import { activeReport, reportText, subjectReport } from '../../lib/reportGrade.js';
 
 // v1.5 (5C) — read-only Period/Jakso history. Groups ARCHIVED courses by
 // school_year → period (the `semester` string tag), computes a per-group GPA
@@ -31,7 +32,9 @@ const css = `
 const NO_YEAR = '__noyear__';
 const NO_PERIOD = '__noperiod__';
 
-export default function PeriodHistory({ courses, grades, mode = 'ib' }) {
+export default function PeriodHistory({ courses, grades, mode = 'ib', scale = null }) {
+  // v1.19 (#178) — report grades when the scale's report-card rule is on.
+  const report = mode === 'custom' ? activeReport(scale) : null;
   const { t } = useTranslation();
   const grouped = useMemo(() => {
     const archived = Object.values(courses || {}).filter((c) => !c.deletedAt && c.archivedAt);
@@ -95,7 +98,7 @@ export default function PeriodHistory({ courses, grades, mode = 'ib' }) {
             const key = `${yKey}::${pKey}`;
             const isOpen = open.has(key);
             const effective = subjectsWithEffectiveGrades(subs, grades);
-            const gpa = calculateGPA(effective, mode);
+            const gpa = overallAverage(subs, grades, mode, scale).value;
             const graded = effective.length;
             return (
               <div className="ph-period" key={key}>
@@ -122,6 +125,7 @@ export default function PeriodHistory({ courses, grades, mode = 'ib' }) {
                     {subs.map((c) => {
                       const own = (grades || []).filter((g) => g.subjectId === c.id && !g.deletedAt);
                       const eff = subjectEffectiveGrade(own);
+                      const rep = report ? subjectReport(own, report) : null;
                       return (
                         <div className="ph-course" key={c.id}>
                           <div className="ph-course-name">
@@ -129,7 +133,7 @@ export default function PeriodHistory({ courses, grades, mode = 'ib' }) {
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
                           </div>
                           <div className={`ph-course-grade${eff == null ? ' none' : ''}`}>
-                            {eff == null ? t('history.noGrades') : Math.round(eff * 100) / 100}
+                            {eff == null ? t('history.noGrades') : rep ? reportText(rep) : Math.round(eff * 100) / 100}
                           </div>
                         </div>
                       );

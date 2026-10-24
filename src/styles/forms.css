@@ -136,6 +136,31 @@ input[type=text],input[type=password],input[type=date],input[type=time],input[ty
 .timer-subtab.active{background:var(--text);color:var(--bg);}
 .modal-title{font-family:var(--font-display);font-size:18px;margin-bottom:20px;}
 .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+/* v1.19 (#186) — the in-app date/time sheet (src/lib/DateInput.jsx). It opens
+   on top of whatever modal holds the field, so it sits one layer above them.
+   Same paper modal, same mono labels; the chosen day takes the ink fill the
+   primary button uses, today gets a hairline ring. */
+.dtp-overlay{z-index:200;}
+.modal.dtp{width:340px;padding:20px 18px 18px;}
+.dtp-section{margin-bottom:14px;}
+.dtp-section .input-label{margin:10px 0 6px;}
+.dtp-month{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.dtp-month-label{font-family:var(--font-display);font-size:17px;}
+.dtp-nav{background:transparent;border:1px solid var(--border2);color:var(--text);width:36px;height:36px;border-radius:4px;font-size:18px;line-height:1;cursor:pointer;}
+.dtp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.dtp-weekdays span{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--muted);text-align:center;padding:4px 0;text-transform:uppercase;}
+.dtp-day{background:transparent;border:1px solid transparent;color:var(--text);font-family:var(--font-mono);font-size:13px;height:38px;border-radius:4px;cursor:pointer;}
+.dtp-day.out{color:var(--muted2);}
+.dtp-day.today{border-color:var(--border2);}
+.dtp-day.sel,.dtp-chip.sel{background:var(--accent);color:var(--accent-on);border-color:var(--accent);}
+.dtp-day:disabled{opacity:0.3;cursor:default;}
+.dtp-chips{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;}
+.dtp-chip{background:transparent;border:1px solid var(--border2);color:var(--text);font-family:var(--font-mono);font-size:12px;height:34px;border-radius:4px;cursor:pointer;}
+.dtp-readout{font-family:var(--font-mono);font-size:12px;color:var(--muted);text-align:center;padding:8px 0 12px;border-top:1px solid var(--border);}
+.dtp-actions{display:flex;align-items:center;gap:8px;}
+.dtp-spacer{flex:1;}
+.dtp-actions .btn:disabled{opacity:0.4;cursor:default;}
+@media (prefers-reduced-motion: reduce){.dtp-overlay,.modal.dtp{animation:none;}}
 /* v1.12.1 — a modal that refuses to save has to say so. Same visual
    language as `.auth-error`, which is the one place in the app that was
    already doing this properly. `[aria-invalid]` marks the field the
@@ -164,3 +189,37 @@ input[type=text],input[type=password],input[type=date],input[type=time],input[ty
   .input-row{flex-direction:column;align-items:stretch;}
   .btn,.btn-outline{text-align:center;}
 }
+/* v1.19 (#185) — a scheduled block's start sheet (features/timer/PlanStartSheet).
+   A whole page, not a modal: this is a moment, the start of a block, and the
+   one decision on it is "start now?". The subject's colour runs across the top
+   as a band that draws in from the left; everything else is the paper page. */
+.pss{position:fixed;inset:0;z-index:300;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px 20px calc(24px + env(safe-area-inset-bottom));animation:fadeOverlay 200ms var(--ease-paper);}
+.pss-close{position:absolute;top:calc(14px + env(safe-area-inset-top));inset-inline-end:14px;width:40px;height:40px;border-radius:50%;border:1px solid var(--border2);background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.pss-body{width:100%;max-width:420px;animation:pssRise 420ms var(--ease-settle) both;}
+.pss-band{height:6px;border-radius:3px;background:var(--pss-colour);transform-origin:left center;animation:pssBand 560ms var(--ease-settle) 80ms both;margin-bottom:28px;}
+[dir="rtl"] .pss-band{transform-origin:right center;}
+.pss-kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.pss-title{font-family:var(--font-display);font-weight:400;font-size:34px;line-height:1.15;margin:0 0 14px;color:var(--text);overflow-wrap:anywhere;}
+.pss-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.pss-duration{font-family:var(--font-mono);font-size:12px;color:var(--muted);}
+.pss-notes{font-size:14px;color:var(--muted);margin:0 0 8px;}
+.pss-actions{margin-top:32px;display:flex;flex-direction:column;gap:10px;}
+.pss-start{width:100%;padding:16px 18px;font-size:13px;}
+.pss-secondary{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pss-secondary .btn-outline{padding:12px 14px;}
+@keyframes pssRise{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+@keyframes pssBand{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+@media (prefers-reduced-motion: reduce){.pss-body,.pss-band{animation:none;}.pss{animation:fadeOverlay 200ms linear;}}
+/* v1.19 (#87, #98) — the Done list and the undo bar after a tick. */
+.done-list{width:520px;}
+.done-day{margin-bottom:14px;}
+.done-empty{font-size:13px;color:var(--muted);padding:6px 0 10px;}
+.done-kind{font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted2);flex-shrink:0;align-self:center;}
+.done-list .action-item{align-items:center;}
+button.asgn-check{padding:0;background:transparent;appearance:none;}
+button.asgn-check.checked{background:var(--text);}
+.done-open{display:block;margin:4px 0 18px;background:transparent;border:none;padding:6px 0;font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+.undo-bar{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);background:var(--text);color:var(--bg);padding:8px 8px 8px 16px;font-family:var(--font-mono);font-size:11px;border-radius:4px;box-shadow:var(--shadow-md);animation:fadeup 0.2s ease;z-index:210;}
+.undo-bar-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.undo-bar button{background:transparent;border:1px solid currentColor;color:inherit;font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 12px;border-radius:3px;cursor:pointer;flex-shrink:0;}
+@media (max-width:768px){.undo-bar{bottom:calc(84px + env(safe-area-inset-bottom));}}

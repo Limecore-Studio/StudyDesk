@@ -50,7 +50,7 @@ export function useOutboxTriggers(requestPullRef) {
   }, [requestPullRef]);
 }
 
-export function useReminderActions(dispatch) {
+export function useReminderActions(dispatch, onOpenPlan) {
   // Listen for "Mark done" action-button taps on assignment reminders.
   // The handler dispatches TOGGLE_ASSIGNMENT — since reschedules filter out
   // assignments where done===true, the next scheduling pass naturally drops
@@ -78,6 +78,12 @@ export function useReminderActions(dispatch) {
             // ActionsView ("Next Up") would imply but "plan" surfaces all
             // upcoming work, which matches the tap intent better.
             if (event.actionId === "tap") {
+              // v1.19 (#185) — a scheduled block's reminder opens that
+              // block's start sheet instead, on top of whatever screen the
+              // app was on. With the app killed this fires once the listener
+              // is registered at launch, which is the same path.
+              const planId = event.notification?.extra?.planId;
+              if (planId && onOpenPlan) { onOpenPlan(planId); return; }
               dispatch({ type: "SET_VIEW", view: "plan" });
               return;
             }
@@ -89,5 +95,5 @@ export function useReminderActions(dispatch) {
         );
     handlePromise.catch((e) => console.warn("[StudyDesk] action listener failed:", e));
     return () => { handlePromise.then((h) => h.remove()).catch(() => {}); };
-  }, [dispatch]);
+  }, [dispatch, onOpenPlan]);
 }

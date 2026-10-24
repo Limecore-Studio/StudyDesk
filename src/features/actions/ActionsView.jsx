@@ -2,9 +2,14 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { setLanguage, SUPPORTED_LANGS, LANGUAGE_NAMES } from "../../i18n/index.js";
 import { useScrollSelectedIntoView } from "../../lib/useScrollSelectedIntoView.js";
-import { daysUntil } from "../../lib/deadlines.js";
+import { daysUntil, examStudyPlan } from "../../lib/deadlines.js";
+import { fmtDate } from "../../lib/dates.js";
 import { enterSubmit } from "../../lib/imeSubmit.js";
 import FirstSteps from "../onboarding/FirstSteps.jsx";
+import { fmtTime } from "../../lib/dates.js";
+import { openPlansBetween } from "../../lib/planRun.js";
+import DoneList from "./DoneList.jsx";
+import { doneItems, isExpiredDoneAction, offerUndo } from "../../lib/doneList.js";
 
 const BUCKETS = ["today", "this_week", "later"];
 const BUCKET_COLORS = {
@@ -14,10 +19,15 @@ const BUCKET_COLORS = {
 };
 
 // ── ActionsView — Next Up ─────────────────────────────────────────────────────
-export default function ActionsView({ state, dispatch, showFlash, onAddCourse, onFirstStep }) {
+export default function ActionsView({ state, dispatch, showFlash, onAddCourse, onFirstStep, onStartPlan }) {
   const { t, i18n } = useTranslation();
   const currentLang = (i18n.language || "en").split("-")[0];
   const langRef = useScrollSelectedIntoView();
+  // v1.19 (#87) — the Done list sheet.
+  const [showDone, setShowDone] = useState(false);
+  const doneCount = doneItems(state).length;
+  const doneLink = doneCount>0&&<button type="button" className="done-open" onClick={()=>setShowDone(true)}>{t('done.open',{count:doneCount})}</button>;
+  const doneSheet = showDone&&<DoneList state={state} dispatch={dispatch} showFlash={showFlash} onClose={()=>setShowDone(false)}/>;
   const [newText, setNewText] = useState(""); const [newBucket, setNewBucket] = useState("today"); const [newCourse, setNewCourse] = useState("");
   const courses = Object.values(state.courses).filter(c => !c.deletedAt);
   // v1.5 (5D) — active = non-archived. When every course is archived (a new
@@ -34,13 +44,20 @@ export default function ActionsView({ state, dispatch, showFlash, onAddCourse, o
       actions.push({id:"sugg-a-"+a.id,text:(c?c.name+": ":"")+a.title,bucket,sourceId:a.id,sourceType:"assignment",suggested:true,courseId:a.courseId||null,done:false});
     });
     // Only surface exams that are incomplete and not past their date
-    state.exams.filter(e=>!e.done&&e.dueDate&&daysUntil(e.dueDate)>-1).sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)).slice(0,3).forEach(e=>{
-      const d=daysUntil(e.dueDate); const c=state.courses[e.courseId];
+    // v1.19 (#154) — ordered by when to START studying, and saying so: with
+    // exams close together, the exam day alone did not say which one to open.
+    examStudyPlan(state.exams).forEach(({exam:e,start,startIn,dueIn,bucket})=>{
+      const c=state.courses[e.courseId];
       const incompTopics=(e.topics||[]).filter(t=>!t.done);
-      const bucket=d<=3?"today":d<=7?"this_week":"later";
       const exLabel=(c?c.name+": ":"")+e.title;
-      if(incompTopics.length>0){actions.push({id:"sugg-e-"+e.id,text:t('av.ec.studyFor',{label:exLabel})+" — "+incompTopics[0].title+(incompTopics.length>1?t('av.ec.topicMore',{n:incompTopics.length-1}):""),bucket,sourceId:e.id,sourceType:"exam",suggested:true,courseId:e.courseId||null,done:false});}
-      else{actions.push({id:"sugg-e-"+e.id,text:t('av.ec.prepareFor',{label:exLabel}),bucket,sourceId:e.id,sourceType:"exam",suggested:true,courseId:e.courseId||null,done:false});}
+      const when=dueIn===0?t('av.ec.examToday'):dueIn===1?t('av.ec.examTomorrow'):t('av.ec.examInDays',{n:dueIn});
+      const difficulty=t(`av.difficulty.${e.difficulty||"medium"}`);
+      const text=startIn>0
+        ? t('av.ec.startStudyingOn',{label:exLabel,date:fmtDate(start),difficulty})
+        : incompTopics.length>0
+          ? t('av.ec.studyFor',{label:exLabel})+" — "+incompTopics[0].title+(incompTopics.length>1?t('av.ec.topicMore',{n:incompTopics.length-1}):"")+" · "+when
+          : t('av.ec.startStudyingNow',{label:exLabel,difficulty,when});
+      actions.push({id:"sugg-e-"+e.id,text,bucket,sourceId:e.id,sourceType:"exam",suggested:true,courseId:e.courseId||null,done:false});
     });
     return actions;
   })();
@@ -57,19 +74,20 @@ export default function ActionsView({ state, dispatch, showFlash, onAddCourse, o
     })();
     return now < purgeAt;
   });
-  // Purge stale done actions from state on mount
+  // Purge old done actions from state on mount. v1.19 (#87): they used to go
+  // the morning after being ticked, which is what made a misclicked task
+  // unrecoverable. They now stay in the Done list for DONE_ACTION_KEEP_DAYS;
+  // Next Up still stops SHOWING them after 3am, as above.
   useEffect(() => {
-    const stale = state.actions.filter(a => {
-      if (!a.done || !a.doneAt) return a.done;
-      const purgeAt = (() => {
-        const d = new Date(a.doneAt); d.setHours(3, 0, 0, 0); d.setDate(d.getDate() + 1);
-        return d.getTime();
-      })();
-      return now >= purgeAt;
-    });
+    const stale = state.actions.filter(a => isExpiredDoneAction(a, now));
     stale.forEach(a => dispatch({type:"DELETE_ACTION", id:a.id}));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const todayPlans = (() => {
+    const start = new Date(now); start.setHours(0, 0, 0, 0);
+    const end = new Date(start); end.setDate(end.getDate() + 1);
+    return openPlansBetween(state.plannedSessions, start.getTime(), end.getTime());
+  })();
   const allActions = [...visibleManual, ...suggestedActions.filter(s=>!visibleManual.some(a=>a.sourceId===s.sourceId&&a.suggested))];
   const addAction = () => { if(!newText.trim()) return; dispatch({type:"ADD_ACTION",text:newText.trim(),bucket:newBucket,courseId:newCourse||null}); setNewText(""); showFlash(t('av.act.addedToNextUp')); };
   // v1.5 (5D) — empty-period / first-run re-onboarding: no active courses to plan around.
@@ -112,8 +130,12 @@ export default function ActionsView({ state, dispatch, showFlash, onAddCourse, o
         <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:12}}>
           <button className="btn btn-sm" onClick={()=>dispatch({type:"SET_VIEW",view:"plan"})}>{t('nextup.goToPlan')}</button>
         </div>
+        {/* Ticking off the last deadline lands here, so the way back to what
+            was just ticked has to be here too (#87). */}
+        {doneLink}
       </div>
     </div>
+    {doneSheet}
   </div>;
   // Three buckets side by side on a wide screen rather than stacked: Today /
   // This week / Later are a natural three-column read, and stacking them is
@@ -126,6 +148,24 @@ export default function ActionsView({ state, dispatch, showFlash, onAddCourse, o
         carry their own prompt and stacking a second would be the wizard this
         deliberately is not. */}
     <FirstSteps state={state} onGo={onFirstStep}/>
+    {/* v1.19 (#185) — today's scheduled blocks that are still owed, each
+        startable in the timer. A block run that way saves as the block's one
+        session, so nothing here can make a duplicate. */}
+    {todayPlans.length>0&&<div className="bucket-section">
+      <div className="bucket-header"><div className="bucket-dot" style={{background:BUCKET_COLORS.today.bg}}/>{t('pr.todayBlocks')}</div>
+      {todayPlans.map(p=>{
+        const c=p.subjectId?state.courses[p.subjectId]:null;
+        return <div key={p.id} className="action-item" style={{alignItems:"center"}}>
+          <span aria-hidden="true" style={{width:8,height:8,borderRadius:"50%",flexShrink:0,background:c?.color||"var(--border2)"}}/>
+          <div className="action-text">
+            <span style={{fontFamily:"var(--font-mono)",fontSize:12,color:"var(--muted)",marginInlineEnd:8}}>{fmtTime(p.startsAt)}</span>
+            {p.title||c?.name||t('notif.planFallback')}
+            <span style={{fontFamily:"var(--font-mono)",fontSize:11,color:"var(--muted2)",marginInlineStart:8}}>{t('pr.minutes',{n:p.durationMinutes})}</span>
+          </div>
+          <button className="btn btn-sm" onClick={()=>onStartPlan?.(p.id)}>{t('pr.start')}</button>
+        </div>;
+      })}
+    </div>}
     {BUCKETS.map(bucket=>{
       const items=allActions.filter(a=>a.bucket===bucket);
       if(items.length===0) return null;
@@ -134,12 +174,13 @@ export default function ActionsView({ state, dispatch, showFlash, onAddCourse, o
         <div className="bucket-header"><div className="bucket-dot" style={{background:col.bg}}/>{t(`av.bucket.${bucket}`)}</div>
         {items.map(a=><div key={a.id} className={"action-item"+(a.done?" done":"")+(a.suggested?" suggested":"")}>
           <div className={"asgn-check"+(a.done?" checked":"")} onClick={()=>{
-            if(a.suggested){
-              if(a.sourceType==="assignment") dispatch({type:"TOGGLE_ASSIGNMENT",id:a.sourceId});
-              else if(a.sourceType==="exam") dispatch({type:"TOGGLE_EXAM",id:a.sourceId});
-            } else {
-              dispatch({type:"TOGGLE_ACTION",id:a.id});
-            }
+            const toggle = a.suggested
+              ? (a.sourceType==="assignment" ? {type:"TOGGLE_ASSIGNMENT",id:a.sourceId} : a.sourceType==="exam" ? {type:"TOGGLE_EXAM",id:a.sourceId} : null)
+              : {type:"TOGGLE_ACTION",id:a.id};
+            if(!toggle) return;
+            dispatch(toggle);
+            // v1.19 (#87) — a tick can be taken back for a few seconds.
+            if(!a.done) offerUndo(a.text, toggle);
           }}/>
           <div className={"action-text"+(a.done?" done":"")}>{a.text}</div>
           {!a.suggested&&<button className="btn-danger-text" onClick={()=>dispatch({type:"DELETE_ACTION",id:a.id})}>×</button>}
@@ -147,6 +188,8 @@ export default function ActionsView({ state, dispatch, showFlash, onAddCourse, o
         </div>)}
       </div>;
     })}
+    {doneLink}
+    {doneSheet}
     <div className="divider"/>
     <div className="section-label">{t('av.act.addManually')}</div>
     <div className="quick-add-box">

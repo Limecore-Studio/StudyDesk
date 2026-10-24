@@ -1,0 +1,3 @@
+Planeje e foque.
+
+Um bloco de estudo agendado agora abre no timer e é salvo como uma só sessão; o calendário o marca como feito. As notas aceitam tendências como 2+ e 1-, com média de boletim e um modelo alemão DIA. Uma lista de concluídos recupera o que foi marcado por engano, com Desfazer logo depois. O app mostra quando começar a estudar para cada prova, provas podem se repetir toda semana, feeds de calendário se ligam às suas matérias e os campos de data funcionam em qualquer celular.

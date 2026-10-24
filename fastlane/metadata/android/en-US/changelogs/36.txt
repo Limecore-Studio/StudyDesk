@@ -1,0 +1,3 @@
+Plan, then focus.
+
+A scheduled study block now opens in the timer and saves as one session, and the calendar marks it done. Grades can use tendency steps like 2+ and 1-, with report-card averages and a German DIA preset. A Done list brings back items ticked by mistake, with Undo right after a tick. The app shows when to start studying for each exam, exams can repeat weekly, calendar feeds map to your courses, and date fields work on every phone.

@@ -28,6 +28,7 @@ import { formatLocale, parseLocalDate } from '../../lib/dates.js';
 import * as outbox from '../../lib/outbox.js';
 import '../../styles/timetable.css';
 import { enterSubmit } from '../../lib/imeSubmit.js';
+import DateInput from '../../lib/DateInput.jsx';
 
 const DEFAULT_LESSON_MIN = 75;
 // Default hour window for the week grid. Referenced by name from desktop.css,
@@ -154,11 +155,11 @@ function TermForm({ draft, onSave, onClose, t }) {
         <div className="tt-form-row">
           <div className="input-group">
             <div className="input-label">{t('tt.fStarts')}</div>
-            <input type="date" value={startsOn} onChange={(e) => { setStartsOn(e.target.value); setErr(''); }} />
+            <DateInput type="date" value={startsOn} onChange={(e) => { setStartsOn(e.target.value); setErr(''); }} />
           </div>
           <div className="input-group">
             <div className="input-label">{t('tt.fEnds')}</div>
-            <input type="date" value={endsOn} onChange={(e) => { setEndsOn(e.target.value); setErr(''); }} />
+            <DateInput type="date" value={endsOn} onChange={(e) => { setEndsOn(e.target.value); setErr(''); }} />
           </div>
         </div>
         <div className="tt-hint">{t('tt.datesHint')}</div>
@@ -287,11 +288,11 @@ function LessonForm({ draft, courses, terms, onSave, onDelete, onClose, t }) {
         <div className="tt-form-row">
           <div className="input-group">
             <div className="input-label">{t('tt.fStart')}</div>
-            <input type="time" step="300" value={start} onChange={(e) => { setStart(e.target.value); setErr(''); }} />
+            <DateInput type="time" step="300" value={start} onChange={(e) => { setStart(e.target.value); setErr(''); }} />
           </div>
           <div className="input-group">
             <div className="input-label">{t('tt.fEnd')}</div>
-            <input type="time" step="300" value={end} onChange={(e) => { setEnd(e.target.value); setErr(''); }} />
+            <DateInput type="time" step="300" value={end} onChange={(e) => { setEnd(e.target.value); setErr(''); }} />
           </div>
         </div>
         <div className="input-group">

@@ -25,6 +25,8 @@
 // German and Czech 1–5/1–6 have 1 as best. It costs one comparison, and leaving
 // it out means revisiting all of this the first time a German user asks.
 
+import { DE15_REPORT, DE15_STEPS, normalizeReport, normalizeSteps } from './reportGrade.js';
+
 const GRADE_MODES = ['ib', 'us', 'custom'];
 
 /** Largest magnitude `grades.grade numeric(7,2)` can hold, kept one decade
@@ -84,6 +86,10 @@ export const SCALE_PRESETS = [
   // different question and is one edit away for anyone whose school uses it.
   { id: 'usgpa', labelKey: 'settings.scalePresetUsGpa', scale: { min: 0, max: 4, passMark: 1, direction: 'up' } },
   { id: 'fi410', labelKey: 'settings.scalePresetFi', scale: { min: 4, max: 10, passMark: 5, direction: 'up' } },
+  // v1.19 (#178, folds in #70) — DIA / German Abitur points with their 1–6
+  // tendency names and the whole-grade report card. Pass 5: 0–4 points is a
+  // deficit course (Unterkurs). See lib/reportGrade.js.
+  { id: 'de15', labelKey: 'settings.scalePresetDe', scale: { min: 0, max: 15, passMark: 5, direction: 'up', steps: DE15_STEPS, report: DE15_REPORT } },
   // Mode shortcuts, not scales. Tapping one leaves Custom — and the chip row
   // with it, since the row only renders in Custom. That disappearance is the
   // feedback: you are on the built-in scale now, not a copy of it.
@@ -137,7 +143,15 @@ export function normalizeScale(raw) {
   // Capped because it is rendered into a fixed-height hero line, and trimmed
   // so a stray space does not count as a name and defeat the fallback.
   const name = typeof raw?.name === 'string' ? raw.name.trim().slice(0, 24) : '';
-  return { min, max, passMark, direction, name };
+  // v1.19 (#178) — named steps and the report-card rule, both optional. Only
+  // present when set, so every scale without them keeps its exact old shape
+  // (and its cloud value, and its scaleKey).
+  const out = { min, max, passMark, direction, name };
+  const steps = normalizeSteps(raw?.steps);
+  const report = normalizeReport(raw?.report);
+  if (steps) out.steps = steps;
+  if (report) out.report = report;
+  return out;
 }
 
 /** The active scale's bounds, whichever mode is in play. */

@@ -1,0 +1,3 @@
+Planifica y concéntrate.
+
+Un bloque programado se abre en el temporizador y se guarda como una sola sesión; el calendario lo marca como hecho. Las notas admiten matices como 2+ y 1-, con media de boletín y un preajuste alemán DIA. Una lista de hechos recupera lo marcado por error, con Deshacer justo después. Verás cuándo empezar a estudiar cada examen, los exámenes pueden repetirse cada semana, los calendarios suscritos se asignan a tus cursos y las fechas funcionan en cualquier móvil.

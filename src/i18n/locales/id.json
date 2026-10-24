@@ -258,7 +258,7 @@
     "scaleDirection": "Ujung mana yang terbaik",
     "scaleHighBest": "Tinggi",
     "scaleLowBest": "Rendah",
-    "gradeNoteCustom": "Skala angka Anda sendiri — rata-ratanya adalah rata-rata terbobot, sama seperti IB. Disimpan hanya di perangkat ini dan tidak disinkronkan. Perhitungan resmi sekolah Anda tetap yang berlaku.",
+    "gradeNoteCustom": "Skala angka Anda sendiri — rata-ratanya adalah rata-rata terbobot dari nilai Anda, atau dari nilai rapor jika rapor menampilkan nilai bulat. Skala ini mengikuti akun Anda ke perangkat lain dan ke Nexus. Perhitungan resmi sekolah Anda tetap yang berlaku.",
     "support": "Dukungan",
     "supportDev": "Dukung pengembangan",
     "supportDevSub": "Tautan ke Ko-fi. Tidak ada fitur yang dikunci karenanya.",
@@ -430,7 +430,15 @@
     "fdroidCheckNote": "Sekali sehari, StudyDesk menanyakan versi terbaru ke f-droid.org. Tidak ada data tentang Anda yang dikirim. Jika dimatikan, permintaan ini tidak dikirim sama sekali.",
     "otherAccountCleared": "Kamu masuk ke akun lain, jadi data akun sebelumnya dihapus dari perangkat ini.",
     "otherAccountClearedUnsent_other": "Kamu masuk ke akun lain, jadi data akun sebelumnya dihapus dari perangkat ini, termasuk {{count}} perubahan yang belum tersinkron.",
-    "otherTabReloaded": "Kamu masuk atau keluar di tab lain, jadi tab ini dimuat ulang."
+    "otherTabReloaded": "Kamu masuk atau keluar di tab lain, jadi tab ini dimuat ulang.",
+    "scalePresetDe": "Jerman · DIA 0–15 (1–6)",
+    "reportGrades": "Rapor",
+    "reportWhole": "Nilai bulat",
+    "reportFine": "Rata-rata poin",
+    "reportMethod": "Urutan",
+    "reportConvertFirst": "Ubah tiap nilai, lalu rata-ratakan",
+    "reportAverageFirst": "Rata-ratakan poin, lalu ubah",
+    "reportNote": "Dengan nilai bulat, tiap mata pelajaran menampilkan nilai rapornya (mis. 2) dengan rata-rata poin di bawahnya, dan rata-rata keseluruhan dihitung dari nilai rapor. Mata pelajaran tepat di antara dua nilai menampilkan keduanya (1–2): guru yang memutuskan."
   },
   "sdob": {
     "brand": "Berhenti menimbang. Mulai belajar.",
@@ -520,7 +528,11 @@
     "pcErrName": "Beri nama mata kuliahnya.",
     "pcErrCredits": "SKS harus nol atau lebih.",
     "weightBlocksAria": "Nilai ini {{pct}}% dari kursus, satu dari {{n}} nilai berbobot",
-    "weightBlocksNoneAria": "{{n}} nilai berbobot di kursus ini"
+    "weightBlocksNoneAria": "{{n}} nilai berbobot di kursus ini",
+    "reportScale": "Nilai rapor {{best}}–{{worst}} · {{best}} terbaik",
+    "reportProjection": "Ada mata pelajaran di antara dua nilai rapor, jadi ini proyeksi",
+    "reportBetween": "Tepat di antara dua nilai: guru yang memutuskan",
+    "fGradeCustom": "Nilai ({{min}}–{{max}})"
   },
   "sv": {
     "today": "Hari ini",
@@ -706,7 +718,12 @@
       "prepareFor": "Persiapan untuk {{label}}",
       "topicMore": " (+{{n}} lagi)",
       "editExam": "Edit ujian",
-      "examDate": "Tanggal ujian"
+      "examDate": "Tanggal ujian",
+      "examToday": "ujian hari ini",
+      "examTomorrow": "ujian besok",
+      "examInDays": "ujian {{n}} hari lagi",
+      "startStudyingNow": "Mulai belajar untuk {{label}} ({{difficulty}}), {{when}}",
+      "startStudyingOn": "Mulai belajar untuk {{label}} pada {{date}} ({{difficulty}})"
     },
     "md": {
       "addAssignment": "Tambah tugas",
@@ -725,7 +742,9 @@
       "difficultyLabel": "Tingkat kesulitan",
       "examNotesPh": "Materi yang diujikan, format, hal yang perlu diperhatikan...",
       "addCourse": "Tambah mata pelajaran",
-      "typeCustomPh": "Beri nama jenisnya (mis. Presentasi)"
+      "typeCustomPh": "Beri nama jenisnya (mis. Presentasi)",
+      "repeatUntil": "Sampai",
+      "examRepeatSummary": "{{count}} ujian, yang terakhir {{until}}"
     },
     "act": {
       "addManually": "Tambah manual",
@@ -758,7 +777,8 @@
       "assignmentAdded": "Tugas ditambahkan",
       "examAdded": "Ujian ditambahkan",
       "logged": "{{n}} mnt tercatat",
-      "queuedLegacy_other": "{{count}} to-do lama menunggu disinkronkan"
+      "queuedLegacy_other": "{{count}} to-do lama menunggu disinkronkan",
+      "examsAdded": "{{count}} ujian ditambahkan"
     }
   },
   "widget": {
@@ -1123,7 +1143,13 @@
       "network": "Tidak dapat menghubungi alamat itu."
     },
     "repeatingNote_one": "{{count}} acara berulang diimpor sebagai satu tanggal",
-    "repeatingNote_other": "{{count}} acara berulang diimpor sebagai satu tanggal masing-masing"
+    "repeatingNote_other": "{{count}} acara berulang diimpor sebagai satu tanggal masing-masing",
+    "mapCourses": "Kursus",
+    "mapTitle": "Cocokkan kursus",
+    "mapHelp": "Setiap kursus di kalender ini bisa dipasangkan ke salah satu kursus StudyDesk-mu. Item dari kursus yang tidak dipasangkan tetap di tempatnya.",
+    "mapSource": "{{label}} ({{n}})",
+    "notMapped": "Tidak dipasangkan",
+    "mapSaved": "Kursus disimpan · {{n}} dipindahkan"
   },
   "att": {
     "tab": "Kehadiran",
@@ -1171,5 +1197,45 @@
     "versions": "Perbarui dari {{current}} ke {{latest}}",
     "open": "Dapatkan di F-Droid",
     "later": "Nanti"
+  },
+  "dtp": {
+    "date": "Tanggal",
+    "time": "Waktu",
+    "prevMonth": "Bulan sebelumnya",
+    "nextMonth": "Bulan berikutnya",
+    "hour": "Jam",
+    "minute": "Menit",
+    "clear": "Hapus",
+    "set": "Atur"
+  },
+  "pr": {
+    "start": "Mulai",
+    "startFocus": "Mulai fokus",
+    "snooze": "Tunda 5 mnt",
+    "skip": "Lewati",
+    "notNow": "Nanti saja",
+    "startsNow": "Blok belajar · sekarang",
+    "scheduledFor": "Blok belajar · {{time}}",
+    "minutes": "{{n}} mnt",
+    "runLabel": "Dihitung untuk: {{title}}",
+    "endRun": "Berhenti menghitung untuk blok ini",
+    "todayBlocks": "Blok belajar hari ini"
+  },
+  "done": {
+    "title": "Selesai",
+    "open": "Selesai ({{count}})",
+    "today": "Hari ini",
+    "yesterday": "Kemarin",
+    "earlier": "Sebelumnya",
+    "empty": "Belum ada yang dicentang.",
+    "restored": "Kembali ke daftarmu",
+    "untick": "Hapus centang: {{title}}",
+    "kind": {
+      "action": "Tugas",
+      "assignment": "PR",
+      "exam": "Ujian"
+    },
+    "markedDone": "Selesai: {{title}}",
+    "undo": "Urungkan"
   }
 }

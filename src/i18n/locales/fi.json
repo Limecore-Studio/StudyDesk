@@ -261,7 +261,7 @@
     "scaleDirection": "Kumpi pää on paras",
     "scaleHighBest": "Korkea",
     "scaleLowBest": "Matala",
-    "gradeNoteCustom": "Oma numeroasteikkosi — keskiarvo on painotettu keskiarvo kuten IB:ssä. Tallennetaan vain tälle laitteelle eikä synkronoidu. Oppilaitoksesi virallinen laskenta on aina se, joka ratkaisee.",
+    "gradeNoteCustom": "Oma numeroasteikkosi — keskiarvo on arvosanojesi painotettu keskiarvo tai, kun todistus näyttää kokonaiset arvosanat, todistusarvosanojesi. Asteikko seuraa tiliäsi muille laitteillesi ja Nexukseen. Oppilaitoksesi virallinen laskenta on aina se, joka ratkaisee.",
     "support": "Tuki",
     "supportDev": "Tue kehitystä",
     "supportDevSub": "Linkki Ko-fiin. Mikään sovelluksessa ei ole sen takana.",
@@ -434,7 +434,15 @@
     "otherAccountCleared": "Kirjauduit toiselle tilille, joten edellisen tilin tiedot poistettiin tältä laitteelta.",
     "otherAccountClearedUnsent_one": "Kirjauduit toiselle tilille, joten edellisen tilin tiedot poistettiin tältä laitteelta, mukaan lukien {{count}} synkronoimaton muutos.",
     "otherAccountClearedUnsent_other": "Kirjauduit toiselle tilille, joten edellisen tilin tiedot poistettiin tältä laitteelta, mukaan lukien {{count}} synkronoimatonta muutosta.",
-    "otherTabReloaded": "Kirjauduit sisään tai ulos toisessa välilehdessä, joten tämä välilehti ladattiin uudelleen."
+    "otherTabReloaded": "Kirjauduit sisään tai ulos toisessa välilehdessä, joten tämä välilehti ladattiin uudelleen.",
+    "scalePresetDe": "Saksa · DIA 0–15 (1–6)",
+    "reportGrades": "Todistus",
+    "reportWhole": "Kokonaiset arvosanat",
+    "reportFine": "Pistekeskiarvo",
+    "reportMethod": "Järjestys",
+    "reportConvertFirst": "Muunna jokainen arvosana, sitten keskiarvo",
+    "reportAverageFirst": "Pisteiden keskiarvo, sitten muunna",
+    "reportNote": "Kokonaisilla arvosanoilla jokainen kurssi näyttää todistusarvosanansa (esim. 2) ja sen alla pistekeskiarvon, ja kokonaiskeskiarvo lasketaan todistusarvosanoista. Täsmälleen kahden arvosanan välissä oleva kurssi näyttää molemmat (1–2): opettaja päättää."
   },
   "sdob": {
     "brand": "Lopeta miettiminen. Aloita opiskelu.",
@@ -526,7 +534,11 @@
     "pcErrName": "Anna kurssille nimi.",
     "pcErrCredits": "Opintopisteiden on oltava vähintään nolla.",
     "weightBlocksAria": "Tämä arvosana on {{pct}} % kurssista, yksi {{n}} painotetusta arvosanasta",
-    "weightBlocksNoneAria": "{{n}} painotettua arvosanaa tällä kurssilla"
+    "weightBlocksNoneAria": "{{n}} painotettua arvosanaa tällä kurssilla",
+    "reportScale": "Todistusarvosanat {{best}}–{{worst}} · {{best}} paras",
+    "reportProjection": "Jokin kurssi on kahden todistusarvosanan välissä, joten tämä on ennuste",
+    "reportBetween": "Täsmälleen kahden arvosanan välissä: opettaja päättää",
+    "fGradeCustom": "Arvosana ({{min}}–{{max}})"
   },
   "sv": {
     "today": "Tänään",
@@ -713,7 +725,12 @@
       "prepareFor": "Valmistaudu: {{label}}",
       "topicMore": " (+{{n}} lisää)",
       "editExam": "Muokkaa koetta",
-      "examDate": "Kokeen päivä"
+      "examDate": "Kokeen päivä",
+      "examToday": "koe tänään",
+      "examTomorrow": "koe huomenna",
+      "examInDays": "koe {{n}} päivän päästä",
+      "startStudyingNow": "Aloita opiskelu: {{label}} ({{difficulty}}), {{when}}",
+      "startStudyingOn": "Aloita opiskelu {{date}}: {{label}} ({{difficulty}})"
     },
     "md": {
       "addAssignment": "Lisää tehtävä",
@@ -732,7 +749,9 @@
       "difficultyLabel": "Vaikeus",
       "examNotesPh": "Aiheet, muoto, mihin keskittyä...",
       "addCourse": "Lisää kurssi",
-      "typeCustomPh": "Nimeä tyyppi (esim. Esitys)"
+      "typeCustomPh": "Nimeä tyyppi (esim. Esitys)",
+      "repeatUntil": "Asti",
+      "examRepeatSummary": "{{count}} koetta, viimeinen {{until}}"
     },
     "act": {
       "addManually": "Lisää käsin",
@@ -766,7 +785,8 @@
       "examAdded": "Koe lisätty",
       "logged": "Kirjattu {{n}} min",
       "queuedLegacy_one": "{{count}} vanha tehtävälistan kohta odottaa synkronointia",
-      "queuedLegacy_other": "{{count}} vanhaa tehtävälistan kohtaa odottaa synkronointia"
+      "queuedLegacy_other": "{{count}} vanhaa tehtävälistan kohtaa odottaa synkronointia",
+      "examsAdded": "{{count}} koetta lisätty"
     }
   },
   "widget": {
@@ -1132,7 +1152,13 @@
       "network": "Osoitteeseen ei saatu yhteyttä."
     },
     "repeatingNote_one": "{{count}} toistuva tapahtuma tuotiin yhtenä päivänä",
-    "repeatingNote_other": "{{count}} toistuvaa tapahtumaa tuotiin kukin yhtenä päivänä"
+    "repeatingNote_other": "{{count}} toistuvaa tapahtumaa tuotiin kukin yhtenä päivänä",
+    "mapCourses": "Kurssit",
+    "mapTitle": "Yhdistä kurssit",
+    "mapHelp": "Jokainen tämän kalenterin kurssi voidaan yhdistää johonkin StudyDesk-kurssiisi. Yhdistämättömän kurssin kohteet pysyvät paikallaan.",
+    "mapSource": "{{label}} ({{n}})",
+    "notMapped": "Ei yhdistetty",
+    "mapSaved": "Kurssit tallennettu · {{n}} siirretty"
   },
   "att": {
     "tab": "Läsnäolo",
@@ -1180,5 +1206,45 @@
     "versions": "Päivitä versiosta {{current}} versioon {{latest}}",
     "open": "Hae F-Droidista",
     "later": "Myöhemmin"
+  },
+  "dtp": {
+    "date": "Päivämäärä",
+    "time": "Kellonaika",
+    "prevMonth": "Edellinen kuukausi",
+    "nextMonth": "Seuraava kuukausi",
+    "hour": "Tunti",
+    "minute": "Minuutti",
+    "clear": "Tyhjennä",
+    "set": "Valitse"
+  },
+  "pr": {
+    "start": "Aloita",
+    "startFocus": "Aloita keskittyminen",
+    "snooze": "Torkku 5 min",
+    "skip": "Ohita",
+    "notNow": "Ei nyt",
+    "startsNow": "Opiskelulohko · nyt",
+    "scheduledFor": "Opiskelulohko · {{time}}",
+    "minutes": "{{n}} min",
+    "runLabel": "Lasketaan lohkoon: {{title}}",
+    "endRun": "Lopeta laskeminen tähän lohkoon",
+    "todayBlocks": "Tämän päivän opiskelulohkot"
+  },
+  "done": {
+    "title": "Tehdyt",
+    "open": "Tehdyt ({{count}})",
+    "today": "Tänään",
+    "yesterday": "Eilen",
+    "earlier": "Aiemmin",
+    "empty": "Mitään ei ole vielä merkitty tehdyksi.",
+    "restored": "Palautettu listaasi",
+    "untick": "Poista merkintä: {{title}}",
+    "kind": {
+      "action": "Tehtävä",
+      "assignment": "Palautus",
+      "exam": "Koe"
+    },
+    "markedDone": "Tehty: {{title}}",
+    "undo": "Kumoa"
   }
 }

@@ -285,7 +285,8 @@ export function buildReminders(exams, assignments, courses, plannedSessions, pla
             // StudyDesk#165 — "starts in N min" is no longer true once it starts.
             staleAt: at,
             ...style,
-            extra: { view: "timer" },
+            // v1.19 (#185) — a tap opens this block's start sheet.
+            extra: { view: "timer", planId: p.id },
           });
           planned++;
         }
@@ -297,7 +298,8 @@ export function buildReminders(exams, assignments, courses, plannedSessions, pla
           // StudyDesk#165 — "starting now", with the same grace as DUE_GRACE_MS.
           staleAt: at + DUE_GRACE_MS,
           ...style,
-          extra: { view: "timer" },
+          // v1.19 (#185) — a tap opens this block's start sheet.
+          extra: { view: "timer", planId: p.id },
         });
         planned++;
       }

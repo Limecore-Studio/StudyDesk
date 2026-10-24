@@ -261,7 +261,7 @@
     "scaleDirection": "Welches Ende ist am besten",
     "scaleHighBest": "Hoch",
     "scaleLowBest": "Niedrig",
-    "gradeNoteCustom": "Deine eigene Notenskala — der Schnitt ist ein gewichtetes Mittel wie bei IB. Nur auf diesem Gerät gespeichert, wird nicht synchronisiert. Maßgeblich bleibt immer die offizielle Berechnung deiner Schule.",
+    "gradeNoteCustom": "Deine eigene Notenskala — der Schnitt ist ein gewichtetes Mittel deiner Noten oder, wenn das Zeugnis ganze Noten zeigt, deiner Zeugnisnoten. Die Skala gilt für dein Konto, also auch auf deinen anderen Geräten und in Nexus. Maßgeblich bleibt immer die offizielle Berechnung deiner Schule.",
     "support": "Unterstützen",
     "supportDev": "Entwicklung unterstützen",
     "supportDevSub": "Ein Link zu Ko-fi. Nichts in der App ist davon abhängig.",
@@ -434,7 +434,15 @@
     "otherAccountCleared": "Du hast dich mit einem anderen Konto angemeldet, daher wurden die Daten des vorherigen Kontos von diesem Gerät entfernt.",
     "otherAccountClearedUnsent_one": "Du hast dich mit einem anderen Konto angemeldet, daher wurden die Daten des vorherigen Kontos von diesem Gerät entfernt, darunter {{count}} nicht synchronisierte Änderung.",
     "otherAccountClearedUnsent_other": "Du hast dich mit einem anderen Konto angemeldet, daher wurden die Daten des vorherigen Kontos von diesem Gerät entfernt, darunter {{count}} nicht synchronisierte Änderungen.",
-    "otherTabReloaded": "Du hast dich in einem anderen Tab an- oder abgemeldet, daher wurde dieser Tab neu geladen."
+    "otherTabReloaded": "Du hast dich in einem anderen Tab an- oder abgemeldet, daher wurde dieser Tab neu geladen.",
+    "scalePresetDe": "Deutschland · DIA 0–15 (1–6)",
+    "reportGrades": "Zeugnis",
+    "reportWhole": "Ganze Noten",
+    "reportFine": "Punkteschnitt",
+    "reportMethod": "Reihenfolge",
+    "reportConvertFirst": "Erst jede Note umrechnen, dann mitteln",
+    "reportAverageFirst": "Erst Punkte mitteln, dann umrechnen",
+    "reportNote": "Mit ganzen Noten zeigt jedes Fach seine Zeugnisnote (z. B. 2) mit dem Punkteschnitt darunter, und der Gesamtschnitt wird über die Zeugnisnoten gebildet. Ein Fach genau zwischen zwei Noten zeigt beide (1–2): Das entscheidet die Lehrkraft."
   },
   "sdob": {
     "brand": "Schluss mit Grübeln. Fang an zu lernen.",
@@ -526,7 +534,11 @@
     "pcErrName": "Gib dem Kurs einen Namen.",
     "pcErrCredits": "Credits müssen null oder mehr sein.",
     "weightBlocksAria": "Diese Note macht {{pct}} % des Kurses aus, eine von {{n}} gewichteten Noten",
-    "weightBlocksNoneAria": "{{n}} gewichtete Noten in diesem Kurs"
+    "weightBlocksNoneAria": "{{n}} gewichtete Noten in diesem Kurs",
+    "reportScale": "Zeugnisnoten {{best}}–{{worst}} · {{best}} am besten",
+    "reportProjection": "Ein Fach liegt zwischen zwei Zeugnisnoten, daher ist das eine Prognose",
+    "reportBetween": "Genau zwischen zwei Noten: Das entscheidet die Lehrkraft",
+    "fGradeCustom": "Note ({{min}}–{{max}})"
   },
   "sv": {
     "today": "Heute",
@@ -713,7 +725,12 @@
       "prepareFor": "Vorbereiten: {{label}}",
       "topicMore": " (+{{n}} mehr)",
       "editExam": "Prüfung bearbeiten",
-      "examDate": "Prüfungsdatum"
+      "examDate": "Prüfungsdatum",
+      "examToday": "Prüfung heute",
+      "examTomorrow": "Prüfung morgen",
+      "examInDays": "Prüfung in {{n}} Tagen",
+      "startStudyingNow": "Fang an, für {{label}} zu lernen ({{difficulty}}), {{when}}",
+      "startStudyingOn": "Fang am {{date}} an, für {{label}} zu lernen ({{difficulty}})"
     },
     "md": {
       "addAssignment": "Aufgabe hinzufügen",
@@ -732,7 +749,9 @@
       "difficultyLabel": "Schwierigkeit",
       "examNotesPh": "Themen, Format, Schwerpunkte...",
       "addCourse": "Kurs hinzufügen",
-      "typeCustomPh": "Typ benennen (z. B. Präsentation)"
+      "typeCustomPh": "Typ benennen (z. B. Präsentation)",
+      "repeatUntil": "Bis",
+      "examRepeatSummary": "{{count}} Prüfungen, die letzte am {{until}}"
     },
     "act": {
       "addManually": "Manuell hinzufügen",
@@ -766,7 +785,8 @@
       "examAdded": "Prüfung hinzugefügt",
       "logged": "{{n}} Min erfasst",
       "queuedLegacy_one": "{{count}} älteres To-do wartet auf Synchronisierung",
-      "queuedLegacy_other": "{{count}} ältere To-dos warten auf Synchronisierung"
+      "queuedLegacy_other": "{{count}} ältere To-dos warten auf Synchronisierung",
+      "examsAdded": "{{count}} Prüfungen hinzugefügt"
     }
   },
   "widget": {
@@ -1132,7 +1152,13 @@
       "network": "Diese Adresse war nicht erreichbar."
     },
     "repeatingNote_one": "{{count}} wiederkehrender Termin als einzelnes Datum importiert",
-    "repeatingNote_other": "{{count}} wiederkehrende Termine als je ein einzelnes Datum importiert"
+    "repeatingNote_other": "{{count}} wiederkehrende Termine als je ein einzelnes Datum importiert",
+    "mapCourses": "Kurse",
+    "mapTitle": "Kurse zuordnen",
+    "mapHelp": "Jeder Kurs aus diesem Kalender kann einem deiner StudyDesk-Kurse zugeordnet werden. Einträge aus einem Kurs ohne Zuordnung bleiben, wo sie sind.",
+    "mapSource": "{{label}} ({{n}})",
+    "notMapped": "Nicht zugeordnet",
+    "mapSaved": "Kurse gespeichert · {{n}} verschoben"
   },
   "att": {
     "tab": "Anwesenheit",
@@ -1180,5 +1206,45 @@
     "versions": "Update von {{current}} auf {{latest}}",
     "open": "Auf F-Droid holen",
     "later": "Später"
+  },
+  "dtp": {
+    "date": "Datum",
+    "time": "Uhrzeit",
+    "prevMonth": "Vorheriger Monat",
+    "nextMonth": "Nächster Monat",
+    "hour": "Stunde",
+    "minute": "Minute",
+    "clear": "Löschen",
+    "set": "Übernehmen"
+  },
+  "pr": {
+    "start": "Starten",
+    "startFocus": "Fokus starten",
+    "snooze": "5 Min. später",
+    "skip": "Überspringen",
+    "notNow": "Nicht jetzt",
+    "startsNow": "Lernblock · jetzt",
+    "scheduledFor": "Lernblock · {{time}}",
+    "minutes": "{{n}} Min.",
+    "runLabel": "Zählt für: {{title}}",
+    "endRun": "Nicht mehr für diesen Block zählen",
+    "todayBlocks": "Lernblöcke heute"
+  },
+  "done": {
+    "title": "Erledigt",
+    "open": "Erledigt ({{count}})",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "earlier": "Früher",
+    "empty": "Noch nichts abgehakt.",
+    "restored": "Wieder in deiner Liste",
+    "untick": "Haken entfernen: {{title}}",
+    "kind": {
+      "action": "Aufgabe",
+      "assignment": "Hausaufgabe",
+      "exam": "Prüfung"
+    },
+    "markedDone": "Erledigt: {{title}}",
+    "undo": "Rückgängig"
   }
 }

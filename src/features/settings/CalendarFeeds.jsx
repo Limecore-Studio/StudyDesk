@@ -21,13 +21,13 @@
 // The vendor is named ONLY in the help string, never in code. Every LMS a
 // student might be handed exports ICS, so the format is the integration.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   loadFeeds, addFeed, removeFeed, updateFeed, refreshFeed,
   describeFeedUrl, isDue, mergeFeedItems,
 } from '../../lib/calendarFeed.js';
-import { toAssignments } from '../../lib/feedImport.js';
+import { courseForItem, sourceCourses, toAssignments } from '../../lib/feedImport.js';
 import { readJson, writeJson } from '../../lib/localStore.js';
 import * as outbox from '../../lib/outbox.js';
 
@@ -52,18 +52,39 @@ export default function CalendarFeeds({ state, dispatch, session, showFlash }) {
   const [err, setErr] = useState('');
 
   const courses = Object.values(state.courses || {}).filter((c) => !c.deletedAt && !c.archivedAt);
+  // v1.19 (#187) — which feed's course-mapping sheet is open.
+  const [mapping, setMapping] = useState(null);
+
+  // Read through a ref so the fetch callbacks below keep a stable identity:
+  // with `state` in their dependencies, every keystroke anywhere in the app
+  // would restart the background poll effect.
+  const stateRef = useRef(state);
+  useEffect(() => { stateRef.current = state; }, [state]);
+  // Each item goes to its source course's mapping, else the feed's default.
+  const resolverFor = useCallback((feed) => (item) => courseForItem(item, feed, (id) => {
+    const c = stateRef.current.courses?.[id];
+    return !!c && !c.deletedAt;
+  }), []);
+  // The outbox payload carries the row's real `done`: toAssignments always
+  // says false, and the reducer keeps a tick locally, but the push used to
+  // send the server done = false on every poll until the next diff push
+  // corrected it.
+  const withDone = useCallback((row) => {
+    const cur = stateRef.current.assignments.find((a) => a.id === row.id);
+    return cur ? { ...row, done: !!cur.done } : row;
+  }, []);
 
   const applyItems = useCallback(async (feed, items) => {
     const store = loadItems();
     const previous = store[feed.id] || [];
     const { items: merged, added, updated, removed } = mergeFeedItems(previous, items);
 
-    const rows = await toAssignments(merged, feed.courseId || null);
+    const rows = await toAssignments(merged, resolverFor(feed));
     for (const row of rows) {
       // `row` is passed as a field, NOT spread: it carries a `type` of its
       // own and spreading it would overwrite the action's discriminator.
       dispatch({ type: 'UPSERT_ASSIGNMENT', row });
-      if (session) outbox.enqueue('upsert_assignment', row);
+      if (session) outbox.enqueue('upsert_assignment', withDone(row));
     }
 
     // A UID that vanished from the feed is withdrawn upstream, so its row goes
@@ -79,7 +100,7 @@ export default function CalendarFeeds({ state, dispatch, session, showFlash }) {
 
     writeJson(ITEMS_KEY, { ...store, [feed.id]: merged });
     return { added, updated, removed, total: merged.length };
-  }, [dispatch, session]);
+  }, [dispatch, session, resolverFor, withDone]);
 
   const doRefresh = useCallback(async (feed, { quiet = false } = {}) => {
     setBusy(feed.id);
@@ -141,6 +162,26 @@ export default function CalendarFeeds({ state, dispatch, session, showFlash }) {
     await doRefresh(feed);
   };
 
+  // v1.19 (#187) — a mapping change re-files the items already imported from
+  // that feed. Only rows that still exist are touched: one the user deleted
+  // stays deleted until the feed itself brings it back.
+  const saveMapping = async (feed, courseMap) => {
+    updateFeed(feed.id, { courseMap });
+    const next = { ...feed, courseMap };
+    setFeeds(loadFeeds());
+    setMapping(null);
+    const rows = await toAssignments(loadItems()[feed.id] || [], resolverFor(next));
+    let moved = 0;
+    for (const row of rows) {
+      const cur = stateRef.current.assignments.find((a) => a.id === row.id);
+      if (!cur || (cur.courseId || null) === (row.courseId || null)) continue;
+      dispatch({ type: 'UPSERT_ASSIGNMENT', row });
+      if (session) outbox.enqueue('upsert_assignment', withDone(row));
+      moved++;
+    }
+    showFlash(t('feed.mapSaved', { n: moved }));
+  };
+
   const onRemove = async (feed) => {
     // The rows this feed created go with it. Leaving them would be worse than
     // either alternative: the user unsubscribed, and a hundred orphaned
@@ -200,6 +241,9 @@ export default function CalendarFeeds({ state, dispatch, session, showFlash }) {
                   <div className="feed-row-note">{t('feed.repeatingNote', { count: feed.repeating })}</div>
                 )}
               </div>
+              {sourceCourses(loadItems()[feed.id]).length > 0 && (
+                <button className="btn-outline btn-sm" onClick={() => setMapping(feed)}>{t('feed.mapCourses')}</button>
+              )}
               <button
                 className="btn-outline btn-sm"
                 onClick={() => doRefresh(feed)}
@@ -244,6 +288,49 @@ export default function CalendarFeeds({ state, dispatch, session, showFlash }) {
           <p className="sv2-note">{t('feed.deviceOnly')}</p>
         </div>
       )}
+      {mapping && (
+        <FeedCourseMap
+          feed={mapping}
+          sources={sourceCourses(loadItems()[mapping.id])}
+          courses={courses}
+          onSave={(map) => saveMapping(mapping, map)}
+          onClose={() => setMapping(null)}
+          t={t}
+        />
+      )}
+    </div>
+  );
+}
+
+// v1.19 (#187) — one row per source course found in the feed, each mapped to
+// a StudyDesk course or left on the feed's default ("Not mapped"). Stored on
+// the feed, so it stays on this device with the subscription itself.
+function FeedCourseMap({ feed, sources, courses, onSave, onClose, t }) {
+  const [map, setMap] = useState(() => ({ ...(feed.courseMap || {}) }));
+  const set = (key, courseId) => setMap((m) => {
+    const next = { ...m };
+    if (courseId) next[key] = courseId; else delete next[key];
+    return next;
+  });
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="feed-map-title" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-title" id="feed-map-title">{t('feed.mapTitle')}</div>
+        <p className="sv2-note" style={{ marginTop: 0 }}>{t('feed.mapHelp')}</p>
+        {sources.map((src) => (
+          <div key={src.key} className="input-group">
+            <div className="input-label">{t('feed.mapSource', { label: src.label, n: src.count })}</div>
+            <select value={map[src.key] || ''} onChange={(e) => set(src.key, e.target.value)}>
+              <option value="">{t('feed.notMapped')}</option>
+              {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        ))}
+        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+          <button className="btn" onClick={() => onSave(map)}>{t('common.save')}</button>
+          <button className="btn-outline" onClick={onClose}>{t('common.cancel')}</button>
+        </div>
+      </div>
     </div>
   );
 }

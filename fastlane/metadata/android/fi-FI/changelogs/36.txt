@@ -1,0 +1,3 @@
+Suunnittele ja keskity.
+
+Ajastettu opiskelujakso avautuu ajastimeen ja tallentuu yhtenä sessiona, ja kalenteri merkitsee sen tehdyksi. Arvosanoissa voi käyttää plussia ja miinuksia (2+, 1-), todistuksen keskiarvoa ja saksalaista DIA-pohjaa. Valmiit-lista palauttaa vahingossa rastitetut, ja Kumoa toimii heti. Näet, milloin aloittaa lukeminen kuhunkin kokeeseen, kokeet voivat toistua viikoittain, kalenterisyötteet liitetään kursseihisi ja päivämäärät toimivat kaikissa puhelimissa.

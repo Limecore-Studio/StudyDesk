@@ -34,6 +34,7 @@ import { IS_DESKTOP } from '../../lib/desktop.js';
 import { checkForDesktopUpdate, runDesktopUpdateAction, useDesktopUpdate } from '../../lib/desktopUpdate.js';
 import { setUpdateCheckEnabled, useFdroidUpdate } from '../../lib/fdroidUpdate.js';
 import { feedbackStatus, SHOW_FEEDBACK_STATUS } from '../../lib/feedbackStatus.js';
+import DateInput from '../../lib/DateInput.jsx';
 
 // Product names, the same in every language.
 const APP_NAMES = { ncc: 'NCC', limelog: 'LimeLog', studydesk: 'StudyDesk' };
@@ -131,6 +132,11 @@ const css = `
    than fewer: dropping an option would be choosing for the user which lead
    times matter. */
 .sv2-mode.compact button{padding:6px 9px;letter-spacing:0.03em;}
+/* v1.19 (#178) — the report-card choices are sentences, not single words, and
+   on a phone they ran past the page edge in one line. This variant takes the
+   row's full width below its label and lets each option wrap. */
+.sv2-mode.wide{display:flex;flex:1 1 100%;max-width:100%;}
+.sv2-mode.wide button{flex:1 1 0;min-width:0;white-space:normal;line-height:1.35;padding:8px 10px;text-align:center;}
 .sv2-mode button{background:transparent;border:none;padding:6px 14px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;color:var(--muted);}
 .sv2-mode button.active{background:var(--text);color:var(--bg);}
 
@@ -1091,7 +1097,7 @@ export default function SettingsView({ state, dispatch, showFlash, session }) {
                 </button>
               </span>
               {state.studyUntil !== null && (
-                <input
+                <DateInput
                   type="time"
                   className="sv2-time"
                   aria-label={t('settings.studyUntil')}
@@ -1292,7 +1298,9 @@ export default function SettingsView({ state, dispatch, showFlash, session }) {
                     key={p.id}
                     type="button"
                     className="sv2-preset"
-                    onClick={() => setScale(p.scale)}
+                    // v1.19 (#178) — steps and the report rule belong to the
+                    // preset that set them; picking another chip clears them.
+                    onClick={() => setScale({ steps: null, report: null, ...p.scale })}
                   >
                     {t(p.labelKey)}
                   </button>
@@ -1359,6 +1367,43 @@ export default function SettingsView({ state, dispatch, showFlash, session }) {
                 </span>
               </div>
               <div className="sv2-note">{describeScale(activeScale, t)}</div>
+              {/* v1.19 (#178) — only for a scale that knows its report-card
+                  bands (the DIA / German chip). Whether the school converts
+                  each grade first or averages first is not certain, so it is
+                  a choice here rather than a rule in the code. */}
+              {activeScale.report && (
+                <>
+                  <div className="sv2-scale-dir">
+                    <span className="sv2-row-label">{t('settings.reportGrades')}</span>
+                    <span className="sv2-mode wide">
+                      <button
+                        className={activeScale.report.enabled ? 'active' : ''}
+                        onClick={() => setScale({ report: { ...activeScale.report, enabled: true } })}
+                      >{t('settings.reportWhole')}</button>
+                      <button
+                        className={!activeScale.report.enabled ? 'active' : ''}
+                        onClick={() => setScale({ report: { ...activeScale.report, enabled: false } })}
+                      >{t('settings.reportFine')}</button>
+                    </span>
+                  </div>
+                  {activeScale.report.enabled && (
+                    <div className="sv2-scale-dir">
+                      <span className="sv2-row-label">{t('settings.reportMethod')}</span>
+                      <span className="sv2-mode wide">
+                        <button
+                          className={activeScale.report.method === 'convertThenAverage' ? 'active' : ''}
+                          onClick={() => setScale({ report: { ...activeScale.report, method: 'convertThenAverage' } })}
+                        >{t('settings.reportConvertFirst')}</button>
+                        <button
+                          className={activeScale.report.method === 'averageThenConvert' ? 'active' : ''}
+                          onClick={() => setScale({ report: { ...activeScale.report, method: 'averageThenConvert' } })}
+                        >{t('settings.reportAverageFirst')}</button>
+                      </span>
+                    </div>
+                  )}
+                  <div className="sv2-note">{t('settings.reportNote')}</div>
+                </>
+              )}
             </div>
           )}
           <div className="sv2-note">
@@ -1374,7 +1419,7 @@ export default function SettingsView({ state, dispatch, showFlash, session }) {
         {/* ── Period history (Archive) ── */}
         <div className="sv2-section">
           <div className="sv2-section-title">{t('history.title')}</div>
-          <PeriodHistory courses={state.courses} grades={grades} mode={mode} />
+          <PeriodHistory courses={state.courses} grades={grades} mode={mode} scale={activeScale} />
           <div className="sv2-note">{t('history.note')}</div>
         </div>
 
