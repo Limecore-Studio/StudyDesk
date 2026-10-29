@@ -794,7 +794,8 @@
   "widget": {
     "today": "Tänään",
     "tomorrow": "Huomenna",
-    "noPlanToday": "Ei suunnitelmia tänään"
+    "noPlanToday": "Ei suunnitelmia tänään",
+    "openPlan": "Avaa suunnitelma"
   },
   "cal": {
     "title": "Kalenteri",

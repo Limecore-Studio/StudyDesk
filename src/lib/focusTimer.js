@@ -154,3 +154,29 @@ export function sameTransition(a, b) {
 export function savesCompletion(rec, device) {
   return !rec?.origin || rec.origin === device;
 }
+
+// ── reading shared state directly (v1.20, #189) ─────────────────────────────
+//
+// The desktop glance widget mirrors the shared timer from the row itself, with
+// no TimerView behind it. TimerView's own arithmetic is the reference.
+
+/** Seconds on the clock at server time `now`: left on a countdown, counted up
+ *  on a stopwatch. */
+export function remainingSecs(shared, now) {
+  if (!shared?.running || ms(shared.startedAt) === null || ms(shared.secsAtStart) === null) {
+    return int(shared?.secsLeft, 0, 86_400, 0);
+  }
+  const elapsed = Math.max(0, Math.floor((now - shared.startedAt) / 1000));
+  return shared.mode === 'stopwatch'
+    ? shared.secsAtStart + elapsed
+    : Math.max(0, shared.secsAtStart - elapsed);
+}
+
+/** True when there is a block on the clock worth showing: running, or paused
+ *  part-way. A reset timer at full time is not. */
+export function isActive(shared) {
+  if (!shared) return false;
+  if (shared.running) return true;
+  const full = shared.phase === 'short' ? 300 : shared.phase === 'long' ? 900 : int(shared.customFocus, 5, 240, 25) * 60;
+  return shared.mode === 'stopwatch' ? int(shared.secsLeft, 0, 86_400, 0) > 0 : int(shared.secsLeft, 0, 86_400, full) < full;
+}

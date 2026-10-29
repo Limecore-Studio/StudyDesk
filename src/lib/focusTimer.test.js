@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { toShared, toLocal, transitionKey, sameTransition, savesCompletion } from './focusTimer.js';
+import { toShared, toLocal, transitionKey, sameTransition, savesCompletion, remainingSecs, isActive } from './focusTimer.js';
 
 // v1.20 (#202) — Focus Sync's shape: the `sd-timer` record to shared state
 // and back, and which local changes are worth sending.
@@ -84,5 +84,26 @@ describe('savesCompletion', () => {
     expect(savesCompletion({ origin: 'phone' }, 'laptop')).toBe(false);
     // A block from before Focus Sync, or a guest's: as before, it saves.
     expect(savesCompletion({ origin: null }, 'laptop')).toBe(true);
+  });
+});
+
+describe('reading shared state (#189)', () => {
+  const S0 = 1_800_000_000_000;
+  const shared = (over = {}) => ({ v: 1, mode: 'pomodoro', phase: 'focus', running: true, customFocus: 25,
+    startedAt: S0, secsAtStart: 1500, secsLeft: null, runId: 'r', origin: 'phone', by: 'phone', ...over });
+
+  it('time left on a countdown, counted up on a stopwatch, held when paused', () => {
+    expect(remainingSecs(shared(), S0 + 90_500)).toBe(1410);
+    expect(remainingSecs(shared(), S0 + 9_999_000)).toBe(0);
+    expect(remainingSecs(shared({ mode: 'stopwatch', secsAtStart: 30 }), S0 + 10_000)).toBe(40);
+    expect(remainingSecs(shared({ running: false, startedAt: null, secsLeft: 700 }), S0 + 99_000)).toBe(700);
+  });
+
+  it('only a running or part-way block is active', () => {
+    expect(isActive(shared())).toBe(true);
+    expect(isActive(shared({ running: false, startedAt: null, secsLeft: 1200 }))).toBe(true);
+    expect(isActive(shared({ running: false, startedAt: null, secsLeft: 1500 }))).toBe(false);
+    expect(isActive(shared({ running: false, phase: 'short', secsLeft: 300 }))).toBe(false);
+    expect(isActive(null)).toBe(false);
   });
 });

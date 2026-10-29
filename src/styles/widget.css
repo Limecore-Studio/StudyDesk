@@ -152,6 +152,60 @@ html, body, #root {
 }
 .wg-quiet--plan { font-size: 10.5px; }
 
+/* ── focus timer strip (v1.20, #189 / #202) ──────────────────────────────────
+   A block on the clock on any of the user's devices. One mono line under the
+   bar: it is the most time-critical fact on the slip, but it must not push the
+   deadline, the slip's one statement, out of the upper band. */
+
+.wg-timer {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 12px 4px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.wg-timer-dot {
+  flex: none;
+  align-self: center;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--phase-focus);
+}
+.wg-timer.is-break .wg-timer-dot { background: var(--phase-short); }
+.wg-timer.is-paused .wg-timer-dot { background: transparent; box-shadow: inset 0 0 0 1px var(--muted2); }
+.wg-timer-label {
+  flex: none;
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted2);
+}
+.wg-timer-clock {
+  flex: none;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.wg-timer.is-paused .wg-timer-clock { color: var(--muted2); }
+.wg-timer-task {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* Sections that open the main window. A quiet ground on hover, the same one
+   the close button uses, so the slip still reads as paper, not as buttons. */
+.wg [role='button'] { cursor: pointer; transition: background 0.12s var(--ease-paper); }
+.wg [role='button']:hover { background: var(--bg); }
+.wg [role='button']:focus-visible { outline: 1px solid var(--muted2); outline-offset: -2px; }
+
 /* ── rule ────────────────────────────────────────────────────────────────── */
 
 .wg-rule {
