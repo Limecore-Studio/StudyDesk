@@ -12,7 +12,8 @@ vi.mock('./supabase.js', () => ({
   },
 }));
 
-const { pullAllStudyData } = await import('./sync.js');
+const { pullAllStudyData, pullStudyTables } = await import('./sync.js');
+const { mergeStamps, stampsFromPull, isInSync } = await import('./syncStamps.js');
 
 const TABLES = [
   'subjects', 'grades', 'study_sessions', 'assignments', 'exams', 'study_actions',
@@ -99,5 +100,53 @@ describe('pullAllStudyData', () => {
     delete tables.grades;
     holder.client = fakeClient(tables);
     await expect(pullAllStudyData()).rejects.toMatchObject({ code: '42P01' });
+  });
+});
+
+// v1.20 (StudyDesk#201) — the targeted pull a live-sync hint runs.
+describe('pullStudyTables', () => {
+  it('selects only the named tables and returns only their keys', async () => {
+    const client = fakeClient(seed());
+    holder.client = client;
+    const remote = await pullStudyTables(['grades', 'notebook_entries', 'grades', 'transactions']);
+    expect(Object.keys(remote).sort()).toEqual(['grades', 'notes']);
+    expect(new Set(client.requests.map((r) => r.table))).toEqual(new Set(['grades', 'notebook_entries']));
+  });
+
+  it('pages a table past the row cap like the full pull', async () => {
+    holder.client = fakeClient(seed({ grades: 1500 }));
+    const remote = await pullStudyTables(['grades']);
+    expect(remote.grades).toHaveLength(1500);
+  });
+
+  it('tolerates a notebook table that does not exist yet, and nothing else', async () => {
+    const tables = seed();
+    delete tables.notebook_entries;
+    delete tables.exams;
+    holder.client = fakeClient(tables);
+    await expect(pullStudyTables(['notebook_entries'])).resolves.toEqual({ notes: [] });
+    await expect(pullStudyTables(['exams'])).rejects.toMatchObject({ code: '42P01' });
+  });
+});
+
+describe('mergeStamps', () => {
+  const row = (id, at, deleted = null) => ({ id, updated_at: at, deleted_at: deleted });
+
+  it('replaces only the kinds the partial pull carried', () => {
+    const full = stampsFromPull({
+      assignments: [row('a1', '2026-10-01T00:00:00Z')],
+      exams: [row('e1', '2026-10-01T00:00:00Z')],
+    });
+    const next = mergeStamps(full, { assignments: [row('a1', '2026-10-02T00:00:00Z')] });
+    expect(next.assignments.get('a1').at).toBe(Date.parse('2026-10-02T00:00:00Z'));
+    expect(next.exams).toBe(full.exams);
+  });
+
+  it('a hint for a row this device just pushed leaves it in sync, so nothing is re-queued', () => {
+    // The push stamped the row with its edit time; the server stores it as is
+    // and the hinted pull hands back the same instant in Postgres format.
+    const local = { id: 'a1', updatedAt: '2026-10-29T09:00:00.123Z' };
+    const stamps = mergeStamps(null, { assignments: [row('a1', '2026-10-29T09:00:00.123+00:00')] });
+    expect(isInSync('assignments', local, stamps)).toBe(true);
   });
 });

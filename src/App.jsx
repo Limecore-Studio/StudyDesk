@@ -28,7 +28,7 @@ import { hydrateOnboardedFromCloud, markOnboardedCloud } from "./lib/onboardingC
 import * as sync from "./lib/sync.js";
 import * as outbox from "./lib/outbox.js";
 import { reconcileUnsynced } from "./lib/reconcile.js";
-import { stampsFromPull, shouldPull } from "./lib/syncStamps.js";
+import { stampsFromPull, mergeStamps, shouldPull } from "./lib/syncStamps.js";
 import SaveSessionSheet from "./features/sessions/SaveSessionSheet.jsx";
 import { pastSessionDraft } from "./lib/pastSession.js";
 import { isOpenPlan, nextPlanStartAt, planSaveSteps, planToOffer } from "./lib/planRun.js";
@@ -435,8 +435,9 @@ export default function App() {
 
   // ── Sync: initial pull + Realtime, gated on sign-in ─────────────────────────
   useEffect(() => {
+    // No session: the previous user's effect cleanup has already stopped live
+    // sync, and loading the engine just to stop it would be wasted bytes.
     if (!session) {
-      sync.stopRealtime();
       pulledOnceRef.current = false;
       setPulledOnce(false);
       remoteStampsRef.current = null;
@@ -500,9 +501,36 @@ export default function App() {
       if (cancelled || !shouldPull(lastPullAt, Date.now())) return;
       void doPull();
     };
+    // v1.20 (StudyDesk#201) — a live-sync hint or a postgres_changes event
+    // names its table, so only that table is pulled. Two things the full pull
+    // does are deliberately left out: the unsynced-row reconcile, which would
+    // read every table this pull did not carry as missing from the server,
+    // and replacing the stamps wholesale (mergeStamps keeps the other kinds).
+    // Before the launch pull settles there is nothing to fold into; that pull
+    // is already bringing these rows.
+    const doPullTables = async (tables) => {
+      if (!pulledOnceRef.current) return;
+      try {
+        const remote = await sync.pullStudyTables(tables);
+        if (cancelled) return;
+        remoteStampsRef.current = mergeStamps(remoteStampsRef.current, remote);
+        dispatch({ type: "MERGE_REMOTE", remote });
+      } catch (e) {
+        console.error("[StudyDesk] table pull failed:", e);
+      }
+    };
     doPull();
-    sync.startRealtime(doPull, session.user?.id);
-    return () => { cancelled = true; requestPullRef.current = null; sync.stopRealtime(); };
+    // The live-sync engine loads on demand (StudyDesk#201): it is only ever
+    // needed signed in, and never for the first paint.
+    let live = null;
+    let stopHints = () => {};
+    void import("./lib/liveSync.js").then((m) => {
+      if (cancelled) return;
+      live = m;
+      m.startRealtime(doPull, session.user?.id, { onTables: doPullTables });
+      stopHints = outbox.onPushed((tables) => m.announceChanged(tables));
+    }).catch((e) => console.error("[StudyDesk] live sync failed to load:", e));
+    return () => { cancelled = true; requestPullRef.current = null; stopHints(); live?.stopRealtime(); };
   // Only re-subscribe when the signed-in user id changes — not on every
   // session refresh (token refresh shouldn't tear down Realtime).
   // eslint-disable-next-line react-hooks/exhaustive-deps
