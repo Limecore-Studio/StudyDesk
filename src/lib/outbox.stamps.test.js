@@ -166,3 +166,25 @@ describe('compatibility', () => {
     expect(item.attempts).toBe(0);
   });
 });
+
+// v1.20 (StudyDesk#201) — live sync hints the other devices with the tables a
+// drain pushed. Only successful pushes count: a hint for a failed push would
+// make every other device pull for nothing.
+describe('onPushed', () => {
+  it('reports the tables of the items that were pushed', async () => {
+    const seen = [];
+    const off = outbox.onPushed((tables) => seen.push(tables));
+    await queueThenDrain('upsert_assignment', assignment());
+    off();
+    expect(seen).toEqual([['assignments']]);
+  });
+
+  it('reports nothing for a push that failed', async () => {
+    const seen = [];
+    const off = outbox.onPushed((tables) => seen.push(tables));
+    sent.fail = () => ({ message: 'network', code: '' });
+    await queueThenDrain('upsert_assignment', assignment());
+    off();
+    expect(seen).toEqual([]);
+  });
+});
