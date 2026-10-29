@@ -81,13 +81,22 @@ export const DEVICE_ID = (() => {
   try { return crypto.randomUUID(); } catch { return `d-${Math.random().toString(36).slice(2)}`; }
 })();
 
+/** v1.20 (#202): tables a hint can name that are not study data, so
+ *  `pullStudyTables` never sees them. The shared focus timer is read by
+ *  lib/focusSync.js instead. */
+const HINT_ONLY = new Set(['focus_timers']);
+
+/** True for a table a hint may name: study data, or the shared timer. */
+export function isHintTable(t) {
+  return typeof t === 'string' && (Object.prototype.hasOwnProperty.call(TABLE_KEYS, t) || HINT_ONLY.has(t));
+}
+
 /** The tables a hint asks this app to pull, or [] for one to ignore: its own
  *  echo, malformed, or only tables this app does not hold. */
 export function tablesFromHint(payload, ownDevice = DEVICE_ID) {
   if (!payload || typeof payload !== 'object') return [];
   if (payload.device && payload.device === ownDevice) return [];
-  const t = payload.table;
-  return typeof t === 'string' && Object.prototype.hasOwnProperty.call(TABLE_KEYS, t) ? [t] : [];
+  return isHintTable(payload.table) ? [payload.table] : [];
 }
 
 /** Rejoin delay after the n-th consecutive failure: 1 s, 2 s, 4 s … 30 s. */

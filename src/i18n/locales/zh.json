@@ -666,6 +666,8 @@
       "start": "开始",
       "lockInBtn": "锁定专注",
       "lockInTitle": "去除休息、隐藏导航，仅深度专注",
+      "syncElsewhere": "正在另一台设备上运行",
+      "syncLockInHere": "在此锁定专注",
       "studying": "正在学习",
       "workingPlaceholder": "你在做什么？（可选）",
       "weeklyHours": "每周时数",

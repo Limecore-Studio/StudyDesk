@@ -662,6 +662,8 @@
       "start": "Mulai",
       "lockInBtn": "Fokus",
       "lockInTitle": "Tanpa istirahat, tanpa navigasi, hanya fokus mendalam",
+      "syncElsewhere": "Berjalan di perangkat lain",
+      "syncLockInHere": "Fokus di sini",
       "studying": "Sedang belajar",
       "workingPlaceholder": "Kamu sedang mengerjakan apa? (opsional)",
       "weeklyHours": "Jam per minggu",

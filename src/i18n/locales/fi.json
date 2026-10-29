@@ -668,6 +668,8 @@
       "start": "Aloita",
       "lockInBtn": "Lukko päälle",
       "lockInTitle": "Ei taukoja, ei navigointia, vain syväkeskittyminen",
+      "syncElsewhere": "Käynnissä toisella laitteella",
+      "syncLockInHere": "Lukko päälle tässä",
       "studying": "Opiskelu",
       "workingPlaceholder": "Mitä teet? (valinnainen)",
       "weeklyHours": "Viikkotunnit",
