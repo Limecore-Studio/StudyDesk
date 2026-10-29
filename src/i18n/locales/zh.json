@@ -791,7 +791,8 @@
   "widget": {
     "today": "今天",
     "tomorrow": "明天",
-    "noPlanToday": "今天没有安排"
+    "noPlanToday": "今天没有安排",
+    "openPlan": "打开计划"
   },
   "cal": {
     "title": "日历",

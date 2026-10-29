@@ -794,7 +794,8 @@
   "widget": {
     "today": "आज",
     "tomorrow": "कल",
-    "noPlanToday": "आज कुछ भी नियोजित नहीं"
+    "noPlanToday": "आज कुछ भी नियोजित नहीं",
+    "openPlan": "योजना खोलें"
   },
   "cal": {
     "title": "कैलेंडर",

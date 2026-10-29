@@ -802,7 +802,8 @@
   "widget": {
     "today": "Hoje",
     "tomorrow": "Amanhã",
-    "noPlanToday": "Nada planeado para hoje"
+    "noPlanToday": "Nada planeado para hoje",
+    "openPlan": "Abrir o plano"
   },
   "cal": {
     "title": "Calendário",

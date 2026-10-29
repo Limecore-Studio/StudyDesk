@@ -794,7 +794,8 @@
   "widget": {
     "today": "Today",
     "tomorrow": "Tomorrow",
-    "noPlanToday": "Nothing planned today"
+    "noPlanToday": "Nothing planned today",
+    "openPlan": "Open the plan"
   },
   "cal": {
     "title": "Calendar",

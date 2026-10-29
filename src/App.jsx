@@ -41,6 +41,7 @@ import CourseDetailView from "./features/plan/CourseDetailView.jsx";
 import PlanView from "./features/plan/PlanView.jsx";
 import ActionsView from "./features/actions/ActionsView.jsx";
 import { daysUntil } from "./lib/deadlines.js";
+import { desktop } from "./lib/desktop.js";
 import { INITIAL, reducer, newSyncId } from "./lib/appReducer.js";
 // Cascade order preserved from the old css+css2+css3+css4+cssOnboard concat.
 import './styles/base.css';
@@ -552,6 +553,28 @@ export default function App() {
   // v1.3 — sub-tab within the Timer view (Timer / Log / Stats), so Log + Stats
   // don't need their own bottom-bar slots.
   const [timerSub, setTimerSub] = useState("timer");
+  // v1.20 (#189) — the desktop glance widget opens this window at a view: in
+  // the URL when it had to create the window, over IPC when it was open
+  // already. The URL form is read once and dropped, so a reload starts plain.
+  useEffect(() => {
+    if (!desktop) return undefined;
+    const go = (view) => {
+      if (view !== "timer" && view !== "plan") return;
+      if (view === "timer") setTimerSub("timer");
+      dispatch({ type: "SET_VIEW", view });
+    };
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const view = params.get("view");
+      if (view) {
+        go(view);
+        params.delete("view");
+        const rest = params.toString();
+        window.history.replaceState(null, "", window.location.pathname + (rest ? `?${rest}` : "") + window.location.hash);
+      }
+    } catch { /* no history API: the view still applied */ }
+    return desktop.onNavigate?.(go);
+  }, []);
   // StudyDesk#114 — whether the Timer hub's notebook is showing a note (rather
   // than its list). On a phone the sub-tabs step aside while it is, so the note
   // gets the screen; NotebookView reports it and its "All notes" link is the
