@@ -1,5 +1,5 @@
 -- v1.20 Block B (StudyDesk#202) — Focus Sync: one shared focus timer per account.
--- NOT YET APPLIED to production: the owner applies it.
+-- APPLIED to production 2026-10-29 with the owner's OK (history version 20261029181521).
 --
 -- One row per user, holding the timer every device mirrors. StudyDesk-only, like
 -- planned_sessions: NCC reads none of it, and nothing here is study time. A
