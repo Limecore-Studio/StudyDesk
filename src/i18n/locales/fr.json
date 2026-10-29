@@ -674,6 +674,8 @@
       "start": "Démarrer",
       "lockInBtn": "Mode focus",
       "lockInTitle": "Sans pauses, sans navigation, concentration pure",
+      "syncElsewhere": "En cours sur un autre appareil",
+      "syncLockInHere": "Mode focus ici",
       "studying": "Étude",
       "workingPlaceholder": "Sur quoi travaillez-vous ? (facultatif)",
       "weeklyHours": "Heures hebdomadaires",

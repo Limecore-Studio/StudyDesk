@@ -668,6 +668,8 @@
       "start": "Start",
       "lockInBtn": "Lock in",
       "lockInTitle": "Strip breaks, hide nav, deep focus only",
+      "syncElsewhere": "Running from another device",
+      "syncLockInHere": "Lock in here",
       "studying": "Studying",
       "workingPlaceholder": "What are you working on? (optional)",
       "weeklyHours": "Weekly hours",

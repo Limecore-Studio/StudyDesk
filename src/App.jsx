@@ -454,8 +454,13 @@ export default function App() {
     remoteStampsRef.current = null;
     let cancelled = false;
     let lastPullAt = NaN;
+    // v1.20 (#202) — Focus Sync, loaded with the live-sync engine below.
+    let focus = null;
     const doPull = async () => {
       lastPullAt = Date.now();
+      // The shared timer is one small row; every full pull (launch, return,
+      // a live channel rejoining) reads it too.
+      void focus?.refreshFocusSync();
       try {
         const remote = await sync.pullAllStudyData();
         // StudyDesk#72 — stamps first, merge second. The merge re-runs the
@@ -508,8 +513,12 @@ export default function App() {
     // and replacing the stamps wholesale (mergeStamps keeps the other kinds).
     // Before the launch pull settles there is nothing to fold into; that pull
     // is already bringing these rows.
-    const doPullTables = async (tables) => {
-      if (!pulledOnceRef.current) return;
+    const doPullTables = async (named) => {
+      // `focus_timers` is not part of the study data: Focus Sync reads it.
+      // A literal, so this file does not pull lib/focusTimer.js into startup.
+      if (named.includes("focus_timers")) void focus?.refreshFocusSync();
+      const tables = named.filter((t) => t !== "focus_timers");
+      if (tables.length === 0 || !pulledOnceRef.current) return;
       try {
         const remote = await sync.pullStudyTables(tables);
         if (cancelled) return;
@@ -524,13 +533,15 @@ export default function App() {
     // needed signed in, and never for the first paint.
     let live = null;
     let stopHints = () => {};
-    void import("./lib/liveSync.js").then((m) => {
+    void Promise.all([import("./lib/liveSync.js"), import("./lib/focusSync.js")]).then(([m, f]) => {
       if (cancelled) return;
       live = m;
+      focus = f;
       m.startRealtime(doPull, session.user?.id, { onTables: doPullTables });
       stopHints = outbox.onPushed((tables) => m.announceChanged(tables));
+      f.startFocusSync({ userId: session.user?.id, announce: m.announceChanged });
     }).catch((e) => console.error("[StudyDesk] live sync failed to load:", e));
-    return () => { cancelled = true; requestPullRef.current = null; stopHints(); live?.stopRealtime(); };
+    return () => { cancelled = true; requestPullRef.current = null; stopHints(); live?.stopRealtime(); focus?.stopFocusSync(); };
   // Only re-subscribe when the signed-in user id changes — not on every
   // session refresh (token refresh shouldn't tear down Realtime).
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1138,7 +1149,9 @@ export default function App() {
           // block's one session, or adds to it if an earlier round already
           // did. A free timer run (no planId) is the plain ADD_SESSION it
           // always was. See lib/planRun.js.
-          const steps = planSaveSteps({ save, planId: pendingSession.planId || null, plans: state.plannedSessions, sessions: state.studySessions, newId: newSyncId() });
+          // v1.20 (#202) — a timed block is saved under its run's id, so the
+          // same block saved again (from another device) is the same row.
+          const steps = planSaveSteps({ save, planId: pendingSession.planId || null, plans: state.plannedSessions, sessions: state.studySessions, newId: pendingSession.runId || newSyncId() });
           for (const a of steps.actions) dispatch(a);
           setPendingSession(null);
           showFlash(t('av.flash.logged', { n: save.durationMinutes }));

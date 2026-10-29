@@ -674,6 +674,8 @@
       "start": "Iniciar",
       "lockInBtn": "Focar",
       "lockInTitle": "Sem pausas, sem navegação, só foco profundo",
+      "syncElsewhere": "A decorrer noutro dispositivo",
+      "syncLockInHere": "Focar aqui",
       "studying": "Estudando",
       "workingPlaceholder": "No que você está trabalhando? (opcional)",
       "weeklyHours": "Horas semanais",

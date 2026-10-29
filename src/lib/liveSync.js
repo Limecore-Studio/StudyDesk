@@ -5,7 +5,7 @@
 
 import { supabase } from './supabase.js';
 import {
-  HINT_APP, HINT_EVENT, DEVICE_ID, TABLE_KEYS, hintTopic, tablesFromHint, backoffMs, createTableBatcher,
+  HINT_APP, HINT_EVENT, DEVICE_ID, isHintTable, hintTopic, tablesFromHint, backoffMs, createTableBatcher,
 } from './liveHints.js';
 import { setRealtimeState } from './realtimeState.js';
 
@@ -263,7 +263,7 @@ export function announceChanged(tables) {
   if (!live?.hintLive || !hintChannel) return;
   const at = Date.now();
   for (const table of new Set(tables)) {
-    if (!Object.prototype.hasOwnProperty.call(TABLE_KEYS, table)) continue;
+    if (!isHintTable(table)) continue;
     void Promise.resolve(hintChannel.send({
       type: 'broadcast',
       event: HINT_EVENT,

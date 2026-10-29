@@ -668,6 +668,8 @@
       "start": "Start",
       "lockInBtn": "Fokus-Modus",
       "lockInTitle": "Keine Pausen, keine Navigation, nur tiefer Fokus",
+      "syncElsewhere": "Läuft auf einem anderen Gerät",
+      "syncLockInHere": "Hier Fokus-Modus",
       "studying": "Lernen",
       "workingPlaceholder": "Woran arbeitest du? (optional)",
       "weeklyHours": "Wochenstunden",
