@@ -169,7 +169,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 *:focus-visible{outline:2px solid var(--text);outline-offset:2px;border-radius:2px;}
 
 /* ── Desktop layout ── */
-.app{display:flex;height:100vh;overflow:hidden;}
+.app{display:flex;height:calc(100vh / var(--ui-zoom, 1));overflow:hidden;}
 .sidebar{width:var(--rail-w);min-width:var(--rail-w);background:var(--surface);border-inline-end:1px solid var(--border);display:flex;flex-direction:column;transition:none;}
 .sidebar-header{padding:24px 20px 16px;border-bottom:1px solid var(--border);}
 .sidebar-logo-wrap{display:flex;align-items:center;gap:12px;}
@@ -242,11 +242,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 
 /* ── Mobile layout — fixed bottom tab bar ── */
 @media(max-width:768px){
-  .app{display:block;height:100dvh;overflow:hidden;position:relative;}
+  .app{display:block;height:calc(100dvh / var(--ui-zoom, 1));overflow:hidden;position:relative;}
   /* Hide entire sidebar on mobile — tab bar is fixed, not inside sidebar */
   .sidebar{display:none;}
   /* Main scrolls within remaining space above the fixed tab bar */
-  .main{height:100dvh;overflow-y:auto;padding-bottom:calc(64px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom)));}
+  .main{height:calc(100dvh / var(--ui-zoom, 1));overflow-y:auto;padding-bottom:calc(64px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom)));}
   /* Same pixels as before the topbar was split into outer/inner — 14px top,
      16px sides, 12px bottom. The phone tier is deliberately unchanged. */
   .topbar{padding:max(14px,var(--safe-area-inset-top, env(safe-area-inset-top))) 0 12px;position:sticky;top:0;z-index:10;}
@@ -376,3 +376,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   font-size: 0.85em;
   margin-top: 2px;
 }
+/* v1.20 (StudyDesk#159): the optional body font, chosen in Settings. Doubled
+   :root so it outranks a theme's own --font-sans (themes.css): a font picked
+   for legibility should not be undone by a theme. Its @font-face rules are in
+   /fonts/atkinson.css, which loads only when it is chosen (index.html). */
+:root:root[data-font="atkinson"]{--font-sans:'Atkinson Hyperlegible','DM Sans',sans-serif;}

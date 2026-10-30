@@ -843,7 +843,7 @@ export default function App() {
 
   // Auth gate: show login UI until Supabase confirms a session.
   // (session === undefined while the initial getSession() call is in flight.)
-  const loadingScreen = <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",fontFamily:"var(--font-mono)",fontSize:11,color:"var(--muted)",letterSpacing:"0.1em"}}>{t('av.chrome.loading')}</div>;
+  const loadingScreen = <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"calc(100vh / var(--ui-zoom, 1))",fontFamily:"var(--font-mono)",fontSize:11,color:"var(--muted)",letterSpacing:"0.1em"}}>{t('av.chrome.loading')}</div>;
   if (session === undefined) {
     return <>{loadingScreen}</>;
   }

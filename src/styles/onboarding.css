@@ -3,7 +3,7 @@
    literal. Verbatim — no rules were merged, reordered or renamed, so this
    commit changes where the CSS lives and nothing about what it does. */
 
-.ob-wrap{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 20px;background:var(--bg);overflow:hidden;}
+.ob-wrap{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh / var(--ui-zoom, 1));padding:32px 20px;background:var(--bg);overflow:hidden;}
 /* faint ruled-paper atmosphere behind the page */
 .ob-wrap::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(var(--bg),var(--bg) 31px,var(--border) 31px,var(--border) 32px);opacity:0.35;pointer-events:none;}
 .ob-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:40px 34px 32px;width:100%;max-width:440px;
