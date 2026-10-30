@@ -600,7 +600,7 @@
    squeeze at the low end of the range. */
 @media (min-width: 1440px) {
   .cal-split { display: grid; grid-template-columns: minmax(0, 1fr) clamp(300px, 26%, 400px); gap: 18px; align-items: start; }
-  .cal-agenda-pane { position: sticky; top: 18px; max-height: calc(100vh - 140px); overflow-y: auto; }
+  .cal-agenda-pane { position: sticky; top: 18px; max-height: calc(calc(100vh / var(--ui-zoom, 1)) - 140px); overflow-y: auto; }
 }
 @media (min-width: 1600px) {
   .cal { --cal-cell-min: 148px; --cal-hour-h: 52px; }

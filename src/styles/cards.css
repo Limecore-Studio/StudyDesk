@@ -115,7 +115,7 @@
    flash toast sits on desktop and clears the mobile tab bar the same way, so
    it never covers navigation. Existing tokens only; nothing new is defined
    here, so an alternate theme's token set restyles it for free. */
-.ref-card{position:fixed;bottom:24px;inset-inline-end:24px;z-index:210;width:300px;max-width:calc(100vw - 32px);
+.ref-card{position:fixed;bottom:24px;inset-inline-end:24px;z-index:210;width:300px;max-width:calc(calc(100vw / var(--ui-zoom, 1)) - 32px);
   background:var(--surface);border:1px solid var(--border2);border-radius:6px;box-shadow:var(--shadow-md);
   padding:16px 18px 14px;animation:fadeup 0.24s var(--ease-settle);}
 .ref-eyebrow{font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted2);}

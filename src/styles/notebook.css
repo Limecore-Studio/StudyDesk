@@ -55,7 +55,7 @@
 .nb-page {
   position: relative;
   margin: 0 auto;
-  padding: 20px 0 40vh 0;
+  padding: 20px 0 calc(40vh / var(--ui-zoom, 1)) 0;
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0 calc(var(--nb-rule-h) - 1px),
@@ -938,7 +938,7 @@ body.nb-editing .mobile-tabbar { display: none !important; }
   }
   .main.is-notebook .topbar-title { visibility: visible; }
   .main.is-notebook .content { padding-block: 0; }
-  .main.is-notebook .nb { min-height: 100dvh; }
+  .main.is-notebook .nb { min-height: calc(100dvh / var(--ui-zoom, 1)); }
   /* The docked bar is a phone answer to a phone problem — there is no soft
      keyboard to fight on desktop, and the always-visible format row in the
      note header takes its place. */
@@ -1035,10 +1035,10 @@ body.nb-editing .mobile-tabbar { display: none !important; }
 }
 
 /* The "?" sheet. The app's own modal; only its contents are styled here. */
-.nb-help { width: min(440px, calc(100vw - 32px)); max-height: 85vh; overflow-y: auto; }
+.nb-help { width: min(440px, calc(calc(100vw / var(--ui-zoom, 1)) - 32px)); max-height: calc(85vh / var(--ui-zoom, 1)); overflow-y: auto; }
 .nb-help-cols { display: grid; grid-template-columns: 1fr; gap: 18px 28px; }
 @media (min-width: 769px) {
-  .nb-help.has-keys { width: min(720px, calc(100vw - 32px)); }
+  .nb-help.has-keys { width: min(720px, calc(calc(100vw / var(--ui-zoom, 1)) - 32px)); }
   .nb-help.has-keys .nb-help-cols { grid-template-columns: 1fr 1fr; }
 }
 .nb-help-section + .nb-help-section { margin-top: 18px; }
@@ -1108,7 +1108,7 @@ body.nb-editing .mobile-tabbar { display: none !important; }
   padding: 2px 4px;
   border-radius: 4px;
   cursor: pointer;
-  max-width: 40vw;
+  max-width: calc(40vw / var(--ui-zoom, 1));
 }
 .nb-head-course-select:hover,
 .nb-head-course-select:focus-visible {
