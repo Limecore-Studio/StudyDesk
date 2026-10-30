@@ -1,7 +1,7 @@
 -- v1.20 Block C (StudyDesk#156) — progress counters: pages, chapters or hours
 -- counted with +/− buttons, per book or course, against an optional daily,
 -- weekly or overall target.
--- NOT YET APPLIED to production: the owner applies it.
+-- APPLIED to production 2026-10-30 with the owner's OK (history version 20261030062627).
 --
 -- StudyDesk-only, like planned_sessions: NCC reads neither table, and a
 -- counter is not study time (P1: a counted hour must never be written into
