@@ -260,6 +260,48 @@ function applyAppearanceChrome(dark) {
       } catch { /* pre-paint, or Android 15+ where this is a no-op anyway */ }
     })
     .catch(() => { /* web, Electron, or plugin not installed */ });
+
+  applyNativeAppearance(dark);
+}
+
+// v1.20 (#208) — the rest of what Android draws outside the WebView.
+//
+// Capacitor 8's core SystemBars plugin owns both bars' icon colour, and its
+// default style (DEFAULT) follows the DEVICE: it re-applies that at launch and
+// on every system light/dark switch, which undid the StatusBar call above (a
+// black app with dark, invisible status icons after the phone went light) and
+// left the navigation bar never set at all. Setting a style here makes the
+// plugin keep and re-apply OURS instead.
+//
+// The Appearance plugin (AppearancePlugin.java) sets the activity's night mode
+// to match, which themes the WebView's native date/time pickers (they do not
+// read `color-scheme`), and paints the strip behind 3-button navigation in the
+// app's own ground instead of the device-themed scrim.
+//
+// SystemBars before the night mode: the night-mode switch is a configuration
+// change, and the plugin re-applies its stored style on every one.
+let appearancePlugin = null;
+function applyNativeAppearance(dark) {
+  import("@capacitor/core")
+    .then(async ({ Capacitor, SystemBars, SystemBarsStyle, registerPlugin }) => {
+      if (!Capacitor.isNativePlatform()) return;
+      await SystemBars.setStyle({ style: dark ? SystemBarsStyle.Dark : SystemBarsStyle.Light });
+      if (Capacitor.getPlatform() !== "android") return;
+      appearancePlugin ??= registerPlugin("Appearance");
+      // The resolved ground, for the strip behind 3-button navigation. Read,
+      // not repeated, for the same reason as the status bar's above.
+      const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+      await appearancePlugin.setNightMode({ dark, color: /^#[0-9a-f]{6}$/i.test(bg) ? bg : undefined });
+    })
+    .catch(() => { /* an older native build without the plugin: the bars still follow */ });
+}
+
+// At launch, too. index.html applies the look before the first paint, but that
+// pre-paint pass cannot reach native code, and `applyTheme` otherwise only runs
+// when the look changes. So every launch kept the device's bars until the user
+// touched Settings: the navigation bar of #208 stayed white across restarts.
+if (typeof window !== "undefined") {
+  try { applyAppearanceChrome(isDarkAppearance()); } catch { /* never block boot on chrome */ }
 }
 
 // Stable per-item jitter, shared by both themes' signature elements — Stacks'
