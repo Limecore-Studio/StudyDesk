@@ -16,6 +16,9 @@ vi.mock('@capacitor/status-bar', () => ({
   StatusBar: { setStyle: async () => {}, setBackgroundColor: async () => {} },
   Style: { Dark: 'DARK', Light: 'LIGHT' },
 }));
+// The real module loads the Supabase client, whose Realtime half throws on
+// import under Node 20 (no native WebSocket), which is what CI runs.
+vi.mock('./entitlement', () => ({ isEntitled: () => false }));
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
