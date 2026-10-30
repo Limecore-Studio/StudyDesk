@@ -444,6 +444,8 @@ export function enqueueMany(entries) {
 // is either a soft delete or an ON DELETE CASCADE, so neither direction fails.
 const KIND_RANK = {
   upsert_subject: 0,
+  // v1.20 (StudyDesk#156): a counter before its days (foreign key).
+  upsert_counter: 0,
   upsert_term: 0,
   log_session: 0,
 
@@ -483,6 +485,7 @@ export function __drainOrderForTest(items) {
  *  get their budget back (see `reviveFkChildren`). */
 const PARENT_KINDS = new Set([
   'upsert_subject', 'upsert_term', 'log_session', 'upsert_timetable', 'upsert_note',
+  'upsert_counter',
 ]);
 
 /** Was this failure the parent row not existing on the server (yet)? Reads the
@@ -850,4 +853,9 @@ const KIND_DISPATCH = {
   // write with no session; and the phone is often offline at exactly the
   // moment the app comes up. Both resolve into a retry rather than a lost day.
   record_app_open: (p) => sync.recordAppOpen(p),
+  // v1.20 (StudyDesk#156) — progress counters. Their push code loads on
+  // demand, so it stays out of the startup bundle.
+  upsert_counter: (p) => import('./counterSync.js').then((m) => m.upsertCounter(p)),
+  delete_counter: (p) => import('./counterSync.js').then((m) => m.deleteCounter(p)),
+  upsert_counter_day: (p) => import('./counterSync.js').then((m) => m.upsertCounterDay(p)),
 };

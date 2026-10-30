@@ -465,6 +465,9 @@ export default function App() {
       // The shared timer is one small row; every full pull (launch, return,
       // a live channel rejoining) reads it too.
       void focus?.refreshFocusSync();
+      // v1.20 (#156): progress counters live outside the reducer; their store
+      // loads on demand, so this costs nothing until counters are in use.
+      if (localStorage.getItem("sd-counters")) void import("./lib/counterStore.js").then((m) => m.refreshCounters());
       try {
         const remote = await sync.pullAllStudyData();
         // StudyDesk#72 — stamps first, merge second. The merge re-runs the
@@ -521,7 +524,11 @@ export default function App() {
       // `focus_timers` is not part of the study data: Focus Sync reads it.
       // A literal, so this file does not pull lib/focusTimer.js into startup.
       if (named.includes("focus_timers")) void focus?.refreshFocusSync();
-      const tables = named.filter((t) => t !== "focus_timers");
+      // v1.20 (#156): the counters' own store, likewise.
+      if (named.includes("progress_counters") || named.includes("progress_counter_days")) {
+        void import("./lib/counterStore.js").then((m) => m.refreshCounters());
+      }
+      const tables = named.filter((t) => t !== "focus_timers" && t !== "progress_counters" && t !== "progress_counter_days");
       if (tables.length === 0 || !pulledOnceRef.current) return;
       try {
         const remote = await sync.pullStudyTables(tables);
