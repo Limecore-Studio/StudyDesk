@@ -103,8 +103,8 @@ describe('editStamp — what it does not stamp', () => {
   it('covers every upsert kind the outbox can send to a table with updated_at, and the attendance clear', () => {
     expect(Object.keys(STAMPED_KINDS).sort()).toEqual([
       'delete_attendance', 'log_session', 'update_session', 'upsert_action', 'upsert_assignment', 'upsert_attendance',
-      'upsert_commitment', 'upsert_exam', 'upsert_grade', 'upsert_note', 'upsert_note_attachment',
-      'upsert_planned', 'upsert_subject', 'upsert_term', 'upsert_timetable',
+      'upsert_commitment', 'upsert_counter', 'upsert_counter_day', 'upsert_exam', 'upsert_grade', 'upsert_note',
+      'upsert_note_attachment', 'upsert_planned', 'upsert_subject', 'upsert_term', 'upsert_timetable',
     ]);
   });
 });

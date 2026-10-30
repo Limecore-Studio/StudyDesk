@@ -7,8 +7,6 @@ import { supabase, readStoredSession } from "./lib/supabase.js";
 import { startSessionBoot } from "./lib/sessionBoot.js";
 import { otherAccountClearedMessage, requestNoteFlush } from "./lib/noteFlush.js";
 import { claimForUser, readOwner, isPageStale, watchPageStale, reloadStalePage, takeStaleReloadNotice, STALE_RELOAD_FALLBACK_MS } from "./lib/deviceOwner.js";
-import AuthGate from "./features/auth/AuthGate.jsx";
-import SetPasswordScreen from "./features/auth/SetPasswordScreen.jsx";
 import { isRecoveryPending, subscribeRecovery } from "./lib/passwordRecovery.js";
 import { isGuestMode, setGuestMode } from "./lib/guestMode.js";
 import { scheduleOriginStamp } from "./lib/originMarker.js";
@@ -82,6 +80,11 @@ const GradesView = lazy(() => import("./features/grades/GradesView.jsx"));
 const SessionsView = lazy(() => import("./features/sessions/SessionsView.jsx"));
 const NotebookView = lazy(() => import("./features/notebook/NotebookView.jsx"));
 const TimerView = lazy(() => import("./features/timer/TimerView.jsx"));
+// v1.20 — the sign-in and set-password screens load on demand: a signed-in
+// launch (most of them) never shows either, and AuthGate alone was the
+// largest file in the startup chunk (StudyDesk#156, #159 made room this way).
+const AuthGate = lazy(() => import("./features/auth/AuthGate.jsx"));
+const SetPasswordScreen = lazy(() => import("./features/auth/SetPasswordScreen.jsx"));
 // v1.19 (#185) — only rendered when a block is offered, so not at launch.
 const PlanStartSheet = lazy(() => import("./features/timer/PlanStartSheet.jsx"));
 const StatsView = lazy(() => import("./features/stats/StatsView.jsx"));
@@ -462,6 +465,9 @@ export default function App() {
       // The shared timer is one small row; every full pull (launch, return,
       // a live channel rejoining) reads it too.
       void focus?.refreshFocusSync();
+      // v1.20 (#156): progress counters live outside the reducer; their store
+      // loads on demand, so this costs nothing until counters are in use.
+      if (localStorage.getItem("sd-counters")) void import("./lib/counterStore.js").then((m) => m.refreshCounters());
       try {
         const remote = await sync.pullAllStudyData();
         // StudyDesk#72 — stamps first, merge second. The merge re-runs the
@@ -518,7 +524,11 @@ export default function App() {
       // `focus_timers` is not part of the study data: Focus Sync reads it.
       // A literal, so this file does not pull lib/focusTimer.js into startup.
       if (named.includes("focus_timers")) void focus?.refreshFocusSync();
-      const tables = named.filter((t) => t !== "focus_timers");
+      // v1.20 (#156): the counters' own store, likewise.
+      if (named.includes("progress_counters") || named.includes("progress_counter_days")) {
+        void import("./lib/counterStore.js").then((m) => m.refreshCounters());
+      }
+      const tables = named.filter((t) => t !== "focus_timers" && t !== "progress_counters" && t !== "progress_counter_days");
       if (tables.length === 0 || !pulledOnceRef.current) return;
       try {
         const remote = await sync.pullStudyTables(tables);
@@ -833,14 +843,15 @@ export default function App() {
 
   // Auth gate: show login UI until Supabase confirms a session.
   // (session === undefined while the initial getSession() call is in flight.)
+  const loadingScreen = <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",fontFamily:"var(--font-mono)",fontSize:11,color:"var(--muted)",letterSpacing:"0.1em"}}>{t('av.chrome.loading')}</div>;
   if (session === undefined) {
-    return <><div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",fontFamily:"var(--font-mono)",fontSize:11,color:"var(--muted)",letterSpacing:"0.1em"}}>{t('av.chrome.loading')}</div></>;
+    return <>{loadingScreen}</>;
   }
   // v1.1 — bypass AuthGate when the user opted into guest mode. The rest of
   // the app runs identically; cloud sync remains gated on `session` which is
   // still null, so realtime stays off and outbox enqueue calls are no-ops.
   if (session === null && !guest) {
-    return <><AuthGate/></>;
+    return <Suspense fallback={loadingScreen}><AuthGate/></Suspense>;
   }
   // #52 — a recovery session must not become an ordinary signed-in session
   // until a new password has actually been set. This sits AFTER the gate (there
@@ -848,7 +859,7 @@ export default function App() {
   // else, because letting the app open here is the whole defect: the user is
   // signed in on this device and still locked out of the next one.
   if (session && recoveryPending) {
-    return <><SetPasswordScreen/></>;
+    return <Suspense fallback={loadingScreen}><SetPasswordScreen/></Suspense>;
   }
 
   return (<>

@@ -1,0 +1,135 @@
+/* v1.20 (StudyDesk#156) — progress counters on the Study view. Loaded with
+   the panel (CountersPanel.jsx), so none of it is in the startup CSS. The
+   page's own vocabulary: Next Up's card rows, mono numerals, and a hairline
+   of ink for the way to a target. */
+
+.ctr { margin-top: 8px; margin-bottom: 24px; }
+
+.ctr-empty { font-size: 12px; color: var(--muted2); margin: -4px 0 0; }
+
+.ctr-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  margin-bottom: 6px;
+  box-shadow: var(--shadow);
+}
+
+.ctr-name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  text-align: start;
+  cursor: pointer;
+}
+.ctr-name:hover .ctr-name-text { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border2); }
+.ctr-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; align-self: center; }
+.ctr-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctr-period {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted2);
+}
+
+.ctr-count { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+.ctr-value {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.ctr-unit { font-family: var(--font-mono); font-size: 10px; color: var(--muted); }
+
+.ctr-keys { display: flex; gap: 4px; }
+.ctr-key {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.1s var(--ease-paper), border-color 0.1s var(--ease-paper), transform 0.08s var(--ease-paper);
+}
+.ctr-key:hover { color: var(--text); border-color: var(--text); }
+.ctr-key:active { transform: translateY(1px); }
+.ctr-key--plus { color: var(--text); }
+
+/* The way to the target: a hairline along the card's foot, inked as it fills. */
+.ctr-rule {
+  position: absolute;
+  inset-inline: 14px;
+  bottom: 5px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.ctr-rule > span {
+  display: block;
+  height: 100%;
+  background: var(--text);
+  transition: width 0.25s var(--ease-settle);
+}
+.ctr-row.is-done .ctr-rule > span { background: var(--phase-short); }
+.ctr-row.is-done .ctr-value { color: var(--phase-short); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ctr-key, .ctr-rule > span { transition: none; }
+}
+
+/* ── form (the page's quick-add box) ──────────────────────────────────────── */
+.ctr-form { display: flex; flex-direction: column; gap: 12px; }
+.ctr-form-row { display: flex; flex-direction: column; gap: 6px; }
+.ctr-form-row--split { flex-direction: row; gap: 8px; }
+.ctr-form-row--split > * { flex: 1; min-width: 0; }
+.ctr-form-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted2);
+}
+.ctr-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ctr-unit-input { flex: 1; min-width: 90px; max-width: 160px; font-size: 12px; padding: 6px 10px; }
+.ctr-form-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ctr-delete {
+  margin-inline-start: auto;
+  border: 0;
+  background: none;
+  color: var(--muted2);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.ctr-delete:hover, .ctr-delete.is-confirm { color: var(--danger); }
+
+@media (max-width: 420px) {
+  .ctr-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 8px; }
+  .ctr-keys { grid-column: 2; grid-row: 1 / span 2; align-self: center; gap: 6px; }
+  .ctr-count { grid-column: 1; }
+  /* A thumb, not a cursor: the keys grow to a comfortable touch size. */
+  .ctr-key { width: 40px; height: 40px; font-size: 17px; }
+}

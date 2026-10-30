@@ -72,6 +72,10 @@ export const KIND_TABLES = {
   delete_note: 'notebook_entries',
   upsert_note_attachment: 'notebook_attachments',
   delete_note_attachment: 'notebook_attachments',
+  // v1.20 (StudyDesk#156)
+  upsert_counter: 'progress_counters',
+  delete_counter: 'progress_counters',
+  upsert_counter_day: 'progress_counter_days',
 };
 
 /** This page's id. `broadcast.self: false` already keeps a channel's own
@@ -84,7 +88,7 @@ export const DEVICE_ID = (() => {
 /** v1.20 (#202): tables a hint can name that are not study data, so
  *  `pullStudyTables` never sees them. The shared focus timer is read by
  *  lib/focusSync.js instead. */
-const HINT_ONLY = new Set(['focus_timers']);
+const HINT_ONLY = new Set(['focus_timers', 'progress_counters', 'progress_counter_days']);
 
 /** True for a table a hint may name: study data, or the shared timer. */
 export function isHintTable(t) {
