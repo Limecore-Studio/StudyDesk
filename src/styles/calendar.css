@@ -715,41 +715,54 @@
   }
   .cal-ribbon-b.k-planned.s-dismissed { opacity: 0.45; }
   .cal-ribbon-b.k-planned.s-missed { border-style: dotted; }
+}
 
-  /* SD-F4 — the way in to a blocker. Until this button, commitments could only
-     be created by pressing "c", which is not a gesture a phone has; the feature
-     shipped invisible and training sessions got entered as school lessons
-     instead. Styled as a quiet outlined action rather than a primary button:
-     it is an occasional act, not the main thing you do on this screen. */
-  .cal-add-blocker {
-    display: flex; align-items: center; gap: 7px; width: 100%;
-    padding: 9px 10px; text-align: start; cursor: pointer;
-    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--muted);
-    background: none; border: 1px dashed var(--rule, var(--border2)); border-radius: 6px;
-  }
-  .cal-add-blocker-plus {
-    font-family: var(--font-display); font-size: 14px; line-height: 1;
-    color: var(--accent2, var(--muted));
-  }
-  .cal-agenda-note {
-    padding: 5px 2px 0; font-size: 11px; font-style: italic; color: var(--muted2);
-  }
+/* v1.20 (StudyDesk#207) — the day panel's own controls, at EVERY tier. These
+   rules used to live in the phone block above, so on desktop "+ Add blocker"
+   rendered as a bare browser button and the free windows ran together
+   ("09:0055m free"). The panel itself is all-tier; its styles are too. */
 
-  /* Named free windows in the day agenda — the planning half of this view. */
-  .cal-gap {
-    display: flex; align-items: center; gap: 8px; width: 100%;
-    padding: 9px 2px; background: none; border: 0;
-    border-bottom: 1px dashed var(--rule, var(--border2)); cursor: pointer; text-align: start;
-  }
-  .cal-gap-time { font-family: var(--font-mono); font-size: 10px; color: var(--accent2, var(--muted)); flex: 0 0 auto; }
-  .cal-gap-len { font-size: 12px; color: var(--muted); font-style: italic; }
-  /* The readout variant on wide tiers: same row, no affordance. Cursor and
-     hover are what say "this does something", so both go. */
-  .cal-gap.is-static { cursor: default; }
-  .cal-gap-add {
-    margin-inline-start: auto; width: 20px; height: 20px; border-radius: 50%;
-    border: 1px solid var(--accent2, var(--border2)); color: var(--accent2, var(--muted));
-    font-size: 13px; line-height: 18px; text-align: center; flex: 0 0 auto;
-  }
+/* SD-F4 — the way in to a blocker. Until this button, commitments could only
+   be created by pressing "c", which is not a gesture a phone has; the feature
+   shipped invisible and training sessions got entered as school lessons
+   instead. Styled as a quiet outlined action rather than a primary button:
+   it is an occasional act, not the main thing you do on this screen. */
+.cal-add-blocker {
+  display: flex; align-items: center; gap: 7px; width: 100%;
+  padding: 9px 10px; text-align: start; cursor: pointer;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted);
+  background: none; border: 1px dashed var(--rule, var(--border2)); border-radius: 6px;
+}
+.cal-add-blocker-plus {
+  font-family: var(--font-display); font-size: 14px; line-height: 1;
+  color: var(--accent2, var(--muted));
+}
+.cal-agenda-note {
+  padding: 5px 2px 0; font-size: 11px; font-style: italic; color: var(--muted2);
+}
+
+/* Named free windows in the day agenda — the planning half of this view. */
+.cal-gap {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 9px 2px; background: none; border: 0;
+  border-bottom: 1px dashed var(--rule, var(--border2)); cursor: pointer; text-align: start;
+}
+.cal-gap-time { font-family: var(--font-mono); font-size: 10px; color: var(--accent2, var(--muted)); flex: 0 0 auto; }
+.cal-gap-len { font-size: 12px; color: var(--muted); font-style: italic; }
+.cal-gap-add {
+  margin-inline-start: auto; width: 20px; height: 20px; border-radius: 50%;
+  border: 1px solid var(--accent2, var(--border2)); color: var(--accent2, var(--muted));
+  font-size: 13px; line-height: 18px; text-align: center; flex: 0 0 auto;
+}
+
+/* The main thing this panel is for: planning study into the day. Same quiet
+   outlined shape as the blocker button, but a solid rule in ink, so the two
+   read as a pair with an order. */
+.cal-add-blocker.is-plan { border-style: solid; border-color: var(--border2); color: var(--text); }
+.cal-add-blocker + .cal-add-blocker { margin-top: 6px; }
+@media (hover: hover) {
+  .cal-add-blocker:hover { color: var(--text); border-color: var(--text); }
+  .cal-gap:hover .cal-gap-len { color: var(--text); }
+  .cal-gap:hover .cal-gap-add { background: var(--accent2, var(--border2)); color: var(--on-solid); }
 }
