@@ -32,18 +32,24 @@ vi.stubGlobal('getComputedStyle', () => ({ getPropertyValue: (k) => (k === '--bg
 vi.stubGlobal('localStorage', { getItem: () => null, setItem() {}, removeItem() {} });
 vi.stubGlobal('Event', class { constructor(type) { this.type = type; } });
 
+// theme.js reaches native code through a dynamic import, which settles in its
+// own time under a loaded test run: wait for the calls, not for a fixed tick.
+const callsSettle = (n) => vi.waitFor(() => { if (calls.length < n) throw new Error(`${calls.length} of ${n} calls`); });
+
+// The module makes one launch call when first imported; take it out of the way.
+const { applyTheme } = await import('./theme.js');
+await callsSettle(2);
+
 describe('native appearance (#208)', () => {
   beforeEach(() => {
     calls.length = 0;
     bg = '#000000';
+    native = true;
   });
 
   it('sets both bars, then the night mode with the ground colour', async () => {
-    native = true;
-    const { applyTheme } = await import('./theme.js');
-    await flush(); calls.length = 0; // the launch call
     applyTheme('free', 'black');
-    await flush(); await flush();
+    await callsSettle(2);
     expect(calls).toEqual([
       ['SystemBars.setStyle', { style: 'DARK' }],
       ['Appearance.setNightMode', { dark: true, color: '#000000' }],
@@ -51,12 +57,9 @@ describe('native appearance (#208)', () => {
   });
 
   it('a light look asks for light bars and day mode', async () => {
-    native = true;
-    const { applyTheme } = await import('./theme.js');
-    await flush(); calls.length = 0;
     bg = '#f5f2ed';
     applyTheme('free', 'light');
-    await flush(); await flush();
+    await callsSettle(2);
     expect(calls).toEqual([
       ['SystemBars.setStyle', { style: 'LIGHT' }],
       ['Appearance.setNightMode', { dark: false, color: '#f5f2ed' }],
@@ -65,10 +68,9 @@ describe('native appearance (#208)', () => {
 
   it('makes no native call on web or Electron', async () => {
     native = false;
-    const { applyTheme } = await import('./theme.js');
-    await flush(); calls.length = 0;
     applyTheme('free', 'black');
-    await flush(); await flush();
+    // The import still resolves; it then stops at the platform check.
+    for (let i = 0; i < 20; i++) await flush();
     expect(calls).toEqual([]);
   });
 });
