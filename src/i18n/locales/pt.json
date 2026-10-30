@@ -1102,10 +1102,7 @@
     "size_default": "Predefinido",
     "size_larger": "Maior",
     "size_largest": "O maior",
-    "font": "Tipo de letra",
-    "font_default": "Predefinido",
-    "font_atkinson": "Atkinson Hyperlegible",
-    "sizeFontNote": "O tamanho e o tipo de letra aplicam-se apenas a este dispositivo.",
+    "sizeNote": "O tamanho aplica-se apenas a este dispositivo.",
     "mode": {
       "light": "Claro",
       "dark": "Escuro",

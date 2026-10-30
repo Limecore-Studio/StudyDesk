@@ -38,7 +38,7 @@ import {
   setPreferredWidgetPalette,
 } from '../../lib/theme.js';
 import { isEntitled } from '../../lib/entitlement.js';
-import { UI_SCALES, UI_FONTS, preferredUiScale, preferredUiFont, setUiScale, setUiFont, loadFontSheet } from '../../lib/uiPrefs.js';
+import { UI_SCALES, preferredUiScale, setUiScale } from '../../lib/uiPrefs.js';
 
 // v1.20 (StudyDesk#159) — size and font. Same option tiles as the rows above,
 // with an "Aa" in place of the colour swatch: drawn at each size, or in each
@@ -146,12 +146,7 @@ export default function Appearance() {
   const paidActive = isPaidTheme(theme);
 
   const [uiScale, setUiScaleState] = useState(() => preferredUiScale());
-  const [uiFont, setUiFontState] = useState(() => preferredUiFont());
   const chooseScale = useCallback((next) => { setUiScale(next); setUiScaleState(next); }, []);
-  const chooseFont = useCallback((next) => { setUiFont(next); setUiFontState(next); }, []);
-  // The Atkinson tile previews in Atkinson, so its sheet is fetched while this
-  // section is open, whichever font is chosen.
-  useEffect(() => { loadFontSheet(); }, []);
 
   return (
     <div className="sv2-section">
@@ -204,7 +199,7 @@ export default function Appearance() {
         )}
       </div>
 
-      {/* ── Size and font (v1.20, #159) ── */}
+      {/* ── Size (v1.20, #159) ── */}
       <div className="theme-group">
         <div className="theme-group-label">{t('appearance.size')}</div>
         <div className="theme-options">
@@ -213,16 +208,7 @@ export default function Appearance() {
               onSelect={chooseScale} sampleStyle={{ fontSize: `${Math.round(15 * s)}px` }} />
           ))}
         </div>
-      </div>
-      <div className="theme-group">
-        <div className="theme-group-label">{t('appearance.font')}</div>
-        <div className="theme-options">
-          {UI_FONTS.map((f) => (
-            <TextOption key={f} id={f} label={t(`appearance.font_${f}`)} active={uiFont === f} onSelect={chooseFont}
-              sampleStyle={{ fontFamily: f === 'atkinson' ? "'Atkinson Hyperlegible', sans-serif" : "'DM Sans', sans-serif" }} />
-          ))}
-        </div>
-        <div className="theme-character-note">{t('appearance.sizeFontNote')}</div>
+        <div className="theme-character-note">{t('appearance.sizeNote')}</div>
       </div>
 
       {/* ── Home-screen widgets (v1.15) ── */}
