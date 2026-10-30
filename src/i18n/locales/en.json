@@ -1093,10 +1093,7 @@
     "size_default": "Default",
     "size_larger": "Larger",
     "size_largest": "Largest",
-    "font": "Font",
-    "font_default": "Default",
-    "font_atkinson": "Atkinson Hyperlegible",
-    "sizeFontNote": "Size and font apply on this device only.",
+    "sizeNote": "Size applies on this device only.",
     "mode": {
       "light": "Light",
       "dark": "Dark",

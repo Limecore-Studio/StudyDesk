@@ -70,9 +70,9 @@
           /* storage unavailable — free light theme, which is the default */
         }
       })();
-      /* ── Pre-paint UI size and font (v1.20, StudyDesk#159) ──────────────
+      /* ── Pre-paint UI size (v1.20, StudyDesk#159) ──────────────────────
          Same reason as the pass above: applied before the first paint, so
-         the page never jumps from one size or font to another. The keys are
+         the page never jumps from one size to another. The key is
          a contract with src/lib/uiPrefs.js, which owns every later change.
          Size is CSS zoom on the root (the stylesheets are px throughout);
          --ui-zoom lets every viewport-sized rule divide it back out, because
@@ -85,16 +85,8 @@
             el.style.zoom = String(scale);
             el.style.setProperty('--ui-zoom', String(scale));
           }
-          if (localStorage.getItem('studydesk.uiFont') === 'atkinson') {
-            el.dataset.font = 'atkinson';
-            var link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = '/fonts/atkinson.css';
-            link.id = 'sd-font-atkinson';
-            document.head.appendChild(link);
-          }
         } catch (e) {
-          /* storage unavailable — default size and font */
+          /* storage unavailable — default size */
         }
       })();
     </script>
