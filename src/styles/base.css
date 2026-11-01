@@ -376,8 +376,3 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   font-size: 0.85em;
   margin-top: 2px;
 }
-/* v1.20 (StudyDesk#159): the optional body font, chosen in Settings. Doubled
-   :root so it outranks a theme's own --font-sans (themes.css): a font picked
-   for legibility should not be undone by a theme. Its @font-face rules are in
-   /fonts/atkinson.css, which loads only when it is chosen (index.html). */
-:root:root[data-font="atkinson"]{--font-sans:'Atkinson Hyperlegible','DM Sans',sans-serif;}

@@ -1133,10 +1133,7 @@
     "size_default": "الافتراضي",
     "size_larger": "أكبر",
     "size_largest": "الأكبر",
-    "font": "الخط",
-    "font_default": "الافتراضي",
-    "font_atkinson": "Atkinson Hyperlegible",
-    "sizeFontNote": "ينطبق الحجم والخط على هذا الجهاز فقط.",
+    "sizeNote": "ينطبق الحجم على هذا الجهاز فقط.",
     "mode": {
       "light": "فاتح",
       "dark": "داكن",

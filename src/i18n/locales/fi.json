@@ -1093,10 +1093,7 @@
     "size_default": "Oletus",
     "size_larger": "Suurempi",
     "size_largest": "Suurin",
-    "font": "Fontti",
-    "font_default": "Oletus",
-    "font_atkinson": "Atkinson Hyperlegible",
-    "sizeFontNote": "Koko ja fontti koskevat vain tätä laitetta.",
+    "sizeNote": "Koko koskee vain tätä laitetta.",
     "mode": {
       "light": "Vaalea",
       "dark": "Tumma",

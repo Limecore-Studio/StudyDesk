@@ -1093,10 +1093,7 @@
     "size_default": "Standard",
     "size_larger": "Größer",
     "size_largest": "Am größten",
-    "font": "Schrift",
-    "font_default": "Standard",
-    "font_atkinson": "Atkinson Hyperlegible",
-    "sizeFontNote": "Größe und Schrift gelten nur auf diesem Gerät.",
+    "sizeNote": "Die Größe gilt nur auf diesem Gerät.",
     "mode": {
       "light": "Hell",
       "dark": "Dunkel",
