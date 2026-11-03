@@ -608,6 +608,7 @@
     "daysInRow": "hari berturut-turut",
     "ibTrend": "Tren rata-rata IB",
     "gpaTrend": "Tren GPA",
+    "avgTrend": "Tren rata-rata",
     "ibScale": "Skala 1–7",
     "usScale": "Skala 4.0",
     "trendNeedMore": "Catat nilai di lebih dari satu bulan untuk melihat trenmu.",
