@@ -1286,5 +1286,11 @@
     },
     "markedDone": "Done: {{title}}",
     "undo": "Undo"
+  },
+  "reportPrompt": {
+    "title": "Send error reports?",
+    "body": "If something breaks, StudyDesk can send us the technical details: the app version, the error and the screen it happened on. Never what you type. You can change this in Settings.",
+    "yes": "Yes, send reports",
+    "notNow": "Not now"
   }
 }

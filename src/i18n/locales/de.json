@@ -1286,5 +1286,11 @@
     },
     "markedDone": "Erledigt: {{title}}",
     "undo": "Rückgängig"
+  },
+  "reportPrompt": {
+    "title": "Fehlerberichte senden?",
+    "body": "Wenn etwas schiefgeht, kann StudyDesk uns die technischen Details senden: App-Version, Fehler und den Bildschirm, auf dem er auftrat. Nie das, was du eingibst. Du kannst das in den Einstellungen ändern.",
+    "yes": "Ja, senden",
+    "notNow": "Nicht jetzt"
   }
 }
