@@ -612,6 +612,7 @@
     "daysInRow": "天连续",
     "ibTrend": "IB 平均分趋势",
     "gpaTrend": "GPA 趋势",
+    "avgTrend": "平均分趋势",
     "ibScale": "1–7 制",
     "usScale": "4.0 制",
     "trendNeedMore": "记录跨越多个月的成绩以查看趋势。",

@@ -620,6 +620,7 @@
     "daysInRow": "jours d’affilée",
     "ibTrend": "Tendance moyenne IB",
     "gpaTrend": "Tendance GPA",
+    "avgTrend": "Tendance de la moyenne",
     "ibScale": "échelle 1–7",
     "usScale": "échelle 4.0",
     "trendNeedMore": "Saisissez des notes sur plus d’un mois pour voir votre tendance.",

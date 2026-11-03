@@ -614,6 +614,7 @@
     "daysInRow": "days in a row",
     "ibTrend": "IB average trend",
     "gpaTrend": "GPA trend",
+    "avgTrend": "Average trend",
     "ibScale": "1–7 scale",
     "usScale": "4.0 scale",
     "trendNeedMore": "Log grades across more than one month to see your trend.",

@@ -614,6 +614,7 @@
     "daysInRow": "päivää putkeen",
     "ibTrend": "IB-keskiarvon kehitys",
     "gpaTrend": "GPA:n kehitys",
+    "avgTrend": "Keskiarvon kehitys",
     "ibScale": "1–7-asteikko",
     "usScale": "4.0-asteikko",
     "trendNeedMore": "Kirjaa arvosanoja useammalta kuukaudelta nähdäksesi kehityksen.",
