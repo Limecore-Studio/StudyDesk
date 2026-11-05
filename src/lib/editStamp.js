@@ -56,6 +56,9 @@ export const STAMPED_KINDS = {
   // v1.18.1 (StudyDesk#143): a clear is an edit too, stamped when the user
   // made it, so a later re-mark is newer than it.
   delete_attendance: 'lesson_attendance',
+  // v1.20 (StudyDesk#156)
+  upsert_counter: 'progress_counters',
+  upsert_counter_day: 'progress_counter_days',
 };
 
 /** `pullAllStudyData()` result key → table. */
@@ -73,6 +76,9 @@ const PULLED = {
   notes: 'notebook_entries',
   noteAttachments: 'notebook_attachments',
   attendance: 'lesson_attendance',
+  // v1.20 (StudyDesk#156): pulled by counterSync.pullCounters.
+  counters: 'progress_counters',
+  counterDays: 'progress_counter_days',
 };
 
 const lastSeen = new Map();

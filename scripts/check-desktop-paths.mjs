@@ -82,7 +82,20 @@ if (mobilePacked.length) {
   );
 }
 
+// StudyDesk#115 — the tray and window icon are loaded from inside app.asar
+// (electron/main.cjs ICON_PATH). `build.win.icon` only stamps the .exe, so a
+// `build.files` list without the icon built every installed version since
+// v1.11 with no tray, and with the widget open and the main window closed,
+// no way back to the app.
+const ICON = sep + join('resources', 'icon.ico');
+if (!packed.some((p) => p === ICON)) {
+  fail(
+    `    app.asar has no ${ICON.slice(1)}. The tray cannot be created without it.\n` +
+    `    Keep "resources/icon.ico" in package.json \`build.files\`.`,
+  );
+}
+
 console.log(
-  `Desktop path check passed: ${files.length} installed files, longest ${longest.length} characters ` +
+  `Desktop path check passed:${files.length} installed files, longest ${longest.length} characters ` +
   `(${longest}); no Android/iOS sources loose or in app.asar (${packed.length} entries).`,
 );

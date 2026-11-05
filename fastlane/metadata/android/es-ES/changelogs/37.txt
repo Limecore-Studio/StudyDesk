@@ -1,0 +1,3 @@
+En vivo en cada dispositivo.
+
+Los cambios llegan a tus otros dispositivos en segundos y se reconectan solos. Focus Sync comparte un temporizador entre móvil, escritorio y web: al iniciarlo en el móvil queda fijado, se pausa o termina desde cualquiera y se guarda una vez. Nuevo: contadores de progreso, tamaño de interfaz y ventana flotante en escritorio. El modo oscuro cubre barras y selectores, la tendencia usa tu escala y el registro explica la regla de contraseña.

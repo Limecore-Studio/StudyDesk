@@ -1,0 +1,3 @@
+Langsung di setiap perangkat.
+
+Perubahan sampai ke perangkat lain dalam hitungan detik dan tersambung ulang sendiri. Focus Sync berbagi satu timer di ponsel, desktop, dan web: dimulai di ponsel, timer disematkan; jeda atau akhiri dari mana saja, disimpan sekali. Baru: penghitung progres, ukuran tampilan, dan jendela ringkas di desktop. Mode gelap mencakup bilah sistem dan pemilih, tren nilai memakai skalamu, dan pendaftaran menjelaskan aturan kata sandi.

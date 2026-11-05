@@ -38,6 +38,21 @@ import {
   setPreferredWidgetPalette,
 } from '../../lib/theme.js';
 import { isEntitled } from '../../lib/entitlement.js';
+import { UI_SCALES, preferredUiScale, setUiScale } from '../../lib/uiPrefs.js';
+
+// v1.20 (StudyDesk#159) — size and font. Same option tiles as the rows above,
+// with an "Aa" in place of the colour swatch: drawn at each size, or in each
+// font, so the choice is made by looking, as it is for the themes.
+const SCALE_LABEL = { 0.9: 'smaller', 1: 'default', 1.1: 'larger', 1.25: 'largest' };
+
+function TextOption({ id, label, active, onSelect, sampleStyle }) {
+  return (
+    <button type="button" className={`theme-option${active ? ' active' : ''}`} onClick={() => onSelect(id)} aria-pressed={active}>
+      <span className="theme-swatch theme-sample" aria-hidden="true"><span style={sampleStyle}>Aa</span></span>
+      <span className="theme-option-name">{label}</span>
+    </button>
+  );
+}
 
 // Swatch class per option. Kept as a lookup rather than a template string so
 // a typo is a missing swatch at build time rather than a silently unstyled
@@ -130,6 +145,9 @@ export default function Appearance() {
 
   const paidActive = isPaidTheme(theme);
 
+  const [uiScale, setUiScaleState] = useState(() => preferredUiScale());
+  const chooseScale = useCallback((next) => { setUiScale(next); setUiScaleState(next); }, []);
+
   return (
     <div className="sv2-section">
       <div className="sv2-section-title">{t('appearance.title')}</div>
@@ -179,6 +197,18 @@ export default function Appearance() {
         {!entitled && (
           <div className="theme-locked-note">{t('appearance.lockedNote')}</div>
         )}
+      </div>
+
+      {/* ── Size (v1.20, #159) ── */}
+      <div className="theme-group">
+        <div className="theme-group-label">{t('appearance.size')}</div>
+        <div className="theme-options">
+          {UI_SCALES.map((s) => (
+            <TextOption key={s} id={s} label={t(`appearance.size_${SCALE_LABEL[s]}`)} active={uiScale === s}
+              onSelect={chooseScale} sampleStyle={{ fontSize: `${Math.round(15 * s)}px` }} />
+          ))}
+        </div>
+        <div className="theme-character-note">{t('appearance.sizeNote')}</div>
       </div>
 
       {/* ── Home-screen widgets (v1.15) ── */}

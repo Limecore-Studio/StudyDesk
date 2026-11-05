@@ -166,3 +166,41 @@ describe('compatibility', () => {
     expect(item.attempts).toBe(0);
   });
 });
+
+// v1.20 (StudyDesk#201) — live sync hints the other devices with the tables a
+// drain pushed. Only successful pushes count: a hint for a failed push would
+// make every other device pull for nothing.
+describe('onPushed', () => {
+  it('reports the tables of the items that were pushed', async () => {
+    const seen = [];
+    const off = outbox.onPushed((tables) => seen.push(tables));
+    await queueThenDrain('upsert_assignment', assignment());
+    off();
+    expect(seen).toEqual([['assignments']]);
+  });
+
+  it('reports nothing for a push that failed', async () => {
+    const seen = [];
+    const off = outbox.onPushed((tables) => seen.push(tables));
+    sent.fail = () => ({ message: 'network', code: '' });
+    await queueThenDrain('upsert_assignment', assignment());
+    off();
+    expect(seen).toEqual([]);
+  });
+});
+
+// v1.20 (StudyDesk#156) — counter writes drain through handlers that load
+// counterSync.js on demand, carrying the edit's own time.
+describe('progress counters', () => {
+  it('a counter and its day push to their tables, the counter first', async () => {
+    online(false);
+    at('2026-10-30T09:00:00.000Z');
+    outbox.enqueue('upsert_counter_day', { id: 'd1', counterId: 'c1', day: '2026-10-30', value: 3 });
+    outbox.enqueue('upsert_counter', { id: 'c1', name: 'Physics', unit: 'pages', period: 'total' });
+    online(true);
+    at('2026-10-30T12:00:00.000Z');
+    await outbox.drain();
+    expect(sent.rows.map((r) => r.table)).toEqual(['progress_counters', 'progress_counter_days']);
+    expect(sent.rows.map((r) => r.row.updated_at)).toEqual(['2026-10-30T09:00:00.000Z', '2026-10-30T09:00:00.000Z']);
+  });
+});

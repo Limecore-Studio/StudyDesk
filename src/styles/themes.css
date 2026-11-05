@@ -385,6 +385,9 @@ html[data-theme="slate"] :where(.course-card, .exam-card) {
   overflow: hidden;
 }
 .theme-swatch span { flex: 1; }
+/* v1.20 (#159): a type sample in place of a palette, for size and font. */
+.theme-swatch.theme-sample { align-items: center; justify-content: center; background: var(--surface2); color: var(--text); }
+.theme-swatch.theme-sample span { flex: none; line-height: 1; }
 .theme-swatch.is-free span:nth-child(1) { background: #f5f2ed; }
 .theme-swatch.is-free span:nth-child(2) { background: #faf8f4; }
 .theme-swatch.is-free span:nth-child(3) { background: #1a1814; }

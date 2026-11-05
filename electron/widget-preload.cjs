@@ -14,4 +14,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('studydeskWidget', {
   close: () => ipcRenderer.send('widget:close'),
+  // v1.20 (#189): bring up the main window at a view. Only names a view; the
+  // main process accepts a fixed list of them and nothing else.
+  open: (view) => ipcRenderer.send('widget:open', String(view)),
 });

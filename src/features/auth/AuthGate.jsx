@@ -9,6 +9,8 @@ import { inheritFromNexus } from '../../lib/suiteSso.js';
 import { setGuestMode } from '../../lib/guestMode.js';
 import { translateAuthError, callbackErrorMessage } from '../../lib/authErrors.js';
 import { withCaptcha } from '../../lib/captcha.js';
+import { meetsPasswordRule, PASSWORD_MIN_LENGTH } from '../../lib/passwordPolicy.js';
+import PasswordChecklist from './PasswordChecklist.jsx';
 import { beginRecovery, endRecovery, looksLikeRecovery } from '../../lib/passwordRecovery.js';
 
 // v1.8 / ACT-3 — has this device ever completed first run? `studydesk-onboarded`
@@ -77,6 +79,13 @@ export const authCss = `
 /* v1.1 — UI/UX review #17: tokenized error palette (was hardcoded #fee/#fcc/#c0392b).
    Tokens live in :root in App.jsx so the editorial palette controls destructive surfaces too. */
 .auth-error{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--danger);padding:10px 12px;border-radius:4px;font-size:12px;margin-bottom:14px;}
+/* v1.20 (limecore#73) — the password rule under a new-password field. */
+.pw-rules{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.04em;color:var(--muted2);}
+.pw-rules li{display:inline-flex;align-items:center;gap:4px;transition:color 0.12s;}
+.pw-rules li.is-ok{color:var(--success);}
+.pw-rules li.is-missing{color:var(--danger);}
+.pw-rules-mark{display:inline-block;width:1em;text-align:center;font-weight:700;}
+.pw-rules-vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
 .auth-info{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:10px 12px;border-radius:4px;font-size:12px;margin-bottom:14px;}
 /* v1.7 — code confirmation step. The code sits in a ruled well so it reads as
    something written onto the page rather than a form control, which is the
@@ -148,6 +157,7 @@ export default function AuthGate() {
   const [showEmail, setShowEmail] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [pwFlag, setPwFlag] = useState(false); // limecore#73: a submit failed on the rule
   const [err, setErr] = useState('');
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
@@ -289,7 +299,15 @@ export default function AuthGate() {
 
   async function onSubmit(e) {
     e.preventDefault();
-    setErr(''); setInfo(''); setLoading(true);
+    setErr(''); setInfo('');
+    // v1.20 (limecore#73) — name the rule here rather than send a password the
+    // server will refuse. The checklist marks what is still missing.
+    if (mode === 'signup' && !meetsPasswordRule(password)) {
+      setPwFlag(true);
+      setErr(t('auth.pwNotYet'));
+      return;
+    }
+    setLoading(true);
     try {
       if (mode === 'signup') {
         // withCaptcha only involves hCaptcha if the server asks for it — see
@@ -672,9 +690,14 @@ export default function AuthGate() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                minLength={6}
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                minLength={mode === 'signup' ? PASSWORD_MIN_LENGTH : undefined}
+                aria-describedby={mode === 'signup' ? 'auth-pw-rules' : undefined}
                 required
               />
+              {mode === 'signup' && (
+                <PasswordChecklist id="auth-pw-rules" password={password} flagMissing={pwFlag} />
+              )}
             </div>
             <button type="submit" className="btn auth-submit" disabled={loading}>
               {loading ? '…' : (mode === 'signup' ? t('auth.submitSignup') : t('auth.submitSignin'))}

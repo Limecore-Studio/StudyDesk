@@ -699,6 +699,12 @@ function WeekSheet({ days, byDay, lessonsByDay, commitmentsByDay, locale, onOpen
 
 // ── Day agenda ─────────────────────────────────────────────────────────────
 
+/** Minutes since midnight of the next whole hour, capped at 23:00: where a
+ *  new block starts when nothing more specific was picked. */
+function nextWholeHourMin() {
+  return Math.min(23 * 60, (new Date().getHours() + 1) * 60);
+}
+
 function DayAgenda({ iso, byDay, lessons, commitments, locale, onOpen, onClose, onOpenWeek, onOpenDay, onPlanGap, onAddBlocker, studyUntil, t }) {
   const items = sortDayItems(byDay.get(iso) || []);
   const timed = items.filter((i) => i.kind === 'session');
@@ -718,8 +724,8 @@ function DayAgenda({ iso, byDay, lessons, commitments, locale, onOpen, onClose, 
   // phone calendar: the ribbon shows that an evening is gone, and this says
   // exactly how much is left and offers to fill it. Computed from the SAME
   // helper the ribbon uses for its load figures, so the two can never disagree
-  // about what counts as free. Only rendered when a handler is supplied —
-  // desktop plans by dragging the grid and does not need a second route.
+  // about what counts as free. v1.20 (#207): a button at every tier, desktop
+  // included (see the comment at the list).
   //
   // `studyUntil` is why the evening is on this list at all. Without it the
   // window stops at the last thing already in the day — so a Tuesday whose
@@ -881,13 +887,31 @@ function DayAgenda({ iso, byDay, lessons, commitments, locale, onOpen, onClose, 
         </div>
       )}
 
-      {onAddBlocker && (
+      {(onPlanGap || onAddBlocker) && (
         <div className="cal-agenda-group">
-          <button type="button" className="cal-add-blocker" onClick={() => onAddBlocker(iso)}>
+          {/* v1.20 (#207): the way in to planning, visible. On desktop the only
+              routes were dragging the week grid and pressing "p", and neither
+              is on screen from the month view's day panel, which is exactly
+              where the owner went looking. The shortcut stays and is named in
+              the tooltip, so the button teaches it. */}
+          {onPlanGap && (
+            <button
+              type="button"
+              className="cal-add-blocker is-plan"
+              title={`${t('cal.planNewTitle')} (P)`}
+              onClick={() => onPlanGap(iso, nextWholeHourMin(), DEFAULT_PLAN_MIN)}
+            >
+              <span className="cal-add-blocker-plus" aria-hidden="true">+</span>
+              {t('cal.planNewTitle')}
+            </button>
+          )}
+          {onAddBlocker && (
+          <button type="button" className="cal-add-blocker" title={`${t('cm.addBlocker')} (C)`} onClick={() => onAddBlocker(iso)}>
             <span className="cal-add-blocker-plus" aria-hidden="true">+</span>
             {t('cm.addBlocker')}
           </button>
-          <div className="cal-agenda-note">{t('cm.addBlockerHint')}</div>
+          )}
+          {onAddBlocker && <div className="cal-agenda-note">{t('cm.addBlockerHint')}</div>}
         </div>
       )}
 
@@ -897,11 +921,12 @@ function DayAgenda({ iso, byDay, lessons, commitments, locale, onOpen, onClose, 
           to phone. A setting that does nothing where it is shown is worse
           than one that is not shown.
 
-          The row is only a BUTTON where tapping it is the way to plan. On
-          wide tiers the grid is drag-to-create, so a second creation route
-          would be a duplicate; there the gap is a readout, which is still the
-          thing worth knowing — "you have 3h free tonight" — without pretending
-          to be a control that does something subtly different from the drag. */}
+          v1.20 (#207): every row is a BUTTON at every tier. Wide tiers had
+          them as a read-only readout, on the reasoning that the grid is
+          drag-to-create and a second route would be a duplicate. That cost
+          the main route its discoverability: from the month view nothing on
+          screen said a study block could be planned at all. Drag and "p"
+          remain as accelerators. */}
       {gaps.length > 0 && (
         <div className="cal-agenda-group">
           <div className="cal-agenda-rel">{t('cal.freeWindows')}</div>
@@ -918,12 +943,13 @@ function DayAgenda({ iso, byDay, lessons, commitments, locale, onOpen, onClose, 
                 key={`${g.from}-${g.to}`}
                 type="button"
                 className="cal-gap"
+                title={t('cal.planNewTitle')}
                 onClick={() => onPlanGap(iso, g.from, Math.min(g.to - g.from, DEFAULT_PLAN_MIN))}
               >
                 {inner}
               </button>
             ) : (
-              <div key={`${g.from}-${g.to}`} className="cal-gap is-static">{inner}</div>
+              <div key={`${g.from}-${g.to}`} className="cal-gap">{inner}</div>
             );
           })}
         </div>
@@ -1662,9 +1688,7 @@ export default function CalendarView({ state, dispatch, session, showFlash, tier
       e.preventDefault();
       // Next whole hour on the selected day — the same "round it to something
       // a person would actually pick" rule the drag uses for a bare click.
-      const now = new Date();
-      const startMin = Math.min(23 * 60, (now.getHours() + 1) * 60);
-      openNewPlan(selected || todayIso(), startMin, DEFAULT_PLAN_MIN);
+      openNewPlan(selected || todayIso(), nextWholeHourMin(), DEFAULT_PLAN_MIN);
       return;
     }
     if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
@@ -1768,7 +1792,7 @@ export default function CalendarView({ state, dispatch, session, showFlash, tier
             onClose={mode === 'day' ? () => openWeek(anchor) : () => setSelected(null)}
             onOpenWeek={mode === 'week' ? undefined : openWeek}
             onOpenDay={mode === 'day' ? undefined : openDay}
-            onPlanGap={tier === 'phone' ? openNewPlan : undefined}
+            onPlanGap={openNewPlan}
             // Every tier gets this button, not just phone. Blockers shipped in
             // v1.10 reachable ONLY by pressing "c" — which meant that on a
             // phone the feature did not exist, and the owner ended up entering

@@ -61,6 +61,21 @@ export function stampsFromPull(remote) {
   return out;
 }
 
+/**
+ * v1.20 (StudyDesk#201) — fold a partial pull (`sync.pullStudyTables`) into
+ * the stamps of the last full one. Only the kinds whose table the pull carried
+ * are replaced; every other kind keeps what the previous pull said, because
+ * an absent key means "not pulled", not "the server holds none".
+ */
+export function mergeStamps(prev, remote) {
+  const fresh = stampsFromPull(remote);
+  const out = { ...(prev || {}) };
+  for (const [local, remoteKey] of Object.entries(TRACKED)) {
+    if (remote && Object.prototype.hasOwnProperty.call(remote, remoteKey)) out[local] = fresh[local];
+  }
+  return out;
+}
+
 /** True when a local row is exactly the copy the server last returned, so
  *  pushing it would only move the server's timestamp. False for a row the
  *  server has never seen, and for any row edited locally since the pull. */

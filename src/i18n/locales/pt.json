@@ -620,6 +620,7 @@
     "daysInRow": "dias seguidos",
     "ibTrend": "Tendência da média IB",
     "gpaTrend": "Tendência do GPA",
+    "avgTrend": "Tendência da média",
     "ibScale": "Escala 1–7",
     "usScale": "Escala 4.0",
     "trendNeedMore": "Registre notas em mais de um mês para ver sua tendência.",
@@ -674,6 +675,8 @@
       "start": "Iniciar",
       "lockInBtn": "Focar",
       "lockInTitle": "Sem pausas, sem navegação, só foco profundo",
+      "syncElsewhere": "A decorrer noutro dispositivo",
+      "syncLockInHere": "Focar aqui",
       "studying": "Estudando",
       "workingPlaceholder": "No que você está trabalhando? (opcional)",
       "weeklyHours": "Horas semanais",
@@ -797,10 +800,41 @@
       "examsAdded": "{{count}} provas adicionadas"
     }
   },
+  "ctr": {
+    "title": "Progresso",
+    "add": "+ Contador",
+    "empty": "Conte páginas, capítulos ou horas com um toque, rumo a uma meta se quiser.",
+    "name": "O que estás a contar?",
+    "namePh": "ex.: livro de Física",
+    "unit": "Unidade",
+    "unit_pages": "páginas",
+    "unit_chapters": "capítulos",
+    "unit_hours": "horas",
+    "unitCustom": "Outra unidade",
+    "period": "Conta",
+    "period_total": "No total",
+    "period_day": "Por dia",
+    "period_week": "Por semana",
+    "target": "Meta",
+    "targetPh": "Meta (opcional)",
+    "course": "Disciplina",
+    "noCourse": "Sem disciplina",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar contador",
+    "deleteConfirm": "Eliminar «{{name}}» e o histórico",
+    "edit": "Editar",
+    "minus": "Contar {{step}} {{unit}} a menos",
+    "plus": "Contar {{step}} {{unit}} a mais",
+    "soFar": "até agora",
+    "today": "hoje",
+    "thisWeek": "esta semana"
+  },
   "widget": {
     "today": "Hoje",
     "tomorrow": "Amanhã",
-    "noPlanToday": "Nada planeado para hoje"
+    "noPlanToday": "Nada planeado para hoje",
+    "openPlan": "Abrir o plano"
   },
   "cal": {
     "title": "Calendário",
@@ -1064,6 +1098,12 @@
     "character": "Carácter",
     "widget": "Widgets da tela inicial",
     "widgetMatch": "Igual ao app",
+    "size": "Tamanho",
+    "size_smaller": "Mais pequeno",
+    "size_default": "Predefinido",
+    "size_larger": "Maior",
+    "size_largest": "O maior",
+    "sizeNote": "O tamanho aplica-se apenas a este dispositivo.",
     "mode": {
       "light": "Claro",
       "dark": "Escuro",
@@ -1255,5 +1295,11 @@
     },
     "markedDone": "Concluído: {{title}}",
     "undo": "Desfazer"
+  },
+  "reportPrompt": {
+    "title": "Enviar relatórios de erros?",
+    "body": "Se algo falhar, o StudyDesk pode enviar-nos os detalhes técnicos: a versão da app, o erro e o ecrã onde aconteceu. Nunca o que escreve. Pode alterar isto nas Definições.",
+    "yes": "Sim, enviar",
+    "notNow": "Agora não"
   }
 }

@@ -614,6 +614,7 @@
     "daysInRow": "päivää putkeen",
     "ibTrend": "IB-keskiarvon kehitys",
     "gpaTrend": "GPA:n kehitys",
+    "avgTrend": "Keskiarvon kehitys",
     "ibScale": "1–7-asteikko",
     "usScale": "4.0-asteikko",
     "trendNeedMore": "Kirjaa arvosanoja useammalta kuukaudelta nähdäksesi kehityksen.",
@@ -668,6 +669,8 @@
       "start": "Aloita",
       "lockInBtn": "Lukko päälle",
       "lockInTitle": "Ei taukoja, ei navigointia, vain syväkeskittyminen",
+      "syncElsewhere": "Käynnissä toisella laitteella",
+      "syncLockInHere": "Lukko päälle tässä",
       "studying": "Opiskelu",
       "workingPlaceholder": "Mitä teet? (valinnainen)",
       "weeklyHours": "Viikkotunnit",
@@ -789,10 +792,41 @@
       "examsAdded": "{{count}} koetta lisätty"
     }
   },
+  "ctr": {
+    "title": "Edistyminen",
+    "add": "+ Laskuri",
+    "empty": "Laske sivuja, lukuja tai tunteja napautuksella, halutessasi tavoitetta kohti.",
+    "name": "Mitä lasket?",
+    "namePh": "esim. fysiikan kirja",
+    "unit": "Yksikkö",
+    "unit_pages": "sivua",
+    "unit_chapters": "lukua",
+    "unit_hours": "tuntia",
+    "unitCustom": "Muu yksikkö",
+    "period": "Laskee",
+    "period_total": "Yhteensä",
+    "period_day": "Päivässä",
+    "period_week": "Viikossa",
+    "target": "Tavoite",
+    "targetPh": "Tavoite (valinnainen)",
+    "course": "Kurssi",
+    "noCourse": "Ei kurssia",
+    "save": "Tallenna",
+    "cancel": "Peruuta",
+    "delete": "Poista laskuri",
+    "deleteConfirm": "Poista ”{{name}}” ja sen historia",
+    "edit": "Muokkaa",
+    "minus": "Laske {{step}} {{unit}} vähemmän",
+    "plus": "Laske {{step}} {{unit}} lisää",
+    "soFar": "tähän mennessä",
+    "today": "tänään",
+    "thisWeek": "tällä viikolla"
+  },
   "widget": {
     "today": "Tänään",
     "tomorrow": "Huomenna",
-    "noPlanToday": "Ei suunnitelmia tänään"
+    "noPlanToday": "Ei suunnitelmia tänään",
+    "openPlan": "Avaa suunnitelma"
   },
   "cal": {
     "title": "Kalenteri",
@@ -1055,6 +1089,12 @@
     "character": "Luonne",
     "widget": "Kotinäytön widgetit",
     "widgetMatch": "Kuten sovellus",
+    "size": "Koko",
+    "size_smaller": "Pienempi",
+    "size_default": "Oletus",
+    "size_larger": "Suurempi",
+    "size_largest": "Suurin",
+    "sizeNote": "Koko koskee vain tätä laitetta.",
     "mode": {
       "light": "Vaalea",
       "dark": "Tumma",
@@ -1246,5 +1286,11 @@
     },
     "markedDone": "Tehty: {{title}}",
     "undo": "Kumoa"
+  },
+  "reportPrompt": {
+    "title": "Lähetetäänkö virheraportteja?",
+    "body": "Jos jokin menee rikki, StudyDesk voi lähettää meille tekniset tiedot: sovelluksen version, virheen ja näkymän, jossa se tapahtui. Ei koskaan sitä, mitä kirjoitat. Voit muuttaa tätä asetuksista.",
+    "yes": "Kyllä, lähetä",
+    "notNow": "Ei nyt"
   }
 }

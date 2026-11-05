@@ -21,6 +21,14 @@ const FLAG = '--studydesk-auth-redirect=';
 const arg = process.argv.find((a) => a.startsWith(FLAG));
 
 contextBridge.exposeInMainWorld('studydeskDesktop', {
+  // v1.20 (#189): the glance widget asked for a view while this window was
+  // already open. Returns an unsubscriber.
+  onNavigate: (fn) => {
+    const handler = (_event, view) => fn(view);
+    ipcRenderer.on('app:navigate', handler);
+    return () => ipcRenderer.removeListener('app:navigate', handler);
+  },
+
   // The loopback callback URL this launch is listening on, or null if the
   // listener could not bind. The renderer uses it as Supabase's `redirectTo`.
   redirectUri: arg ? arg.slice(FLAG.length) : null,

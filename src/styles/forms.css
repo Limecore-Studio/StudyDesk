@@ -121,7 +121,7 @@ input[type=text],input[type=password],input[type=date],input[type=time],input[ty
 .bucket-header::after{content:'';flex:1;height:1px;background:var(--border);}
 .bucket-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .modal-overlay{position:fixed;inset:0;background:rgba(26,24,20,0.32);z-index:100;display:flex;align-items:center;justify-content:center;animation:fadeOverlay 200ms var(--ease-paper);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
-.modal{background:rgba(250,248,244,0.82);backdrop-filter:blur(16px) saturate(1.05);-webkit-backdrop-filter:blur(16px) saturate(1.05);border:1px solid var(--border);border-top:1px solid rgba(250,248,244,0.95);border-radius:8px;padding:28px;width:500px;max-width:94vw;max-height:90vh;overflow-y:auto;box-shadow:0 12px 36px rgba(26,24,20,0.18),0 1px 0 rgba(255,255,255,0.7) inset;animation:slideModal 280ms var(--ease-settle);}
+.modal{background:rgba(250,248,244,0.82);backdrop-filter:blur(16px) saturate(1.05);-webkit-backdrop-filter:blur(16px) saturate(1.05);border:1px solid var(--border);border-top:1px solid rgba(250,248,244,0.95);border-radius:8px;padding:28px;width:500px;max-width:calc(94vw / var(--ui-zoom, 1));max-height:calc(90vh / var(--ui-zoom, 1));overflow-y:auto;box-shadow:0 12px 36px rgba(26,24,20,0.18),0 1px 0 rgba(255,255,255,0.7) inset;animation:slideModal 280ms var(--ease-settle);}
 @keyframes fadeOverlay{from{opacity:0;}to{opacity:1;}}
 @keyframes slideModal{from{opacity:0;transform:translateY(10px) scale(0.98);}to{opacity:1;transform:translateY(0) scale(1);}}
 @keyframes page-turn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
@@ -180,7 +180,7 @@ input[type=text],input[type=password],input[type=date],input[type=time],input[ty
 [dir="rtl"] .course-card-chevron.open{transform:scaleX(-1) rotate(-90deg);}
 .flash{position:fixed;bottom:24px;inset-inline-end:24px;background:var(--text);color:var(--bg);padding:10px 18px;font-family:var(--font-mono);font-size:11px;border-radius:4px;animation:fadeup 0.2s ease;z-index:200;}
 /* v1.18.1 (StudyDesk#161) — the account-switch notice: stays until closed. */
-.flash--notice{display:flex;align-items:flex-start;gap:12px;max-width:min(420px,calc(100vw - 28px));line-height:1.5;}
+.flash--notice{display:flex;align-items:flex-start;gap:12px;max-width:min(420px,calc(calc(100vw / var(--ui-zoom, 1)) - 28px));line-height:1.5;}
 .flash__close{background:none;border:0;color:inherit;font:inherit;font-size:16px;line-height:1;cursor:pointer;padding:0 2px;}
 @keyframes fadeup{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 @media(max-width:768px){
@@ -219,7 +219,7 @@ input[type=text],input[type=password],input[type=date],input[type=time],input[ty
 button.asgn-check{padding:0;background:transparent;appearance:none;}
 button.asgn-check.checked{background:var(--text);}
 .done-open{display:block;margin:4px 0 18px;background:transparent;border:none;padding:6px 0;font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
-.undo-bar{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);background:var(--text);color:var(--bg);padding:8px 8px 8px 16px;font-family:var(--font-mono);font-size:11px;border-radius:4px;box-shadow:var(--shadow-md);animation:fadeup 0.2s ease;z-index:210;}
+.undo-bar{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;max-width:calc(calc(100vw / var(--ui-zoom, 1)) - 32px);background:var(--text);color:var(--bg);padding:8px 8px 8px 16px;font-family:var(--font-mono);font-size:11px;border-radius:4px;box-shadow:var(--shadow-md);animation:fadeup 0.2s ease;z-index:210;}
 .undo-bar-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
 .undo-bar button{background:transparent;border:1px solid currentColor;color:inherit;font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 12px;border-radius:3px;cursor:pointer;flex-shrink:0;}
 @media (max-width:768px){.undo-bar{bottom:calc(84px + env(safe-area-inset-bottom));}}

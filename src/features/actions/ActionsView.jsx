@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { setLanguage, SUPPORTED_LANGS, LANGUAGE_NAMES } from "../../i18n/index.js";
 import { useScrollSelectedIntoView } from "../../lib/useScrollSelectedIntoView.js";
@@ -19,6 +19,9 @@ const BUCKET_COLORS = {
 };
 
 // ── ActionsView — Next Up ─────────────────────────────────────────────────────
+// v1.20 (StudyDesk#156) — progress counters, loaded when the panel renders.
+const CountersPanel = lazy(() => import('../counters/CountersPanel.jsx'));
+
 export default function ActionsView({ state, dispatch, showFlash, onAddCourse, onFirstStep, onStartPlan }) {
   const { t, i18n } = useTranslation();
   const currentLang = (i18n.language || "en").split("-")[0];
@@ -135,6 +138,7 @@ export default function ActionsView({ state, dispatch, showFlash, onAddCourse, o
         {doneLink}
       </div>
     </div>
+    <Suspense fallback={null}><CountersPanel state={state}/></Suspense>
     {doneSheet}
   </div>;
   // Three buckets side by side on a wide screen rather than stacked: Today /
@@ -190,6 +194,7 @@ export default function ActionsView({ state, dispatch, showFlash, onAddCourse, o
     })}
     {doneLink}
     {doneSheet}
+    <Suspense fallback={null}><CountersPanel state={state}/></Suspense>
     <div className="divider"/>
     <div className="section-label">{t('av.act.addManually')}</div>
     <div className="quick-add-box">

@@ -443,22 +443,24 @@ function mergeNoteAttachment(localAtt, remoteRow) {
 }
 
 export function applyRemotePull(state, remote) {
+  // v1.20 (StudyDesk#201): `remote` may be a partial pull holding only the
+  // tables a live-sync hint named, so these three default like the rest below.
   // Subjects → state.courses (keyed by id).
   const courses = { ...(state.courses || {}) };
-  for (const row of remote.subjects) {
+  for (const row of remote.subjects || []) {
     courses[row.id] = mergeSubject(courses[row.id], row);
   }
 
   // Grades → state.grades (array).
   const gradeById = new Map((state.grades || []).map((g) => [g.id, g]));
-  for (const row of remote.grades) {
+  for (const row of remote.grades || []) {
     gradeById.set(row.id, mergeGrade(gradeById.get(row.id), row));
   }
   const grades = Array.from(gradeById.values());
 
   // Sessions → state.studySessions (array).
   const sessionById = new Map((state.studySessions || []).map((s) => [s.id, s]));
-  for (const row of remote.sessions) {
+  for (const row of remote.sessions || []) {
     sessionById.set(row.id, mergeSession(sessionById.get(row.id), row));
   }
   const studySessions = Array.from(sessionById.values());

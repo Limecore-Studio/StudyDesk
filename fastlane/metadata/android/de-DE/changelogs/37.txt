@@ -1,0 +1,3 @@
+Live auf jedem Gerät.
+
+Änderungen erreichen deine anderen Geräte in Sekunden und verbinden sich selbst neu. Focus Sync teilt einen Timer zwischen Handy, Desktop und Web: am Handy gestartet wird er angeheftet, pausieren oder beenden geht überall, gespeichert wird einmal. Neu: Fortschrittszähler, UI-Größe, Desktop-Mini-Fenster mit Tray-Symbol. Der Dunkelmodus gilt für Systemleisten und Auswahlfelder, der Notentrend nutzt deine Skala, die Registrierung erklärt die Passwortregel.

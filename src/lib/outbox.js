@@ -45,6 +45,7 @@ import * as sync from './sync.js';
 import { writeJson } from './localStore.js';
 import { editStamp } from './editStamp.js';
 import { isPageStale } from './deviceOwner.js';
+import { KIND_TABLES } from './liveHints.js';
 
 const STORAGE_KEY = 'studydesk-outbox';
 const META_KEY = 'studydesk-outbox-meta'; // { lastSuccessAt }
@@ -154,10 +155,11 @@ function identityOf(kind, payload) {
  *
  * ── Why this COALESCES rather than always appending ──────────────────────
  *
- * v1.13 review, blocker 1. `reconcileUnsynced` runs on every pull, and
- * `sync.startRealtime(doPull)` makes pull the realtime handler too — so it
- * runs on every remote change, not just at launch. It re-enqueues any row it
- * finds locally but not remotely.
+ * v1.13 review, blocker 1. `reconcileUnsynced` runs on every full pull: at
+ * launch, on a return to the window, and after live sync rejoins (since v1.20
+ * a live-sync event pulls only its table and skips the reconcile). So it runs
+ * many times a session, not just at launch. It re-enqueues any row it finds
+ * locally but not remotely.
  *
  * A row that can never push is exactly such a row, permanently. It burns its
  * five attempts, quarantines, and is then re-manufactured as a BRAND NEW item
@@ -442,6 +444,8 @@ export function enqueueMany(entries) {
 // is either a soft delete or an ON DELETE CASCADE, so neither direction fails.
 const KIND_RANK = {
   upsert_subject: 0,
+  // v1.20 (StudyDesk#156): a counter before its days (foreign key).
+  upsert_counter: 0,
   upsert_term: 0,
   log_session: 0,
 
@@ -481,6 +485,7 @@ export function __drainOrderForTest(items) {
  *  get their budget back (see `reviveFkChildren`). */
 const PARENT_KINDS = new Set([
   'upsert_subject', 'upsert_term', 'log_session', 'upsert_timetable', 'upsert_note',
+  'upsert_counter',
 ]);
 
 /** Was this failure the parent row not existing on the server (yet)? Reads the
@@ -530,6 +535,15 @@ let rerunRequested = false;
 // requested by a new enqueue, so this is a guard, not an expected limit.
 const MAX_PASSES = 5;
 
+// v1.20 (StudyDesk#201): told which tables a drain pushed, so live sync can
+// hint the user's other devices. Wired from App.jsx rather than imported,
+// because sync.js is this module's dependency, not the other way round.
+const pushedListeners = new Set();
+export function onPushed(listener) {
+  pushedListeners.add(listener);
+  return () => pushedListeners.delete(listener);
+}
+
 /** Process pending items in dependency order. Coalesces concurrent calls via
  *  the `draining` flag — a second invocation while one is in-flight returns
  *  immediately, and the running drain does one more pass when it finishes.
@@ -557,6 +571,7 @@ export async function drain(opts = {}) {
   const offline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
   if (offline()) return loadItems().length;
   draining = true;
+  const pushed = new Set();
   try {
     if (opts.force) {
       saveItems(loadItems().map((i) => ({ ...i, attempts: 0, quarantined: false })));
@@ -564,16 +579,22 @@ export async function drain(opts = {}) {
     let passes = 0;
     do {
       rerunRequested = false;
-      await drainPass();
+      await drainPass(pushed);
       passes += 1;
     } while (rerunRequested && passes < MAX_PASSES && !offline());
   } finally {
     draining = false;
   }
+  if (pushed.size) {
+    const tables = [...pushed];
+    for (const l of pushedListeners) {
+      try { l(tables); } catch (e) { console.error('[outbox] pushed listener failed:', e); }
+    }
+  }
   return loadItems().length;
 }
 
-async function drainPass() {
+async function drainPass(pushed) {
   // Snapshot which items this pass will attempt, in dependency order.
   // Anything enqueued mid-pass is picked up by the next pass, which
   // `drain` runs when an enqueue arrived during this one (StudyDesk#75).
@@ -611,6 +632,7 @@ async function drainPass() {
       // by id, which would take a newer edit with it.
       inFlightId = id;
       await handler(item.payload);
+      if (KIND_TABLES[item.kind]) pushed.add(KIND_TABLES[item.kind]);
       let rest = loadItems().filter((i) => i.id !== id);
       // StudyDesk#75 — a parent just landed; children quarantined on its
       // missing foreign key can now succeed. They rank after it, so this
@@ -831,4 +853,9 @@ const KIND_DISPATCH = {
   // write with no session; and the phone is often offline at exactly the
   // moment the app comes up. Both resolve into a retry rather than a lost day.
   record_app_open: (p) => sync.recordAppOpen(p),
+  // v1.20 (StudyDesk#156) — progress counters. Their push code loads on
+  // demand, so it stays out of the startup bundle.
+  upsert_counter: (p) => import('./counterSync.js').then((m) => m.upsertCounter(p)),
+  delete_counter: (p) => import('./counterSync.js').then((m) => m.deleteCounter(p)),
+  upsert_counter_day: (p) => import('./counterSync.js').then((m) => m.upsertCounterDay(p)),
 };

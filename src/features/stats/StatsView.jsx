@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { overallAverage } from '../../lib/gpa.js';
 import { scaleFor } from '../../lib/gradeScale.js';
+import { trendScaleInfo } from '../../lib/gradeTrend.js';
 import { preferredDayStart, studyDayKey, todayStudyDayKey, shiftDayKey } from '../../lib/studyDay.js';
 
 // ── BUG-21: Study Statistics Dashboard ───────────────────────────────────────
@@ -177,6 +178,9 @@ export default function StatsView({ state }) {
     return { points, min: Math.min(...vals), max: Math.max(...vals) };
   }, [state.courses, state.grades, mode, state.customScale]);
 
+  // v1.20 (#219) — the card names the scale in use and draws "up" as better.
+  const trendScale = useMemo(() => trendScaleInfo(mode, state.customScale, t), [mode, state.customScale, t]);
+
   // ── v1.4 AI debrief insights: avg comprehension + recurring confusion ──────
   const aiInsights = useMemo(() => {
     // Read-only "last 7 days" stats window: recomputing "now" per render is
@@ -329,15 +333,15 @@ export default function StatsView({ state }) {
         {/* GPA trend */}
         <div className="st-card">
           <div className="st-card-head">
-            <span className="st-card-title">{mode === 'us' ? t('st.gpaTrend') : t('st.ibTrend')}</span>
-            <span className="st-card-note">{mode === 'us' ? t('st.usScale') : t('st.ibScale')}</span>
+            <span className="st-card-title">{trendScale.title}</span>
+            <span className="st-card-note">{trendScale.note}</span>
           </div>
           {gpaTrend.points.length < 2 ? (
             <div className="st-empty">
               {t('st.trendNeedMore')}
             </div>
           ) : (
-            <GpaSparkline points={gpaTrend.points} min={gpaTrend.min} max={gpaTrend.max} />
+            <GpaSparkline points={gpaTrend.points} min={gpaTrend.min} max={gpaTrend.max} lowerIsBetter={trendScale.lowerIsBetter} />
           )}
         </div>
 
@@ -351,7 +355,7 @@ export default function StatsView({ state }) {
   );
 }
 
-function GpaSparkline({ points, min, max }) {
+function GpaSparkline({ points, min, max, lowerIsBetter = false }) {
   const W = 320, H = 90, padX = 8, padY = 12;
   // Pad the value range so a flat line doesn't sit on the floor/ceiling.
   const lo = Math.floor(min * 10) / 10 - 0.1;
@@ -359,7 +363,9 @@ function GpaSparkline({ points, min, max }) {
   const span = Math.max(0.1, hi - lo);
   const n = points.length;
   const x = (i) => padX + (i / (n - 1)) * (W - padX * 2);
-  const y = (v) => padY + (1 - (v - lo) / span) * (H - padY * 2);
+  // Up is always better: on a lower-is-better scale the smallest value is
+  // drawn highest.
+  const y = (v) => padY + (lowerIsBetter ? (v - lo) / span : 1 - (v - lo) / span) * (H - padY * 2);
   const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(p.gpa).toFixed(1)}`).join(' ');
   const last = points[n - 1];
 

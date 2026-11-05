@@ -7,8 +7,6 @@ import { supabase, readStoredSession } from "./lib/supabase.js";
 import { startSessionBoot } from "./lib/sessionBoot.js";
 import { otherAccountClearedMessage, requestNoteFlush } from "./lib/noteFlush.js";
 import { claimForUser, readOwner, isPageStale, watchPageStale, reloadStalePage, takeStaleReloadNotice, STALE_RELOAD_FALLBACK_MS } from "./lib/deviceOwner.js";
-import AuthGate from "./features/auth/AuthGate.jsx";
-import SetPasswordScreen from "./features/auth/SetPasswordScreen.jsx";
 import { isRecoveryPending, subscribeRecovery } from "./lib/passwordRecovery.js";
 import { isGuestMode, setGuestMode } from "./lib/guestMode.js";
 import { scheduleOriginStamp } from "./lib/originMarker.js";
@@ -28,7 +26,7 @@ import { hydrateOnboardedFromCloud, markOnboardedCloud } from "./lib/onboardingC
 import * as sync from "./lib/sync.js";
 import * as outbox from "./lib/outbox.js";
 import { reconcileUnsynced } from "./lib/reconcile.js";
-import { stampsFromPull, shouldPull } from "./lib/syncStamps.js";
+import { stampsFromPull, mergeStamps, shouldPull } from "./lib/syncStamps.js";
 import SaveSessionSheet from "./features/sessions/SaveSessionSheet.jsx";
 import { pastSessionDraft } from "./lib/pastSession.js";
 import { isOpenPlan, nextPlanStartAt, planSaveSteps, planToOffer } from "./lib/planRun.js";
@@ -41,6 +39,7 @@ import CourseDetailView from "./features/plan/CourseDetailView.jsx";
 import PlanView from "./features/plan/PlanView.jsx";
 import ActionsView from "./features/actions/ActionsView.jsx";
 import { daysUntil } from "./lib/deadlines.js";
+import { desktop } from "./lib/desktop.js";
 import { INITIAL, reducer, newSyncId } from "./lib/appReducer.js";
 // Cascade order preserved from the old css+css2+css3+css4+cssOnboard concat.
 import './styles/base.css';
@@ -81,6 +80,11 @@ const GradesView = lazy(() => import("./features/grades/GradesView.jsx"));
 const SessionsView = lazy(() => import("./features/sessions/SessionsView.jsx"));
 const NotebookView = lazy(() => import("./features/notebook/NotebookView.jsx"));
 const TimerView = lazy(() => import("./features/timer/TimerView.jsx"));
+// v1.20 — the sign-in and set-password screens load on demand: a signed-in
+// launch (most of them) never shows either, and AuthGate alone was the
+// largest file in the startup chunk (StudyDesk#156, #159 made room this way).
+const AuthGate = lazy(() => import("./features/auth/AuthGate.jsx"));
+const SetPasswordScreen = lazy(() => import("./features/auth/SetPasswordScreen.jsx"));
 // v1.19 (#185) — only rendered when a block is offered, so not at launch.
 const PlanStartSheet = lazy(() => import("./features/timer/PlanStartSheet.jsx"));
 const StatsView = lazy(() => import("./features/stats/StatsView.jsx"));
@@ -92,6 +96,8 @@ const SettingsView = lazy(() => import("./features/settings/SettingsView.jsx"));
 const AddExamModal = lazy(() => import("./features/plan/AddExamModal.jsx"));
 // v1.17 (limecore#12): only a first run ever shows onboarding.
 const OnboardingView = lazy(() => import("./features/onboarding/OnboardingView.jsx"));
+// v1.20 (limecore#71): almost every launch never shows it.
+const ReportPromptCard = lazy(() => import("./features/settings/ReportPromptCard.jsx"));
 
 // ── Root App ──────────────────────────────────────────────────────────────────
 export default function App() {
@@ -435,8 +441,9 @@ export default function App() {
 
   // ── Sync: initial pull + Realtime, gated on sign-in ─────────────────────────
   useEffect(() => {
+    // No session: the previous user's effect cleanup has already stopped live
+    // sync, and loading the engine just to stop it would be wasted bytes.
     if (!session) {
-      sync.stopRealtime();
       pulledOnceRef.current = false;
       setPulledOnce(false);
       remoteStampsRef.current = null;
@@ -453,8 +460,16 @@ export default function App() {
     remoteStampsRef.current = null;
     let cancelled = false;
     let lastPullAt = NaN;
+    // v1.20 (#202) — Focus Sync, loaded with the live-sync engine below.
+    let focus = null;
     const doPull = async () => {
       lastPullAt = Date.now();
+      // The shared timer is one small row; every full pull (launch, return,
+      // a live channel rejoining) reads it too.
+      void focus?.refreshFocusSync();
+      // v1.20 (#156): progress counters live outside the reducer; their store
+      // loads on demand, so this costs nothing until counters are in use.
+      if (localStorage.getItem("sd-counters")) void import("./lib/counterStore.js").then((m) => m.refreshCounters());
       try {
         const remote = await sync.pullAllStudyData();
         // StudyDesk#72 — stamps first, merge second. The merge re-runs the
@@ -500,9 +515,46 @@ export default function App() {
       if (cancelled || !shouldPull(lastPullAt, Date.now())) return;
       void doPull();
     };
+    // v1.20 (StudyDesk#201) — a live-sync hint or a postgres_changes event
+    // names its table, so only that table is pulled. Two things the full pull
+    // does are deliberately left out: the unsynced-row reconcile, which would
+    // read every table this pull did not carry as missing from the server,
+    // and replacing the stamps wholesale (mergeStamps keeps the other kinds).
+    // Before the launch pull settles there is nothing to fold into; that pull
+    // is already bringing these rows.
+    const doPullTables = async (named) => {
+      // `focus_timers` is not part of the study data: Focus Sync reads it.
+      // A literal, so this file does not pull lib/focusTimer.js into startup.
+      if (named.includes("focus_timers")) void focus?.refreshFocusSync();
+      // v1.20 (#156): the counters' own store, likewise.
+      if (named.includes("progress_counters") || named.includes("progress_counter_days")) {
+        void import("./lib/counterStore.js").then((m) => m.refreshCounters());
+      }
+      const tables = named.filter((t) => t !== "focus_timers" && t !== "progress_counters" && t !== "progress_counter_days");
+      if (tables.length === 0 || !pulledOnceRef.current) return;
+      try {
+        const remote = await sync.pullStudyTables(tables);
+        if (cancelled) return;
+        remoteStampsRef.current = mergeStamps(remoteStampsRef.current, remote);
+        dispatch({ type: "MERGE_REMOTE", remote });
+      } catch (e) {
+        console.error("[StudyDesk] table pull failed:", e);
+      }
+    };
     doPull();
-    sync.startRealtime(doPull, session.user?.id);
-    return () => { cancelled = true; requestPullRef.current = null; sync.stopRealtime(); };
+    // The live-sync engine loads on demand (StudyDesk#201): it is only ever
+    // needed signed in, and never for the first paint.
+    let live = null;
+    let stopHints = () => {};
+    void Promise.all([import("./lib/liveSync.js"), import("./lib/focusSync.js")]).then(([m, f]) => {
+      if (cancelled) return;
+      live = m;
+      focus = f;
+      m.startRealtime(doPull, session.user?.id, { onTables: doPullTables });
+      stopHints = outbox.onPushed((tables) => m.announceChanged(tables));
+      f.startFocusSync({ userId: session.user?.id, announce: m.announceChanged });
+    }).catch((e) => console.error("[StudyDesk] live sync failed to load:", e));
+    return () => { cancelled = true; requestPullRef.current = null; stopHints(); live?.stopRealtime(); focus?.stopFocusSync(); };
   // Only re-subscribe when the signed-in user id changes — not on every
   // session refresh (token refresh shouldn't tear down Realtime).
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -513,6 +565,28 @@ export default function App() {
   // v1.3 — sub-tab within the Timer view (Timer / Log / Stats), so Log + Stats
   // don't need their own bottom-bar slots.
   const [timerSub, setTimerSub] = useState("timer");
+  // v1.20 (#189) — the desktop glance widget opens this window at a view: in
+  // the URL when it had to create the window, over IPC when it was open
+  // already. The URL form is read once and dropped, so a reload starts plain.
+  useEffect(() => {
+    if (!desktop) return undefined;
+    const go = (view) => {
+      if (view !== "timer" && view !== "plan") return;
+      if (view === "timer") setTimerSub("timer");
+      dispatch({ type: "SET_VIEW", view });
+    };
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const view = params.get("view");
+      if (view) {
+        go(view);
+        params.delete("view");
+        const rest = params.toString();
+        window.history.replaceState(null, "", window.location.pathname + (rest ? `?${rest}` : "") + window.location.hash);
+      }
+    } catch { /* no history API: the view still applied */ }
+    return desktop.onNavigate?.(go);
+  }, []);
   // StudyDesk#114 — whether the Timer hub's notebook is showing a note (rather
   // than its list). On a phone the sub-tabs step aside while it is, so the note
   // gets the screen; NotebookView reports it and its "All notes" link is the
@@ -562,6 +636,7 @@ export default function App() {
   const offeredPlans = useRef(new Set());
   const snoozeTimers = useRef(new Map());
   const offerPlan = planOffer ? (state.plannedSessions || []).find((p) => p.id === planOffer && !p.deletedAt) : null;
+
 
   // With the app in front, a block's start time raises its sheet. Re-armed
   // whenever the plans change; checked again when the window comes back,
@@ -771,14 +846,15 @@ export default function App() {
 
   // Auth gate: show login UI until Supabase confirms a session.
   // (session === undefined while the initial getSession() call is in flight.)
+  const loadingScreen = <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"calc(100vh / var(--ui-zoom, 1))",fontFamily:"var(--font-mono)",fontSize:11,color:"var(--muted)",letterSpacing:"0.1em"}}>{t('av.chrome.loading')}</div>;
   if (session === undefined) {
-    return <><div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",fontFamily:"var(--font-mono)",fontSize:11,color:"var(--muted)",letterSpacing:"0.1em"}}>{t('av.chrome.loading')}</div></>;
+    return <>{loadingScreen}</>;
   }
   // v1.1 — bypass AuthGate when the user opted into guest mode. The rest of
   // the app runs identically; cloud sync remains gated on `session` which is
   // still null, so realtime stays off and outbox enqueue calls are no-ops.
   if (session === null && !guest) {
-    return <><AuthGate/></>;
+    return <Suspense fallback={loadingScreen}><AuthGate/></Suspense>;
   }
   // #52 — a recovery session must not become an ordinary signed-in session
   // until a new password has actually been set. This sits AFTER the gate (there
@@ -786,7 +862,7 @@ export default function App() {
   // else, because letting the app open here is the whole defect: the user is
   // signed in on this device and still locked out of the next one.
   if (session && recoveryPending) {
-    return <><SetPasswordScreen/></>;
+    return <Suspense fallback={loadingScreen}><SetPasswordScreen/></Suspense>;
   }
 
   return (<>
@@ -1110,7 +1186,9 @@ export default function App() {
           // block's one session, or adds to it if an earlier round already
           // did. A free timer run (no planId) is the plain ADD_SESSION it
           // always was. See lib/planRun.js.
-          const steps = planSaveSteps({ save, planId: pendingSession.planId || null, plans: state.plannedSessions, sessions: state.studySessions, newId: newSyncId() });
+          // v1.20 (#202) — a timed block is saved under its run's id, so the
+          // same block saved again (from another device) is the same row.
+          const steps = planSaveSteps({ save, planId: pendingSession.planId || null, plans: state.plannedSessions, sessions: state.studySessions, newId: pendingSession.runId || newSyncId() });
           for (const a of steps.actions) dispatch(a);
           setPendingSession(null);
           showFlash(t('av.flash.logged', { n: save.durationMinutes }));
@@ -1118,6 +1196,9 @@ export default function App() {
         }}
       />
     )}
+    {/* v1.20 (limecore#71): offers error reports once, on the second signed-in
+        launch; never to a guest or over onboarding. It decides for itself. */}
+    {onboarded && session?.user && !guest && <Suspense fallback={null}><ReportPromptCard/></Suspense>}
     {flash&&<div className="flash">{flash}</div>}
     {undoOffer&&(
       <div className="undo-bar" role="status" key={undoOffer.key}>

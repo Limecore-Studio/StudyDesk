@@ -180,6 +180,11 @@ public class FocusModePlugin extends Plugin {
             Boolean pinned = setPinned(true);
             out.put("pinned", Boolean.TRUE.equals(pinned));
             if (pinned == null) out.put("pinError", "startLockTask threw");
+        } else {
+            // v1.20 (StudyDesk#202): Lock In now asks for the pin only while
+            // focus time runs, so a pause or a break hands the phone back
+            // without ending Lock In. A no-op unless this plugin pinned it.
+            setPinned(false);
         }
 
         call.resolve(out);

@@ -620,6 +620,7 @@
     "daysInRow": "jours d’affilée",
     "ibTrend": "Tendance moyenne IB",
     "gpaTrend": "Tendance GPA",
+    "avgTrend": "Tendance de la moyenne",
     "ibScale": "échelle 1–7",
     "usScale": "échelle 4.0",
     "trendNeedMore": "Saisissez des notes sur plus d’un mois pour voir votre tendance.",
@@ -674,6 +675,8 @@
       "start": "Démarrer",
       "lockInBtn": "Mode focus",
       "lockInTitle": "Sans pauses, sans navigation, concentration pure",
+      "syncElsewhere": "En cours sur un autre appareil",
+      "syncLockInHere": "Mode focus ici",
       "studying": "Étude",
       "workingPlaceholder": "Sur quoi travaillez-vous ? (facultatif)",
       "weeklyHours": "Heures hebdomadaires",
@@ -797,10 +800,41 @@
       "examsAdded": "{{count}} examens ajoutés"
     }
   },
+  "ctr": {
+    "title": "Progression",
+    "add": "+ Compteur",
+    "empty": "Comptez pages, chapitres ou heures d’un geste, vers un objectif si vous le souhaitez.",
+    "name": "Que comptez-vous ?",
+    "namePh": "ex. manuel de physique",
+    "unit": "Unité",
+    "unit_pages": "pages",
+    "unit_chapters": "chapitres",
+    "unit_hours": "heures",
+    "unitCustom": "Autre unité",
+    "period": "Compte",
+    "period_total": "Au total",
+    "period_day": "Par jour",
+    "period_week": "Par semaine",
+    "target": "Objectif",
+    "targetPh": "Objectif (facultatif)",
+    "course": "Cours",
+    "noCourse": "Aucun cours",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer le compteur",
+    "deleteConfirm": "Supprimer « {{name}} » et son historique",
+    "edit": "Modifier",
+    "minus": "Compter {{step}} {{unit}} de moins",
+    "plus": "Compter {{step}} {{unit}} de plus",
+    "soFar": "jusqu’ici",
+    "today": "aujourd’hui",
+    "thisWeek": "cette semaine"
+  },
   "widget": {
     "today": "Aujourd’hui",
     "tomorrow": "Demain",
-    "noPlanToday": "Rien de prévu aujourd'hui"
+    "noPlanToday": "Rien de prévu aujourd'hui",
+    "openPlan": "Ouvrir le planning"
   },
   "cal": {
     "title": "Calendrier",
@@ -1064,6 +1098,12 @@
     "character": "Caractère",
     "widget": "Widgets d’écran d’accueil",
     "widgetMatch": "Comme l’app",
+    "size": "Taille",
+    "size_smaller": "Plus petite",
+    "size_default": "Par défaut",
+    "size_larger": "Plus grande",
+    "size_largest": "La plus grande",
+    "sizeNote": "La taille ne s’applique qu’à cet appareil.",
     "mode": {
       "light": "Clair",
       "dark": "Sombre",
@@ -1255,5 +1295,11 @@
     },
     "markedDone": "Terminé : {{title}}",
     "undo": "Annuler"
+  },
+  "reportPrompt": {
+    "title": "Envoyer des rapports d’erreur ?",
+    "body": "En cas de problème, StudyDesk peut nous envoyer les détails techniques : la version de l’app, l’erreur et l’écran où elle s’est produite. Jamais ce que vous saisissez. Vous pouvez changer cela dans les Réglages.",
+    "yes": "Oui, envoyer",
+    "notNow": "Pas maintenant"
   }
 }

@@ -14,6 +14,8 @@ export const ACCOUNT_LOCAL_KEYS = [
   'studydesk-calendar-feeds',
   'studydesk-calendar-feed-items',
   'sd-timer',
+  // v1.20 (StudyDesk#156): progress counters (lib/counterStore.js).
+  'sd-counters',
 ];
 
 export function wipeAccountLocalData() {

@@ -15,6 +15,7 @@ import { fmtTime } from '../../lib/dates.js';
 import { startFocus, stopFocus } from '../../lib/focusMode.js';
 import { enterSubmit } from '../../lib/imeSubmit.js';
 import { TIMER_CHANGE_EVENT, finishedWhileAway } from '../../lib/timerSnapshot.js';
+import { FOCUS_REMOTE_EVENT, focusDeviceId, savesCompletion } from '../../lib/focusTimer.js';
 import { isPageStale } from '../../lib/deviceOwner.js';
 import { pastSessionDraft } from '../../lib/pastSession.js';
 import { preferredDayStart, studyDayKey, todayStudyDayKey, dayKeyToDate } from '../../lib/studyDay.js';
@@ -182,6 +183,21 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
   useEffect(()=>{ planIdRef.current = planId; },[planId]);
   const runPlan = planId ? (state.plannedSessions || []).find((p) => p.id === planId && !p.deletedAt) : null;
 
+  // v1.20 (#202) — Focus Sync. `runId` names the focus block in progress and
+  // becomes its study session's id, so a second save of the block (from
+  // another device) is the same row. `origin` is the device that started it:
+  // only that device raises the save sheet when the block runs out. Both are
+  // minted at a fresh focus start (the running effect) and arrive with a
+  // remote state otherwise (lib/focusSync.js).
+  const runIdRef = useRef(typeof _saved.runId === 'string' ? _saved.runId : null);
+  const [origin, setOrigin] = useState(() => (typeof _saved.origin === 'string' ? _saved.origin : null));
+  const originRef = useRef(origin);
+  useEffect(()=>{ originRef.current = origin; },[origin]);
+  // The run the last remote state brought, so the running effect does not
+  // mistake another device's block (just started, so at full time) for a
+  // fresh start of this one and stamp it with a new run.
+  const remoteRunRef = useRef(null);
+
   // Background-safe elapsed tracking refs
   const startedAtRef = useRef(null);
   const secsAtStartRef = useRef(null);
@@ -223,14 +239,20 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
       const startedAtIso = phaseStartedAtRef.current
         ? new Date(phaseStartedAtRef.current).toISOString()
         : new Date(Date.now() - cf*60*1000).toISOString();
-      onTimerComplete?.({
-        durationMinutes: cf,
-        task: taskRef.current,
-        subjectId: courseIdRef.current || null,
-        startedAt: startedAtIso,
-        planId: planIdRef.current,
-      });
+      // v1.20 (#202): every device mirroring the block reaches zero, but only
+      // the one that started it asks to save it.
+      if (savesCompletion({ origin: originRef.current }, focusDeviceId())) {
+        onTimerComplete?.({
+          durationMinutes: cf,
+          task: taskRef.current,
+          subjectId: courseIdRef.current || null,
+          startedAt: startedAtIso,
+          planId: planIdRef.current,
+          runId: runIdRef.current,
+        });
+      }
       phaseStartedAtRef.current = null;
+      runIdRef.current = null;
       // Lock In skips break cycling — stays on focus, ready for the next block.
       // Regular Pomodoro cycles short / long breaks every 4 focus sessions.
       if (lockedInRef.current) {
@@ -260,6 +282,61 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
     handlePhaseEnd({ quiet: true });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // v1.20 (#202) — another device changed the shared timer. lib/focusSync.js
+  // has already written its state into `sd-timer`; load it the way a mount
+  // does, with the same arithmetic as the restore above.
+  useEffect(() => {
+    const onRemote = (e) => {
+      const rec = e.detail;
+      if (!rec || typeof rec !== 'object') return;
+      const now = Date.now();
+      const sw = rec.mode === 'stopwatch';
+      const cf = rec.customFocus || 25;
+      const timed = rec.running && rec.startedAt != null && rec.secsAtStart != null;
+      const elapsed = timed ? Math.floor((now - rec.startedAt) / 1000) : 0;
+      const secs = !timed ? (Number.isFinite(rec.secsLeft) ? rec.secsLeft : cf * 60)
+        : sw ? rec.secsAtStart + elapsed : Math.max(0, rec.secsAtStart - elapsed);
+      // A block that ran out before this device heard of it finishes here as
+      // it would have on the tick (quietly, and only its origin saves it).
+      const ended = timed && !sw && secs <= 0;
+
+      // The completion path reads refs, so they are set now rather than by the
+      // effects that mirror state into them after the next render.
+      phaseRef.current = rec.phase || 'focus';
+      sessionRef.current = rec.session || 0;
+      customFocusRef.current = cf;
+      taskRef.current = rec.task || '';
+      courseIdRef.current = rec.courseId || '';
+      planIdRef.current = rec.planId || null;
+      originRef.current = rec.origin || null;
+      modeRef.current = sw ? 'stopwatch' : 'pomodoro';
+      runIdRef.current = rec.runId || null;
+      remoteRunRef.current = rec.runId || null;
+      phaseStartedAtRef.current = rec.phaseStartedAt ?? null;
+
+      setMode(sw ? 'stopwatch' : 'pomodoro');
+      setPhase(rec.phase || 'focus');
+      setCustomFocus(cf);
+      setCustomText(String(cf));
+      setSession(rec.session || 0);
+      setTask(rec.task || '');
+      setCourseId(rec.courseId || '');
+      setPlanId(rec.planId || null);
+      setOrigin(rec.origin || null);
+      setSecsLeft(ended ? 0 : secs);
+      if (timed && !ended) {
+        // Re-anchor to now, as a resume does; the running effect does the
+        // same if `running` flips, so either way the two agree.
+        startedAtRef.current = now;
+        secsAtStartRef.current = secs;
+      }
+      setRunning(Boolean(timed) && !ended);
+      if (ended) handlePhaseEnd({ quiet: true });
+    };
+    window.addEventListener(FOCUS_REMOTE_EVENT, onRemote);
+    return () => window.removeEventListener(FOCUS_REMOTE_EVENT, onRemote);
+  }, [handlePhaseEnd]);
 
   const tick = useCallback(() => {
     // A stopwatch has no zero to reach, so it never calls handlePhaseEnd - no
@@ -317,11 +394,21 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
       // For focus phases, only set this if we're actually beginning a fresh phase
       // (not resuming from a pause mid-phase). Approximation: if secsLeft equals
       // the full duration, treat as a fresh start.
-      if (phaseRef.current === 'focus' && secsLeft === customFocusRef.current*60) {
+      // A remote state (v1.20, #202) brings its own start, run and origin.
+      const remoteRun = runIdRef.current !== null && runIdRef.current === remoteRunRef.current;
+      if (phaseRef.current === 'focus' && secsLeft === customFocusRef.current*60 && !remoteRun) {
         phaseStartedAtRef.current = Date.now();
+        runIdRef.current = crypto.randomUUID();
+        setOrigin(focusDeviceId());
       } else if (phaseRef.current === 'focus' && phaseStartedAtRef.current == null) {
         // Resuming a paused focus that never had a start recorded — back-compute.
         phaseStartedAtRef.current = Date.now() - (customFocusRef.current*60 - secsLeft) * 1000;
+      }
+      // A block from before Focus Sync, a break or a stopwatch may have no run
+      // yet. Whoever starts it is its origin.
+      if (!runIdRef.current) {
+        runIdRef.current = crypto.randomUUID();
+        setOrigin(focusDeviceId());
       }
     } else {
       clearInterval(intervalRef.current);
@@ -351,13 +438,16 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
         secsAtStart: secsAtStartRef.current,
         phaseStartedAt: phaseStartedAtRef.current,
         planId,
+        // v1.20 (#202) — shared by Focus Sync (lib/focusTimer.js).
+        runId: runIdRef.current,
+        origin,
       }));
       // v1.12 Item 8e — tell the app-level pill. localStorage does not raise
       // `storage` for same-document writes, so without this the pill would only
       // notice a start or stop on its next one-second tick.
       window.dispatchEvent(new CustomEvent(TIMER_CHANGE_EVENT));
     } catch {}
-  }, [customFocus, phase, secsLeft, running, session, focusDone, task, lockedIn, mode, courseId, planId]);
+  }, [customFocus, phase, secsLeft, running, session, focusDone, task, lockedIn, mode, courseId, planId, origin]);
 
 
   const toggle = () => setRunning(r=>!r);
@@ -438,16 +528,22 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
     if (!sw && phaseRef.current !== 'focus') return;
     const elapsedSecs = sw ? secsLeft : customFocusRef.current*60 - secsLeft;
     // A block abandoned in the first minute is a misclick, not a session.
+    // v1.20 (#202): the block is over either way, so its run is too.
+    const runId = runIdRef.current;
+    runIdRef.current = null;
     if (elapsedSecs < MIN_LOGGABLE_SECS) { phaseStartedAtRef.current = null; return; }
     const startedAtIso = phaseStartedAtRef.current
       ? new Date(phaseStartedAtRef.current).toISOString()
       : new Date(Date.now() - elapsedSecs*1000).toISOString();
+    // Stopping is a person acting on THIS device, so this device saves the
+    // block, whichever device started it.
     onTimerComplete?.({
       durationMinutes: Math.max(1, Math.round(elapsedSecs/60)),
       task: taskRef.current,
       subjectId: courseIdRef.current || null,
       startedAt: startedAtIso,
       planId: planIdRef.current,
+      runId,
     });
     phaseStartedAtRef.current = null;
   };
@@ -506,6 +602,13 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
     setLockedIn(next);
   };
 
+  // v1.20 (#202) — a run another device started, joined here without
+  // touching its clock: Lock In's entry (above) resets to a fresh block,
+  // which would end the shared run on every device.
+  const joinLockIn = () => setLockedIn(true);
+  const runElsewhere = Boolean(origin) && origin !== focusDeviceId()
+    && (running || secsLeft < totalSecs);
+
   // While locked in we add a body class so the bottom mobile tab bar and
   // desktop sidebar can hide via CSS. Cleans up on unmount / toggle-off.
   useEffect(() => {
@@ -538,11 +641,13 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
       // frozen one — a clock that has stopped is worse than no clock.
       endsAt: running ? Date.now() + secsRef.current * 1000 : 0,
       chip: state.focusChip !== false,
-      pin: state.focusPin === true,
+      // v1.20 (#202): pinned only while focus time is running. A pause or a
+      // break gives the phone back; starting the next block pins it again.
+      pin: state.focusPin === true && running && phase === 'focus',
       // Not a setting: fullscreen is what Lock In is, on every platform.
       immersive: true,
     });
-  }, [lockedIn, running, state.focusChip, state.focusPin, t]);
+  }, [lockedIn, running, phase, state.focusChip, state.focusPin, t]);
 
   // Leaving the screen — or the app going away entirely — must not strand a
   // pinned screen or a chip that outlives the session it describes.
@@ -676,6 +781,15 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
     {!isStopwatch&&<button className="lockin-enter" onClick={toggleLockIn} title={t('av.tm.lockInTitle')}>
       🔒 {t('av.tm.lockInBtn')}
     </button>}
+    {/* v1.20 (#202) — the run on the clock was started on another device.
+        On the phone it can be joined in Lock In, which pins the screen. */}
+    {runElsewhere&&<div className="pomo-plan pomo-sync" role="status">
+      <span className="pomo-sync-dot" aria-hidden="true"/>
+      <span className="pomo-plan-text">{t('av.tm.syncElsewhere')}</span>
+      {Capacitor.isNativePlatform()&&!isStopwatch&&<button type="button" className="pomo-sync-btn" onClick={joinLockIn}>
+        {t('av.tm.syncLockInHere')}
+      </button>}
+    </div>}
     {/* v1.19 (#185) — says which scheduled block these rounds count toward,
         and lets the user cut the link without resetting the clock. */}
     {runPlan&&<div className="pomo-plan" role="status">

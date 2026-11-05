@@ -9,12 +9,19 @@
 //
 // Read-only by design. Every affordance that would change data lives in the
 // main window; this thing is a dial, not a control.
+//
+// v1.20 (#189) — a dial you can follow back to its source: clicking the timer
+// opens the main window at the timer, clicking the deadline or the plan opens
+// it at the plan. And while a focus block is on the clock on any of the
+// user's devices (Focus Sync, #202), a strip under the bar shows it.
 
 import { useTranslation } from 'react-i18next';
 import { minutesToTime } from '../lib/timetable.js';
 import { fmtToday } from '../lib/dates.js';
+import { formatClock } from '../lib/timerSnapshot.js';
 import { nextDue, todayPlan, visiblePlan, minutesOfDay } from './glance.js';
 import { useGlance } from './useGlance.js';
+import { useFocusMirror } from './useFocusMirror.js';
 import '../styles/base.css';
 import '../styles/widget.css';
 
@@ -23,6 +30,40 @@ function closeWidget() {
   // still renders in a plain browser tab during development, where there is no
   // window to close.
   window.studydeskWidget?.close();
+}
+
+/** Props that make a section open the main window at `view`, or nothing
+ *  outside the desktop shell (a dev tab has no main window to open). */
+function opens(view, label) {
+  const open = window.studydeskWidget?.open;
+  if (!open) return {};
+  return {
+    role: 'button',
+    tabIndex: 0,
+    'aria-label': label,
+    onClick: () => open(view),
+    onKeyDown: (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(view); }
+    },
+  };
+}
+
+function TimerStrip({ timer, secs }) {
+  const { t } = useTranslation();
+  const isBreak = timer.mode !== 'stopwatch' && timer.phase !== 'focus';
+  const label = timer.mode === 'stopwatch' ? t('av.tm.pill.stopwatch')
+    : isBreak ? t('av.tm.pill.break') : t('av.tm.pill.focus');
+  return (
+    <section
+      className={`wg-timer${timer.running ? '' : ' is-paused'}${isBreak ? ' is-break' : ''}`}
+      {...opens('timer', timer.task ? t('av.tm.pill.openWith', { task: timer.task }) : t('av.tm.pill.open'))}
+    >
+      <span className="wg-timer-dot" aria-hidden="true" />
+      <span className="wg-timer-label">{timer.running ? label : `${label} · ${t('timer.focusChipPaused')}`}</span>
+      <span className="wg-timer-clock">{formatClock(secs)}</span>
+      {timer.task ? <span className="wg-timer-task" title={timer.task}>{timer.task}</span> : null}
+    </section>
+  );
 }
 
 /** Urgency copy, reusing the assignment view's existing ten-locale strings
@@ -62,6 +103,7 @@ function PlanRow({ item, past, index }) {
 export default function Widget() {
   const { t } = useTranslation();
   const { status, state, todayIso, now } = useGlance();
+  const { timer, secs } = useFocusMirror();
 
   const due = status === 'ready' && state ? nextDue(state, todayIso) : null;
   const plan = status === 'ready' && state ? todayPlan(state, todayIso) : [];
@@ -83,7 +125,9 @@ export default function Widget() {
         </button>
       </header>
 
-      <section className="wg-lead">
+      {timer && <TimerStrip timer={timer} secs={secs} />}
+
+      <section className="wg-lead" {...opens('plan', t('widget.openPlan'))}>
         {status === 'loading' && <p className="wg-quiet">…</p>}
 
         {status === 'signedOut' && (
@@ -127,7 +171,7 @@ export default function Widget() {
 
       <hr className="wg-rule" />
 
-      <section className="wg-plan">
+      <section className="wg-plan" {...opens('plan', t('widget.openPlan'))}>
         <p className="wg-label wg-label--plan">
           {t('sv.todayHead')}
           {overflow > 0 && <span className="wg-more">+{overflow}</span>}

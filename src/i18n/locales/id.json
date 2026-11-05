@@ -608,6 +608,7 @@
     "daysInRow": "hari berturut-turut",
     "ibTrend": "Tren rata-rata IB",
     "gpaTrend": "Tren GPA",
+    "avgTrend": "Tren rata-rata",
     "ibScale": "Skala 1–7",
     "usScale": "Skala 4.0",
     "trendNeedMore": "Catat nilai di lebih dari satu bulan untuk melihat trenmu.",
@@ -662,6 +663,8 @@
       "start": "Mulai",
       "lockInBtn": "Fokus",
       "lockInTitle": "Tanpa istirahat, tanpa navigasi, hanya fokus mendalam",
+      "syncElsewhere": "Berjalan di perangkat lain",
+      "syncLockInHere": "Fokus di sini",
       "studying": "Sedang belajar",
       "workingPlaceholder": "Kamu sedang mengerjakan apa? (opsional)",
       "weeklyHours": "Jam per minggu",
@@ -781,10 +784,41 @@
       "examsAdded": "{{count}} ujian ditambahkan"
     }
   },
+  "ctr": {
+    "title": "Kemajuan",
+    "add": "+ Penghitung",
+    "empty": "Hitung halaman, bab, atau jam dengan sekali ketuk, menuju target jika mau.",
+    "name": "Apa yang kamu hitung?",
+    "namePh": "mis. buku Fisika",
+    "unit": "Satuan",
+    "unit_pages": "halaman",
+    "unit_chapters": "bab",
+    "unit_hours": "jam",
+    "unitCustom": "Satuan lain",
+    "period": "Menghitung",
+    "period_total": "Total",
+    "period_day": "Per hari",
+    "period_week": "Per minggu",
+    "target": "Target",
+    "targetPh": "Target (opsional)",
+    "course": "Mata pelajaran",
+    "noCourse": "Tanpa mata pelajaran",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus penghitung",
+    "deleteConfirm": "Hapus “{{name}}” dan riwayatnya",
+    "edit": "Ubah",
+    "minus": "Kurangi {{step}} {{unit}}",
+    "plus": "Tambah {{step}} {{unit}}",
+    "soFar": "sejauh ini",
+    "today": "hari ini",
+    "thisWeek": "minggu ini"
+  },
   "widget": {
     "today": "Hari ini",
     "tomorrow": "Besok",
-    "noPlanToday": "Tidak ada rencana hari ini"
+    "noPlanToday": "Tidak ada rencana hari ini",
+    "openPlan": "Buka rencana"
   },
   "cal": {
     "title": "Kalender",
@@ -1046,6 +1080,12 @@
     "character": "Karakter",
     "widget": "Widget layar utama",
     "widgetMatch": "Ikuti aplikasi",
+    "size": "Ukuran",
+    "size_smaller": "Lebih kecil",
+    "size_default": "Bawaan",
+    "size_larger": "Lebih besar",
+    "size_largest": "Terbesar",
+    "sizeNote": "Ukuran hanya berlaku di perangkat ini.",
     "mode": {
       "light": "Terang",
       "dark": "Gelap",
@@ -1237,5 +1277,11 @@
     },
     "markedDone": "Selesai: {{title}}",
     "undo": "Urungkan"
+  },
+  "reportPrompt": {
+    "title": "Kirim laporan galat?",
+    "body": "Jika ada yang rusak, StudyDesk dapat mengirimi kami detail teknisnya: versi aplikasi, galatnya, dan layar tempat terjadinya. Tidak pernah apa yang kamu ketik. Kamu bisa mengubahnya di Pengaturan.",
+    "yes": "Ya, kirim",
+    "notNow": "Nanti saja"
   }
 }

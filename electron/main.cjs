@@ -312,7 +312,7 @@ function startAuthLoopback() {
   });
 }
 
-function createWindow() {
+function createWindow(view = null) {
   try {
     mainWindow = new BrowserWindow({
       width: 1440,
@@ -351,7 +351,9 @@ function createWindow() {
       log(`render-process-gone: ${JSON.stringify(details)}`);
     });
 
-    mainWindow.loadURL(`${APP_ORIGIN}/`);
+    // v1.20 (#189): opened from the glance widget at a view. The renderer
+    // reads it once and drops it from the URL (App.jsx).
+    mainWindow.loadURL(view ? `${APP_ORIGIN}/?view=${encodeURIComponent(view)}` : `${APP_ORIGIN}/`);
 
     mainWindow.on('closed', () => {
       mainWindow = null;
@@ -468,13 +470,19 @@ function toggleWidget() {
   refreshTrayMenu();
 }
 
-function openMainWindow() {
+// v1.20 (#189): the views the glance widget may open the main window at.
+const WIDGET_VIEWS = new Set(['timer', 'plan']);
+
+function openMainWindow(view) {
+  const target = WIDGET_VIEWS.has(view) ? view : null;
   if (mainWindow && !mainWindow.isDestroyed()) {
     if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
     mainWindow.focus();
+    if (target) mainWindow.webContents.send('app:navigate', target);
     return;
   }
-  createWindow();
+  createWindow(target);
 }
 
 // NOTE: these labels are English-only. The renderer is fully localised in ten
@@ -490,7 +498,7 @@ function refreshTrayMenu() {
       checked: Boolean(widgetWindow && !widgetWindow.isDestroyed()),
       click: toggleWidget,
     },
-    { label: 'Open StudyDesk', click: openMainWindow },
+    { label: 'Open StudyDesk', click: () => openMainWindow() },
     { type: 'separator' },
     { label: 'Quit', click: () => app.quit() },
   ]));
@@ -500,7 +508,7 @@ function createTray() {
   try {
     tray = new Tray(ICON_PATH);
     tray.setToolTip('StudyDesk');
-    tray.on('double-click', openMainWindow);
+    tray.on('double-click', () => openMainWindow());
     refreshTrayMenu();
   } catch (err) {
     // A missing tray is a degraded app, not a broken one — the main window
@@ -511,6 +519,12 @@ function createTray() {
 
 ipcMain.on('widget:close', () => {
   if (widgetWindow && !widgetWindow.isDestroyed()) widgetWindow.close();
+});
+
+ipcMain.on('widget:open', (event, view) => {
+  // Only the widget may ask, and only for a listed view (see openMainWindow).
+  if (!widgetWindow || widgetWindow.isDestroyed() || event.sender !== widgetWindow.webContents) return;
+  openMainWindow(view);
 });
 
 // Renderer asks for the provider URL to be opened in the real browser. This is
