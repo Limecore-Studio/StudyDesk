@@ -4,6 +4,8 @@ import { supabase } from '../../lib/supabase.js';
 import { translateAuthError } from '../../lib/authErrors.js';
 import { endRecovery } from '../../lib/passwordRecovery.js';
 import { authCss } from './AuthGate.jsx';
+import { meetsPasswordRule, PASSWORD_MIN_LENGTH } from '../../lib/passwordPolicy.js';
+import PasswordChecklist from './PasswordChecklist.jsx';
 
 // ── Set a new password (#52) ───────────────────────────────────────────────
 //
@@ -24,19 +26,21 @@ import { authCss } from './AuthGate.jsx';
 //     escape hatch, or a recovery someone abandons halfway becomes a launch
 //     that never opens. Signing out ends the flow (the module clears the flag
 //     on SIGNED_OUT) and returns the gate.
-const MIN_LENGTH = 6;
 
 export default function SetPasswordScreen() {
   const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [err, setErr] = useState('');
+  const [pwFlag, setPwFlag] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e) {
     e.preventDefault();
     setErr('');
-    if (password.length < MIN_LENGTH) { setErr(t('auth.errPwShort', { n: MIN_LENGTH })); return; }
+    // v1.20 (limecore#73) — the server's rule (lib/passwordPolicy.js), not
+    // the old 6, which let a password through here that the server refused.
+    if (!meetsPasswordRule(password)) { setPwFlag(true); setErr(t('auth.pwNotYet')); return; }
     if (password !== confirm) { setErr(t('auth.errPwMismatch')); return; }
     setLoading(true);
     try {
@@ -93,7 +97,10 @@ export default function SetPasswordScreen() {
                 autoFocus
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setErr(''); }}
+                minLength={PASSWORD_MIN_LENGTH}
+                aria-describedby="setpw-rules"
               />
+              <PasswordChecklist id="setpw-rules" password={password} flagMissing={pwFlag} />
             </div>
             <div className="input-group">
               <label className="input-label">{t('auth.confirmPasswordLabel')}</label>

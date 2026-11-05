@@ -15,6 +15,27 @@
 // arm is a fallback for older payloads and for errors raised as plain Error
 // (e.g. the network failures fetch throws before Supabase sees them).
 
+import { PASSWORD_MIN_LENGTH, weakPasswordReasons } from './passwordPolicy.js';
+import '../i18n/passwordStrings.js'; // the auth.pw* strings (loaded on demand)
+
+const REASON_KEYS = {
+  length: 'auth.pwReasonLength',
+  characters: 'auth.pwReasonCharacters',
+  pwned: 'auth.pwReasonPwned',
+};
+
+/**
+ * v1.20 (limecore#73) — say WHAT is wrong with a refused password. The one
+ * generic line this replaced sent a visitor round five times in 40 s.
+ */
+function weakPasswordMessage(err, t) {
+  const opts = { n: PASSWORD_MIN_LENGTH };
+  let reasons = weakPasswordReasons(err);
+  // No reason given: state the whole rule rather than "choose a stronger one".
+  if (!reasons.length) reasons = ['length', 'characters'];
+  return reasons.map((r) => t(REASON_KEYS[r], opts)).join(' ');
+}
+
 /** Supabase auth error codes -> `auth.*` i18n keys. */
 const CODE_KEYS = {
   invalid_credentials: 'auth.errInvalidCredentials',
@@ -33,8 +54,6 @@ const MESSAGE_KEYS = [
   ['already registered', 'auth.errAlreadyRegistered'],
   ['already been registered', 'auth.errAlreadyRegistered'],
   ['user already exists', 'auth.errAlreadyRegistered'],
-  ['password should be', 'auth.errWeakPassword'],
-  ['weak password', 'auth.errWeakPassword'],
   ['email not confirmed', 'auth.errEmailNotConfirmed'],
   ['rate limit', 'auth.errRateLimited'],
   ['too many requests', 'auth.errRateLimited'],
@@ -53,6 +72,14 @@ const MESSAGE_KEYS = [
  */
 export function translateAuthError(err, t, fallbackKey = 'auth.errGeneric') {
   if (!err) return t(fallbackKey);
+
+  const weakMsg = (err.message ?? '').toLowerCase();
+  // The message arm only for code-less errors: GoTrue's same_password text
+  // ("New password should be different…") also contains "password should".
+  if (err.code === 'weak_password'
+    || (!err.code && (weakMsg.includes('password should') || weakMsg.includes('weak password')))) {
+    return weakPasswordMessage(err, t);
+  }
 
   const key = err.code ? CODE_KEYS[err.code] : undefined;
   if (key) return t(key);
