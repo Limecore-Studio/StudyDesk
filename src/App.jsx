@@ -96,6 +96,8 @@ const SettingsView = lazy(() => import("./features/settings/SettingsView.jsx"));
 const AddExamModal = lazy(() => import("./features/plan/AddExamModal.jsx"));
 // v1.17 (limecore#12): only a first run ever shows onboarding.
 const OnboardingView = lazy(() => import("./features/onboarding/OnboardingView.jsx"));
+// v1.20 (limecore#71): almost every launch never shows it.
+const ReportPromptCard = lazy(() => import("./features/settings/ReportPromptCard.jsx"));
 
 // ── Root App ──────────────────────────────────────────────────────────────────
 export default function App() {
@@ -634,6 +636,7 @@ export default function App() {
   const offeredPlans = useRef(new Set());
   const snoozeTimers = useRef(new Map());
   const offerPlan = planOffer ? (state.plannedSessions || []).find((p) => p.id === planOffer && !p.deletedAt) : null;
+
 
   // With the app in front, a block's start time raises its sheet. Re-armed
   // whenever the plans change; checked again when the window comes back,
@@ -1193,6 +1196,9 @@ export default function App() {
         }}
       />
     )}
+    {/* v1.20 (limecore#71): offers error reports once, on the second signed-in
+        launch; never to a guest or over onboarding. It decides for itself. */}
+    {onboarded && session?.user && !guest && <Suspense fallback={null}><ReportPromptCard/></Suspense>}
     {flash&&<div className="flash">{flash}</div>}
     {undoOffer&&(
       <div className="undo-bar" role="status" key={undoOffer.key}>
