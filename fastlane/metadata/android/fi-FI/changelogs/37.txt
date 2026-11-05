@@ -1,0 +1,3 @@
+Ajantasalla joka laitteella.
+
+Muutokset näkyvät muilla laitteillasi sekunneissa, ja yhteys palautuu itsestään. Focus Sync jakaa yhden ajastimen puhelimen, työpöydän ja webin kesken: puhelimessa aloitettuna se kiinnittyy, tauko tai lopetus onnistuu missä vain, ja tallennus tehdään kerran. Uutta: edistymislaskurit, käyttöliittymän koko ja työpöydän pikaikkuna. Tumma tila kattaa järjestelmäpalkit ja valitsimet, trendi käyttää asteikkoasi ja rekisteröinti kertoo salasanasäännön.
