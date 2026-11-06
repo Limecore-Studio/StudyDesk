@@ -27,16 +27,11 @@ import * as sync from "./lib/sync.js";
 import * as outbox from "./lib/outbox.js";
 import { reconcileUnsynced } from "./lib/reconcile.js";
 import { stampsFromPull, mergeStamps, shouldPull } from "./lib/syncStamps.js";
-import SaveSessionSheet from "./features/sessions/SaveSessionSheet.jsx";
 import { pastSessionDraft } from "./lib/pastSession.js";
 import { isOpenPlan, nextPlanStartAt, planSaveSteps, planToOffer } from "./lib/planRun.js";
 import { timerPlanId } from "./lib/timerSnapshot.js";
 import { onUndoOffer, UNDO_MS } from "./lib/doneList.js";
 import "./styles/notebook.css";
-import CoursePicker from "./lib/CoursePicker.jsx";
-import { AddAsgnModal, EditCourseModal } from "./features/plan/CourseModals.jsx";
-import CourseDetailView from "./features/plan/CourseDetailView.jsx";
-import PlanView from "./features/plan/PlanView.jsx";
 import ActionsView from "./features/actions/ActionsView.jsx";
 import { daysUntil } from "./lib/deadlines.js";
 import { desktop } from "./lib/desktop.js";
@@ -74,8 +69,25 @@ import { useNoteSync } from "./app/useNoteSync.js";
 import { useCloudPushers } from "./app/useCloudPushers.js";
 
 // v1.17 (limecore#13): every feature view is its own chunk, loaded the first
-// time its tab is opened. The views a launch opens on (actions, the plan list,
-// the course pane) are imported statically above and stay in the entry chunk.
+// time its tab is opened. Every launch opens on Today (`rehydrateState` resets
+// `view` to "actions"), so ActionsView is the only view imported statically.
+//
+// v1.21 (StudyDesk#224) — the plan list, the course pane, the course modals and
+// the save-session sheet left the startup chunk too: none of them is on first
+// paint. The startup bundle was at 705.8 of 706 KiB; the budget went down with
+// this change instead of up. `dataRights.js` stays static on purpose: it is the
+// export behind StorageAlert and the crash screen, and an escape hatch must not
+// depend on a chunk load succeeding.
+const PlanView = lazy(() => import("./features/plan/PlanView.jsx"));
+const CourseDetailView = lazy(() => import("./features/plan/CourseDetailView.jsx"));
+const AddAsgnModal = lazy(() => import("./features/plan/CourseModals.jsx").then((m) => ({ default: m.AddAsgnModal })));
+const EditCourseModal = lazy(() => import("./features/plan/CourseModals.jsx").then((m) => ({ default: m.EditCourseModal })));
+const CoursePicker = lazy(() => import("./lib/CoursePicker.jsx"));
+// The save sheet is what keeps a finished focus round, so it is fetched when the
+// app goes idle after launch rather than at the moment a round ends: a failed
+// fetch then (a web deploy mid-session) must not cost the round.
+const loadSaveSessionSheet = () => import("./features/sessions/SaveSessionSheet.jsx");
+const SaveSessionSheet = lazy(loadSaveSessionSheet);
 const GradesView = lazy(() => import("./features/grades/GradesView.jsx"));
 const SessionsView = lazy(() => import("./features/sessions/SessionsView.jsx"));
 const NotebookView = lazy(() => import("./features/notebook/NotebookView.jsx"));
@@ -103,6 +115,19 @@ const ReportPromptCard = lazy(() => import("./features/settings/ReportPromptCard
 export default function App() {
   const [state, dispatch] = useReducer(reducer, INITIAL, rehydrateState);
   const { t } = useTranslation();
+
+  // StudyDesk#224 — warm the save sheet's chunk once launch has settled (see
+  // `loadSaveSessionSheet` above). A failure here is harmless: the lazy
+  // component retries the import when it is first rendered.
+  useEffect(() => {
+    const warm = () => { loadSaveSessionSheet().catch(() => {}); };
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(warm, { timeout: 5000 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+    const id = setTimeout(warm, 3000);
+    return () => clearTimeout(id);
+  }, []);
 
   // ── Auth session — DECLARED FIRST, DELIBERATELY ────────────────────────────
   //
@@ -1145,12 +1170,12 @@ export default function App() {
     {showAddCourse&&<div className="modal-overlay" role="dialog" aria-modal="true" aria-label={t('av.md.addCourse')} onClick={()=>setShowAddCourse(false)}><div className="modal" onClick={e=>e.stopPropagation()}>
       <div className="modal-title">{t('av.md.addCourse')}</div>
       <div className="input-group"><div className="input-label">{t('course.name')}</div><input type="text" placeholder={t('course.namePlaceholder')} value={newCourseName} onChange={e=>setNewCourseName(e.target.value)} {...enterSubmit(addCourse)} autoFocus/></div>
-      <div style={{marginBottom:16}}><CoursePicker value={newCourseColor} onChange={setNewCourseColor}/></div>
+      <div style={{marginBottom:16}}><Suspense fallback={null}><CoursePicker value={newCourseColor} onChange={setNewCourseColor}/></Suspense></div>
       <div style={{display:"flex",gap:8}}><button className="btn" onClick={addCourse}>{t('av.chrome.addCourse')}</button><button className="btn-outline" onClick={()=>setShowAddCourse(false)}>{t('common.cancel')}</button></div>
     </div></div>}
-    {showAddAsgn&&<AddAsgnModal courses={courses} activeCourse={state.activeCourse} onAdd={(data)=>{dispatch({type:"ADD_ASSIGNMENT",title:data.title,courseId:data.courseId,assignType:data.type,dueDate:data.dueDate,dueTime:data.dueTime,notes:data.notes});setShowAddAsgn(false);showFlash(t('av.flash.assignmentAdded'));}} onClose={()=>setShowAddAsgn(false)}/>}
+    {showAddAsgn&&<Suspense fallback={null}><AddAsgnModal courses={courses} activeCourse={state.activeCourse} onAdd={(data)=>{dispatch({type:"ADD_ASSIGNMENT",title:data.title,courseId:data.courseId,assignType:data.type,dueDate:data.dueDate,dueTime:data.dueTime,notes:data.notes});setShowAddAsgn(false);showFlash(t('av.flash.assignmentAdded'));}} onClose={()=>setShowAddAsgn(false)}/></Suspense>}
     {showAddExam&&<Suspense fallback={null}><AddExamModal courses={courses} activeCourse={state.activeCourse} terms={state.academicTerms} onAdd={({dates,...data})=>{const ds=dates?.length?dates:[data.dueDate];for(const dueDate of ds)dispatch({type:"ADD_EXAM",...data,dueDate});setShowAddExam(false);showFlash(ds.length>1?t('av.flash.examsAdded',{count:ds.length}):t('av.flash.examAdded'));}} onClose={()=>setShowAddExam(false)}/></Suspense>}
-    {editingCourse&&<EditCourseModal
+    {editingCourse&&<Suspense fallback={null}><EditCourseModal
       course={state.courses[editingCourse.id] || editingCourse}
       courses={state.courses}
       onSave={(name,color,credits,semester,schoolYear)=>{
@@ -1164,7 +1189,7 @@ export default function App() {
         setEditingCourse(null); showFlash(t('av.flash.courseDeleted'));
         if (session) outbox.enqueue("delete_subject", { id });
       }}
-      onClose={()=>setEditingCourse(null)}/>}
+      onClose={()=>setEditingCourse(null)}/></Suspense>}
     {offerPlan && isOpenPlan(offerPlan) && (
       <Suspense fallback={null}><PlanStartSheet
         plan={offerPlan}
@@ -1176,7 +1201,7 @@ export default function App() {
       /></Suspense>
     )}
     {pendingSession && (
-      <SaveSessionSheet
+      <Suspense fallback={null}><SaveSessionSheet
         pending={pendingSession}
         courses={courses}
         canDebrief={!!session && state.aiEnabled}
@@ -1194,7 +1219,7 @@ export default function App() {
           showFlash(t('av.flash.logged', { n: save.durationMinutes }));
           if (session) for (const [op, payload] of steps.outbox) outbox.enqueue(op, payload);
         }}
-      />
+      /></Suspense>
     )}
     {/* v1.20 (limecore#71): offers error reports once, on the second signed-in
         launch; never to a guest or over onboarding. It decides for itself. */}
