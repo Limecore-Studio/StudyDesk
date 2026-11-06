@@ -156,6 +156,15 @@ try {
   step(`launched ${before.version}`);
 
   const bridge = '(window.studydeskDesktop || window.nexusDesktop)';
+  // limecore#75: the window can be up before the preload has exposed the
+  // update bridge. Calling it then threw "renderer threw: Uncaught" and passed
+  // on a retry (SD, v1.20.0). Wait for it, with a clear failure if it never
+  // comes, so a gate never needs a retry to pass.
+  for (let waited = 0; ; waited += 250) {
+    if (await cdpEval(`typeof ${bridge}?.checkForUpdate === 'function'`, 5_000) === true) break;
+    if (waited >= 30_000) fail('the update bridge never appeared (preload did not expose checkForUpdate within 30 s)');
+    await sleep(250);
+  }
   const check = await cdpEval(`${bridge}.checkForUpdate(true)`);
   step(`check: ${JSON.stringify(check)}`);
   if (check?.status !== 'available' || !check.canInstall || check.latest !== target) fail(`check did not offer an installable ${target}`);
