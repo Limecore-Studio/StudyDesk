@@ -17,10 +17,20 @@ import CoursePicker from '../../lib/CoursePicker.jsx';
 import { ASSIGN_TYPES, OTHER_ASSIGN_TYPE } from '../../lib/assignTypes.js';
 import { enterSubmit } from '../../lib/imeSubmit.js';
 import DateInput from '../../lib/DateInput.jsx';
+import { fmtDateFull } from '../../lib/dates.js';
+import { REPEAT_WEEK_CHOICES, MAX_OCCURRENCES, repeatHorizon, occurrenceDates } from '../../lib/planRepeat.js';
 
-export function AddAsgnModal({ courses, activeCourse, onAdd, onClose }) {
+export function AddAsgnModal({ courses, activeCourse, terms, onAdd, onClose }) {
   const { t } = useTranslation();
   const [title,setTitle]=useState(""); const [courseId,setCourse]=useState(activeCourse||(courses[0]?.id??"")); const [type,setType]=useState(ASSIGN_TYPES[0]); const [dueDate,setDueDate]=useState(""); const [dueTime,setDueTime]=useState(""); const [notes,setNotes]=useState("");
+  // v1.21 (#203) — recurring assignments, the same Repeat/Until that #158 gave
+  // exams: one ordinary assignment per date, materialised by planRepeat.js, so
+  // nothing new syncs. The end defaults to the end of the first date's term,
+  // the count shows before saving, and the due time carries to every one. A
+  // repeat needs a first date, so it is off until one is picked.
+  const [repeatWeeks,setRepeatWeeks]=useState(0); const [until,setUntil]=useState("");
+  const untilEff = until && until >= dueDate ? until : (dueDate ? repeatHorizon(dueDate, terms) : "");
+  const dates = !dueDate ? [""] : repeatWeeks ? occurrenceDates(dueDate, repeatWeeks, untilEff) : [dueDate];
   // v1.8 — "Other" used to be a dead end: it stored the literal string "Other"
   // with no way to say what the assignment actually was. Picking it now reveals
   // a label field and the custom text is what gets stored, so `type` stays a
@@ -30,7 +40,7 @@ export function AddAsgnModal({ courses, activeCourse, onAdd, onClose }) {
   const [customType,setCustomType]=useState("");
   const isOtherType = type===OTHER_ASSIGN_TYPE;
   const resolvedType = isOtherType ? customType.trim() : type;
-  const submit=()=>{ if(!title.trim()||!courseId||!resolvedType) return; onAdd({title:title.trim(),courseId,type:resolvedType,dueDate,dueTime:dueDate?dueTime:"",notes}); };
+  const submit=()=>{ if(!title.trim()||!courseId||!resolvedType) return; onAdd({title:title.trim(),courseId,type:resolvedType,dueDate,dueTime:dueDate?dueTime:"",notes,dates}); };
   return <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={t('av.md.addAssignment')} onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}>
     <div className="modal-title">{t('av.md.addAssignment')}</div>
     <div className="input-group"><div className="input-label">{t('av.md.title')}</div><input type="text" placeholder={t('av.md.titlePh')} value={title} onChange={e=>setTitle(e.target.value)} autoFocus/></div>
@@ -48,6 +58,16 @@ export function AddAsgnModal({ courses, activeCourse, onAdd, onClose }) {
       <div className="input-group"><div className="input-label">{t('av.md.dueDateOpt')}</div><DateInput type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}/></div>
       <div className="input-group"><div className="input-label">{t('av.md.dueTimeOpt')}</div><DateInput type="time" value={dueTime} disabled={!dueDate} onChange={e=>setDueTime(e.target.value)}/></div>
     </div>
+    <div className="modal-grid">
+      <div className="input-group"><div className="input-label">{t('cal.planRepeat')}</div><select value={String(repeatWeeks)} disabled={!dueDate} onChange={e=>setRepeatWeeks(Number(e.target.value))}>
+        <option value="0">{t('cal.planRepeatNone')}</option>
+        {REPEAT_WEEK_CHOICES.map(n=><option key={n} value={n}>{n===1?t('cm.everyWeek'):t('cm.everyNWeeks',{count:n})}</option>)}
+      </select></div>
+      <div className="input-group"><div className="input-label">{t('av.md.repeatUntil')}</div><DateInput type="date" value={repeatWeeks&&dueDate?untilEff:""} min={dueDate||undefined} disabled={!repeatWeeks||!dueDate} onChange={e=>setUntil(e.target.value)}/></div>
+    </div>
+    {repeatWeeks>0&&dueDate&&<div style={{fontFamily:"var(--font-mono)",fontSize:11,color:"var(--muted)",marginBottom:12}}>
+      {t('av.md.asgnRepeatSummary',{count:dates.length,until:fmtDateFull(dates[dates.length-1])})}{dates.length>=MAX_OCCURRENCES?` ${t('cal.planRepeatCapped',{max:MAX_OCCURRENCES})}`:""}
+    </div>}
     <div className="input-group"><div className="input-label">{t('av.md.notesOpt')}</div><textarea placeholder={t('av.md.asgnNotesPh')} value={notes} onChange={e=>setNotes(e.target.value)} style={{minHeight:60}}/></div>
     <div style={{display:"flex",gap:8,marginTop:4}}><button className="btn" onClick={submit}>{t('av.md.addAssignment')}</button><button className="btn-outline" onClick={onClose}>{t('common.cancel')}</button></div>
   </div></div>;

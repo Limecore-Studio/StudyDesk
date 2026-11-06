@@ -747,7 +747,8 @@
       "addCourse": "Tambah mata pelajaran",
       "typeCustomPh": "Beri nama jenisnya (mis. Presentasi)",
       "repeatUntil": "Sampai",
-      "examRepeatSummary": "{{count}} ujian, yang terakhir {{until}}"
+      "examRepeatSummary": "{{count}} ujian, yang terakhir {{until}}",
+      "asgnRepeatSummary": "{{count}} tugas, yang terakhir {{until}}"
     },
     "act": {
       "addManually": "Tambah manual",
@@ -781,7 +782,8 @@
       "examAdded": "Ujian ditambahkan",
       "logged": "{{n}} mnt tercatat",
       "queuedLegacy_other": "{{count}} to-do lama menunggu disinkronkan",
-      "examsAdded": "{{count}} ujian ditambahkan"
+      "examsAdded": "{{count}} ujian ditambahkan",
+      "assignmentsAdded": "{{count}} tugas ditambahkan"
     }
   },
   "ctr": {

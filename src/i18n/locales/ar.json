@@ -786,7 +786,8 @@
       "addCourse": "إضافة مادة",
       "typeCustomPh": "سمِّ النوع (مثال: عرض تقديمي)",
       "repeatUntil": "حتى",
-      "examRepeatSummary": "{{count}} اختبارات، آخرها في {{until}}"
+      "examRepeatSummary": "{{count}} اختبارات، آخرها في {{until}}",
+      "asgnRepeatSummary": "{{count}} واجبات، آخرها مستحق في {{until}}"
     },
     "act": {
       "addManually": "إضافة يدوية",
@@ -825,7 +826,8 @@
       "queuedLegacy_few": "{{count}} مهام قديمة بانتظار المزامنة",
       "queuedLegacy_many": "{{count}} مهمةً قديمةً بانتظار المزامنة",
       "queuedLegacy_other": "{{count}} مهمة قديمة بانتظار المزامنة",
-      "examsAdded": "تمت إضافة {{count}} اختبارات"
+      "examsAdded": "تمت إضافة {{count}} اختبارات",
+      "assignmentsAdded": "تمت إضافة {{count}} واجبات"
     }
   },
   "ctr": {
