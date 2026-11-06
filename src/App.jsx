@@ -15,7 +15,6 @@ import { refreshEntitlement } from "./lib/entitlement.js";
 import { wipeAccountLocalData } from "./lib/accountWipe.js";
 import { downloadExport } from "./lib/dataRights.js";
 import StorageAlert from "./features/settings/StorageAlert.jsx";
-import FdroidUpdateNote from "./features/update/FdroidUpdateNote.jsx";
 import TimerPill from "./features/timer/TimerPill.jsx";
 import { useAccountAvatar } from "./lib/useAccountAvatar.js";
 import ReferralPrompt from "./features/referral/ReferralPrompt.jsx";
@@ -27,16 +26,11 @@ import * as sync from "./lib/sync.js";
 import * as outbox from "./lib/outbox.js";
 import { reconcileUnsynced } from "./lib/reconcile.js";
 import { stampsFromPull, mergeStamps, shouldPull } from "./lib/syncStamps.js";
-import SaveSessionSheet from "./features/sessions/SaveSessionSheet.jsx";
 import { pastSessionDraft } from "./lib/pastSession.js";
 import { isOpenPlan, nextPlanStartAt, planSaveSteps, planToOffer } from "./lib/planRun.js";
 import { timerPlanId } from "./lib/timerSnapshot.js";
 import { onUndoOffer, UNDO_MS } from "./lib/doneList.js";
 import "./styles/notebook.css";
-import CoursePicker from "./lib/CoursePicker.jsx";
-import { AddAsgnModal, EditCourseModal } from "./features/plan/CourseModals.jsx";
-import CourseDetailView from "./features/plan/CourseDetailView.jsx";
-import PlanView from "./features/plan/PlanView.jsx";
 import ActionsView from "./features/actions/ActionsView.jsx";
 import { daysUntil } from "./lib/deadlines.js";
 import { desktop } from "./lib/desktop.js";
@@ -74,8 +68,30 @@ import { useNoteSync } from "./app/useNoteSync.js";
 import { useCloudPushers } from "./app/useCloudPushers.js";
 
 // v1.17 (limecore#13): every feature view is its own chunk, loaded the first
-// time its tab is opened. The views a launch opens on (actions, the plan list,
-// the course pane) are imported statically above and stay in the entry chunk.
+// time its tab is opened. Every launch opens on Today (`rehydrateState` resets
+// `view` to "actions"), so ActionsView is the only view imported statically.
+//
+// v1.21 (StudyDesk#224) — the plan list, the course pane, the course modals and
+// the save-session sheet left the startup chunk too: none of them is on first
+// paint. The startup bundle was at 705.8 of 706 KiB; the budget went down with
+// this change instead of up. `dataRights.js` stays static on purpose: it is the
+// export behind StorageAlert and the crash screen, and an escape hatch must not
+// depend on a chunk load succeeding.
+const PlanView = lazy(() => import("./features/plan/PlanView.jsx"));
+const CourseDetailView = lazy(() => import("./features/plan/CourseDetailView.jsx"));
+const AddAsgnModal = lazy(() => import("./features/plan/CourseModals.jsx").then((m) => ({ default: m.AddAsgnModal })));
+const EditCourseModal = lazy(() => import("./features/plan/CourseModals.jsx").then((m) => ({ default: m.EditCourseModal })));
+const CoursePicker = lazy(() => import("./lib/CoursePicker.jsx"));
+// The save sheet is what keeps a finished focus round, so it is fetched when the
+// app goes idle after launch rather than at the moment a round ends: a failed
+// fetch then (a web deploy mid-session) must not cost the round.
+const loadSaveSessionSheet = () => import("./features/sessions/SaveSessionSheet.jsx");
+const SaveSessionSheet = lazy(loadSaveSessionSheet);
+// v1.21 (StudyDesk#205 paid for its startup bytes here) — the F-Droid note
+// renders nothing until a check it runs 4 s after mount finds a newer build,
+// so its code, and lib/fdroidUpdate.js behind it, need not be in the startup
+// chunk.
+const FdroidUpdateNote = lazy(() => import("./features/update/FdroidUpdateNote.jsx"));
 const GradesView = lazy(() => import("./features/grades/GradesView.jsx"));
 const SessionsView = lazy(() => import("./features/sessions/SessionsView.jsx"));
 const NotebookView = lazy(() => import("./features/notebook/NotebookView.jsx"));
@@ -103,6 +119,19 @@ const ReportPromptCard = lazy(() => import("./features/settings/ReportPromptCard
 export default function App() {
   const [state, dispatch] = useReducer(reducer, INITIAL, rehydrateState);
   const { t } = useTranslation();
+
+  // StudyDesk#224 — warm the save sheet's chunk once launch has settled (see
+  // `loadSaveSessionSheet` above). A failure here is harmless: the lazy
+  // component retries the import when it is first rendered.
+  useEffect(() => {
+    const warm = () => { loadSaveSessionSheet().catch(() => {}); };
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(warm, { timeout: 5000 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+    const id = setTimeout(warm, 3000);
+    return () => clearTimeout(id);
+  }, []);
 
   // ── Auth session — DECLARED FIRST, DELIBERATELY ────────────────────────────
   //
@@ -562,6 +591,81 @@ export default function App() {
 
   // ── Save-session sheet (raised when timer's focus phase ends) ───────────────
   const [pendingSession, setPendingSession] = useState(null); // { durationMinutes, task, startedAt, planId? } | null
+
+  // v1.19 (#185) / v1.20 (#202) — what saving a round does, shared by the sheet
+  // and the automatic save: a round from a scheduled block's run creates the
+  // block's one session, or adds to it if an earlier round already did; a free
+  // timer run is a plain ADD_SESSION. A timed block is saved under its run's
+  // id, so the same block saved again (from another device) is the same row.
+  const sessionSteps = (pending, save) => planSaveSteps({ save, planId: pending.planId || null, plans: state.plannedSessions, sessions: state.studySessions, newId: pending.runId || newSyncId() });
+
+  // v1.21 (#205) — "Save sessions automatically". A finished focus round is
+  // saved with its course, length, task and plan link, with no sheet. The
+  // sheet stays one tap away (Edit) for notes and a focus rating, and Undo
+  // takes it back. Both act within UNDO_MS, so the rows are written locally
+  // now and the outbox ops wait out that window: undoing a session already
+  // pushed would leave a tombstone under the run's id, and delete-wins on the
+  // server would then refuse the Edit's re-save of that same id. A save cut
+  // off inside the window (app killed) is still recovered by
+  // reconcileUnsynced, which pushes any local session the server lacks.
+  // Only the device that ended the run gets here (TimerView, #202).
+  const [autoSaved, setAutoSaved] = useState(null); // { key, pending, steps, restore } | null
+  const autoSaveSettled = useRef(new WeakSet());
+  const lastAutoRound = useRef(null);
+  const onTimerComplete = (payload) => {
+    // Only a round the timer finished. Stop, Skip and Log a past session still
+    // raise the sheet: someone is there and acting, and a cut-short length is
+    // worth a look before it counts.
+    if (!state.autoSaveSessions || !payload.completed) { setPendingSession(payload); return; }
+    // One save per round. A completion can be reported twice (the tick's
+    // state updater calls it, and React may run an updater twice), and the
+    // second report differs (the first clears the run's start and id), so
+    // the guard is time, not content: no real round ends within seconds of
+    // another. Raising the sheet twice was harmless; saving twice is not.
+    const now = Date.now();
+    if (lastAutoRound.current && now - lastAutoRound.current < 3000) return;
+    lastAutoRound.current = now;
+    const steps = sessionSteps(payload, { subjectId: payload.subjectId || null, durationMinutes: payload.durationMinutes, notes: (payload.task || "").trim() || null, startedAt: payload.startedAt, focusRating: null });
+    const planId = steps.actions.find((a) => a.type === "RESOLVE_PLANNED")?.id || null;
+    const restore = {
+      type: "RESTORE_ROWS",
+      sessionId: steps.sessionId || steps.actions[0].id,
+      session: steps.kind === "extend" ? (state.studySessions || []).find((s) => s.id === steps.sessionId) : null,
+      planId,
+      plan: planId ? (state.plannedSessions || []).find((p) => p.id === planId) : null,
+    };
+    // A previous save still in its window is pushed now rather than dropped.
+    if (autoSaved && !autoSaveSettled.current.has(autoSaved)) {
+      autoSaveSettled.current.add(autoSaved);
+      if (session) for (const [op, p] of autoSaved.steps.outbox) outbox.enqueue(op, p);
+    }
+    for (const a of steps.actions) dispatch(a);
+    setAutoSaved({ key: Date.now(), pending: payload, steps, restore });
+  };
+  // Push when the window closes, or at once if the app is hidden first. Each
+  // save is pushed (or undone) exactly once, however often this re-runs.
+  useEffect(() => {
+    if (!autoSaved) return undefined;
+    const settled = autoSaveSettled.current;
+    const flush = () => {
+      if (settled.has(autoSaved)) return;
+      settled.add(autoSaved);
+      if (session) for (const [op, payload] of autoSaved.steps.outbox) outbox.enqueue(op, payload);
+      setAutoSaved((cur) => (cur === autoSaved ? null : cur));
+    };
+    const id = setTimeout(flush, UNDO_MS);
+    const onHide = () => { if (document.visibilityState === "hidden") flush(); };
+    document.addEventListener("visibilitychange", onHide);
+    return () => { clearTimeout(id); document.removeEventListener("visibilitychange", onHide); };
+  }, [autoSaved, session]);
+  const undoAutoSave = (thenEdit) => {
+    const a = autoSaved;
+    if (!a || autoSaveSettled.current.has(a)) return;
+    autoSaveSettled.current.add(a);
+    dispatch(a.restore);
+    setAutoSaved(null);
+    if (thenEdit) setPendingSession(a.pending);
+  };
   // v1.3 — sub-tab within the Timer view (Timer / Log / Stats), so Log + Stats
   // don't need their own bottom-bar slots.
   const [timerSub, setTimerSub] = useState("timer");
@@ -997,7 +1101,7 @@ export default function App() {
           <StorageAlert onExport={onExportFromAlert} />
           {/* v1.16 (#67) — Android only, once a day, off in Settings. Renders
               nothing unless F-Droid has a newer build than this one. */}
-          <FdroidUpdateNote />
+          <Suspense fallback={null}><FdroidUpdateNote /></Suspense>
           {(urgent.length>0||urgentExams.length>0)&&state.view==="plan"&&(
             <div className="urgent-banner"><span>⚠️</span><div>
               <strong>{t('av.chrome.urgent')}</strong> —{" "}
@@ -1102,7 +1206,7 @@ export default function App() {
               </div>}
               <div className="page-turn" key={timerSub}>
                 <Suspense fallback={null}>
-                {timerSub==="timer" &&<TimerView   state={state} dispatch={dispatch} session={session} showFlash={showFlash} onTimerComplete={(payload)=>setPendingSession(payload)} startRequest={timerStartReq} onStartHandled={()=>setTimerStartReq(null)}/>}
+                {timerSub==="timer" &&<TimerView   state={state} dispatch={dispatch} session={session} showFlash={showFlash} onTimerComplete={onTimerComplete} startRequest={timerStartReq} onStartHandled={()=>setTimerStartReq(null)}/>}
                 {timerSub==="log"   &&<SessionsView state={state} dispatch={dispatch} showFlash={showFlash} session={session} onLogPast={()=>setPendingSession(pastSessionDraft())}/>}
                 {timerSub==="stats" &&<StatsView    state={state}/>}
                 {/* The mobile home for the notebook. Same component as the
@@ -1145,12 +1249,12 @@ export default function App() {
     {showAddCourse&&<div className="modal-overlay" role="dialog" aria-modal="true" aria-label={t('av.md.addCourse')} onClick={()=>setShowAddCourse(false)}><div className="modal" onClick={e=>e.stopPropagation()}>
       <div className="modal-title">{t('av.md.addCourse')}</div>
       <div className="input-group"><div className="input-label">{t('course.name')}</div><input type="text" placeholder={t('course.namePlaceholder')} value={newCourseName} onChange={e=>setNewCourseName(e.target.value)} {...enterSubmit(addCourse)} autoFocus/></div>
-      <div style={{marginBottom:16}}><CoursePicker value={newCourseColor} onChange={setNewCourseColor}/></div>
+      <div style={{marginBottom:16}}><Suspense fallback={null}><CoursePicker value={newCourseColor} onChange={setNewCourseColor}/></Suspense></div>
       <div style={{display:"flex",gap:8}}><button className="btn" onClick={addCourse}>{t('av.chrome.addCourse')}</button><button className="btn-outline" onClick={()=>setShowAddCourse(false)}>{t('common.cancel')}</button></div>
     </div></div>}
-    {showAddAsgn&&<AddAsgnModal courses={courses} activeCourse={state.activeCourse} onAdd={(data)=>{dispatch({type:"ADD_ASSIGNMENT",title:data.title,courseId:data.courseId,assignType:data.type,dueDate:data.dueDate,dueTime:data.dueTime,notes:data.notes});setShowAddAsgn(false);showFlash(t('av.flash.assignmentAdded'));}} onClose={()=>setShowAddAsgn(false)}/>}
+    {showAddAsgn&&<Suspense fallback={null}><AddAsgnModal courses={courses} activeCourse={state.activeCourse} terms={state.academicTerms} onAdd={(data)=>{const ds=data.dates?.length?data.dates:[data.dueDate];for(const dueDate of ds)dispatch({type:"ADD_ASSIGNMENT",title:data.title,courseId:data.courseId,assignType:data.type,dueDate,dueTime:data.dueTime,notes:data.notes});setShowAddAsgn(false);showFlash(ds.length>1?t('av.flash.assignmentsAdded',{count:ds.length}):t('av.flash.assignmentAdded'));}} onClose={()=>setShowAddAsgn(false)}/></Suspense>}
     {showAddExam&&<Suspense fallback={null}><AddExamModal courses={courses} activeCourse={state.activeCourse} terms={state.academicTerms} onAdd={({dates,...data})=>{const ds=dates?.length?dates:[data.dueDate];for(const dueDate of ds)dispatch({type:"ADD_EXAM",...data,dueDate});setShowAddExam(false);showFlash(ds.length>1?t('av.flash.examsAdded',{count:ds.length}):t('av.flash.examAdded'));}} onClose={()=>setShowAddExam(false)}/></Suspense>}
-    {editingCourse&&<EditCourseModal
+    {editingCourse&&<Suspense fallback={null}><EditCourseModal
       course={state.courses[editingCourse.id] || editingCourse}
       courses={state.courses}
       onSave={(name,color,credits,semester,schoolYear)=>{
@@ -1164,7 +1268,7 @@ export default function App() {
         setEditingCourse(null); showFlash(t('av.flash.courseDeleted'));
         if (session) outbox.enqueue("delete_subject", { id });
       }}
-      onClose={()=>setEditingCourse(null)}/>}
+      onClose={()=>setEditingCourse(null)}/></Suspense>}
     {offerPlan && isOpenPlan(offerPlan) && (
       <Suspense fallback={null}><PlanStartSheet
         plan={offerPlan}
@@ -1176,25 +1280,19 @@ export default function App() {
       /></Suspense>
     )}
     {pendingSession && (
-      <SaveSessionSheet
+      <Suspense fallback={null}><SaveSessionSheet
         pending={pendingSession}
         courses={courses}
         canDebrief={!!session && state.aiEnabled}
         onClose={()=>setPendingSession(null)}
         onSave={async (save) => {
-          // v1.19 (#185) — a round from a scheduled block's run creates the
-          // block's one session, or adds to it if an earlier round already
-          // did. A free timer run (no planId) is the plain ADD_SESSION it
-          // always was. See lib/planRun.js.
-          // v1.20 (#202) — a timed block is saved under its run's id, so the
-          // same block saved again (from another device) is the same row.
-          const steps = planSaveSteps({ save, planId: pendingSession.planId || null, plans: state.plannedSessions, sessions: state.studySessions, newId: pendingSession.runId || newSyncId() });
+          const steps = sessionSteps(pendingSession, save);
           for (const a of steps.actions) dispatch(a);
           setPendingSession(null);
           showFlash(t('av.flash.logged', { n: save.durationMinutes }));
           if (session) for (const [op, payload] of steps.outbox) outbox.enqueue(op, payload);
         }}
-      />
+      /></Suspense>
     )}
     {/* v1.20 (limecore#71): offers error reports once, on the second signed-in
         launch; never to a guest or over onboarding. It decides for itself. */}
@@ -1204,6 +1302,13 @@ export default function App() {
       <div className="undo-bar" role="status" key={undoOffer.key}>
         <span className="undo-bar-text">{t('done.markedDone', { title: undoOffer.title })}</span>
         <button type="button" onClick={()=>{ dispatch(undoOffer.undo); setUndoOffer(null); }}>{t('done.undo')}</button>
+      </div>
+    )}
+    {autoSaved&&!undoOffer&&(
+      <div className="undo-bar" role="status" key={autoSaved.key}>
+        <span className="undo-bar-text">{t('av.flash.logged', { n: autoSaved.pending.durationMinutes })}</span>
+        <button type="button" onClick={()=>undoAutoSave(true)}>{t('common.edit')}</button>
+        <button type="button" onClick={()=>undoAutoSave(false)}>{t('done.undo')}</button>
       </div>
     )}
     {accountNotice&&(

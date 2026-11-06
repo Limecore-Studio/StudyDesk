@@ -55,6 +55,10 @@ export function rehydrateState(init) {
     const focusPin = (() => {
       try { return localStorage.getItem("studydesk-focus-pin") === "1"; } catch { return false; }
     })();
+    // v1.21 (#205) — device-level like the pin; off unless chosen.
+    const autoSaveSessions = (() => {
+      try { return localStorage.getItem("studydesk-auto-save-sessions") === "1"; } catch { return false; }
+    })();
     // Study-until. Absent means the default is in force, which is the right
     // reading for every install that predates the setting — the evening was
     // never deliberately excluded, it just fell off the end of the window.
@@ -231,6 +235,7 @@ export function rehydrateState(init) {
       notifEnabled,
       focusChip,
       focusPin,
+      autoSaveSessions,
       studyUntil,
       planRemindLead,
       planRemindStart,

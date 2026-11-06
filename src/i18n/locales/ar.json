@@ -331,6 +331,9 @@
     "focusChipStillBlocked": "لا يزال محجوبًا. فعّل الإشعارات لـ StudyDesk من إعدادات أندرويد.",
     "focusPinOnNote": "يثبّت أندرويد الشاشة. اضغط مطوّلاً على رجوع + الأخيرة للخروج.",
     "focusPinOffNote": "يمكنك تبديل التطبيقات بحرية أثناء الجلسة.",
+    "autoSave": "حفظ الجلسات تلقائيًا",
+    "autoSaveOnNote": "تُحفظ جولة التركيز المنتهية فورًا. «تعديل» يضيف ملاحظات وتقييمًا للتركيز.",
+    "autoSaveOffNote": "تسأل جولة التركيز المنتهية قبل حفظها.",
     "planningLbl": "التخطيط",
     "studyUntil": "أدرس حتى",
     "studyUntilOnNote": "تمتد الفترات الحرة في التقويم حتى {{time}}، فيظهر المساء كوقت يمكنك التخطيط فيه.",
@@ -786,7 +789,8 @@
       "addCourse": "إضافة مادة",
       "typeCustomPh": "سمِّ النوع (مثال: عرض تقديمي)",
       "repeatUntil": "حتى",
-      "examRepeatSummary": "{{count}} اختبارات، آخرها في {{until}}"
+      "examRepeatSummary": "{{count}} اختبارات، آخرها في {{until}}",
+      "asgnRepeatSummary": "{{count}} واجبات، آخرها مستحق في {{until}}"
     },
     "act": {
       "addManually": "إضافة يدوية",
@@ -825,7 +829,8 @@
       "queuedLegacy_few": "{{count}} مهام قديمة بانتظار المزامنة",
       "queuedLegacy_many": "{{count}} مهمةً قديمةً بانتظار المزامنة",
       "queuedLegacy_other": "{{count}} مهمة قديمة بانتظار المزامنة",
-      "examsAdded": "تمت إضافة {{count}} اختبارات"
+      "examsAdded": "تمت إضافة {{count}} اختبارات",
+      "assignmentsAdded": "تمت إضافة {{count}} واجبات"
     }
   },
   "ctr": {

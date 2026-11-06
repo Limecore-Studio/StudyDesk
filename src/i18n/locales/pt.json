@@ -322,6 +322,9 @@
     "focusChipStillBlocked": "Continua bloqueado. Ative as notificações do StudyDesk nas definições do Android.",
     "focusPinOnNote": "O Android fixa o ecrã. Mantém Voltar + Recentes para sair.",
     "focusPinOffNote": "Podes trocar de app livremente durante o bloco.",
+    "autoSave": "Salvar sessões automaticamente",
+    "autoSaveOnNote": "Uma rodada de foco concluída é salva na hora. Editar adiciona notas e uma avaliação.",
+    "autoSaveOffNote": "Uma rodada de foco concluída pergunta antes de ser salva.",
     "planningLbl": "Planeamento",
     "studyUntil": "Estudar até",
     "studyUntilOnNote": "As janelas livres do calendário vão até às {{time}}, por isso a noite aparece como tempo que podes planear.",
@@ -761,7 +764,8 @@
       "addCourse": "Adicionar disciplina",
       "typeCustomPh": "Nomeie o tipo (ex.: Apresentação)",
       "repeatUntil": "Até",
-      "examRepeatSummary": "{{count}} provas, a última em {{until}}"
+      "examRepeatSummary": "{{count}} provas, a última em {{until}}",
+      "asgnRepeatSummary": "{{count}} trabalhos, o último para {{until}}"
     },
     "act": {
       "addManually": "Adicionar manualmente",
@@ -797,7 +801,8 @@
       "queuedLegacy_one": "{{count}} tarefa antiga aguardando sincronização",
       "queuedLegacy_many": "{{count}} tarefas antigas aguardando sincronização",
       "queuedLegacy_other": "{{count}} tarefas antigas aguardando sincronização",
-      "examsAdded": "{{count}} provas adicionadas"
+      "examsAdded": "{{count}} provas adicionadas",
+      "assignmentsAdded": "{{count}} trabalhos adicionados"
     }
   },
   "ctr": {

@@ -318,6 +318,9 @@
     "focusChipStillBlocked": "仍被阻止。请在 Android 设置中为 StudyDesk 开启通知。",
     "focusPinOnNote": "Android 会固定屏幕。长按返回 + 最近任务退出。",
     "focusPinOffNote": "专注期间可以自由切换应用。",
+    "autoSave": "自动保存学习记录",
+    "autoSaveOnNote": "专注结束后立即保存。点「编辑」可添加笔记和专注评分。",
+    "autoSaveOffNote": "专注结束后会先询问再保存。",
     "planningLbl": "规划",
     "studyUntil": "学习截止时间",
     "studyUntilOnNote": "日历中的空闲时段会延伸到 {{time}}，这样晚上也会显示为可以安排的时间。",
@@ -752,7 +755,8 @@
       "addCourse": "添加课程",
       "typeCustomPh": "填写类型（例如：演示）",
       "repeatUntil": "截止",
-      "examRepeatSummary": "共 {{count}} 场考试，最后一场在 {{until}}"
+      "examRepeatSummary": "共 {{count}} 场考试，最后一场在 {{until}}",
+      "asgnRepeatSummary": "共 {{count}} 项作业，最后一项截止于 {{until}}"
     },
     "act": {
       "addManually": "手动添加",
@@ -786,7 +790,8 @@
       "examAdded": "考试已添加",
       "logged": "已记录 {{n}} 分钟",
       "queuedLegacy_other": "{{count}} 项旧待办等待同步",
-      "examsAdded": "已添加 {{count}} 场考试"
+      "examsAdded": "已添加 {{count}} 场考试",
+      "assignmentsAdded": "已添加 {{count}} 项作业"
     }
   },
   "ctr": {

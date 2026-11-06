@@ -316,6 +316,9 @@
     "focusChipStillBlocked": "Masih diblokir. Aktifkan notifikasi untuk StudyDesk di pengaturan Android.",
     "focusPinOnNote": "Android menyematkan layar. Tahan Kembali + Terkini untuk keluar.",
     "focusPinOffNote": "Kamu bebas berpindah aplikasi selama blok.",
+    "autoSave": "Simpan sesi otomatis",
+    "autoSaveOnNote": "Putaran fokus yang selesai langsung disimpan. Edit untuk menambah catatan dan nilai fokus.",
+    "autoSaveOffNote": "Putaran fokus yang selesai bertanya dulu sebelum disimpan.",
     "planningLbl": "Perencanaan",
     "studyUntil": "Belajar sampai",
     "studyUntilOnNote": "Jendela kosong di kalender berlanjut sampai {{time}}, jadi malam hari muncul sebagai waktu yang bisa kamu rencanakan.",
@@ -747,7 +750,8 @@
       "addCourse": "Tambah mata pelajaran",
       "typeCustomPh": "Beri nama jenisnya (mis. Presentasi)",
       "repeatUntil": "Sampai",
-      "examRepeatSummary": "{{count}} ujian, yang terakhir {{until}}"
+      "examRepeatSummary": "{{count}} ujian, yang terakhir {{until}}",
+      "asgnRepeatSummary": "{{count}} tugas, yang terakhir {{until}}"
     },
     "act": {
       "addManually": "Tambah manual",
@@ -781,7 +785,8 @@
       "examAdded": "Ujian ditambahkan",
       "logged": "{{n}} mnt tercatat",
       "queuedLegacy_other": "{{count}} to-do lama menunggu disinkronkan",
-      "examsAdded": "{{count}} ujian ditambahkan"
+      "examsAdded": "{{count}} ujian ditambahkan",
+      "assignmentsAdded": "{{count}} tugas ditambahkan"
     }
   },
   "ctr": {
