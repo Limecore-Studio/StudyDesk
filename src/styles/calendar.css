@@ -206,6 +206,20 @@
    "this continues" instead of "this ends here". */
 .cal-band.cont-start { border-start-start-radius: 0; border-end-start-radius: 0; border-inline-start-style: dashed; }
 .cal-band.cont-end { border-start-end-radius: 0; border-end-end-radius: 0; border-inline-end-style: dashed; }
+/* v1.21 (#206) — a solid course-colour stripe at the start of every segment,
+   wrapped rows included. The hatch is deliberately faint (pastel ink on cream
+   is unreadable), so on its own two similar course colours, or five stacked
+   bands, could not be told apart; the stripe is the one full-strength mark. */
+.cal-band { position: relative; padding-inline-start: 9px; }
+.cal-band::before {
+  content: "";
+  position: absolute;
+  inset-block: -1px;
+  inset-inline-start: -1px;
+  width: 3px;
+  background: var(--band-mark);
+}
+.cal-band-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 .cal-items { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
@@ -624,7 +638,13 @@
   .cal-chip.is-assignment { background: transparent; border: 1.5px solid var(--chip-color, var(--muted2)); }
   .cal-chip.is-session { background: var(--border2); }
   .cal-chip-label, .cal-pip, .cal-more { display: none; }
-  .cal-band { font-size: 0; height: 4px; padding: 0; }
+  /* v1.21 (#206) — was a 4px strip with font-size 0: on a phone a band had no
+     label at all, and colour was the only cue. Now 10px with the exam's title
+     (the "Revise ·" prefix dropped, the strip already says it), cut to what the
+     cells allow; one cell still shows a few letters. Nearest exam on top. */
+  .cal { --cal-lane-h: 12px; }
+  .cal-band { font-size: 8px; letter-spacing: 0; height: 10px; padding: 0 2px 0 5px; border-radius: 2px; }
+  .cal-band-pre { display: none; }
   .cal-bands { padding: 0 2px; }
   /* v1.10 — the sideways-scrolling week grid is gone from this tier. It used
      to force a 620px min-width box here, which showed about three and a half
