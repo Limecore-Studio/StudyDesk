@@ -43,6 +43,8 @@
  * @param {object} remote  The result of `sync.pullAllStudyData()`.
  * @returns {Array<{kind: string, payload: object}>}
  */
+import { heldIds } from './autoSaveHold.js';
+
 export function findUnsynced(state, remote) {
   // Compare against EVERY remote row, including soft-deleted ones. A course
   // the user deleted on another device comes back from the pull carrying its
@@ -185,7 +187,8 @@ export function findUnsynced(state, remote) {
   // so "no parent" and "parent missing" are different answers here and only
   // the second is a reason to hold the row back.
   for (const ss of state?.studySessions || []) {
-    if (!ss?.id || ss.deletedAt || remoteSessions.has(ss.id)) continue;
+    // StudyDesk#253: an automatic save in its Undo window is not pushed yet.
+    if (!ss?.id || ss.deletedAt || remoteSessions.has(ss.id) || heldIds.has(ss.id)) continue;
     const linked = ss.subjectId ?? ss.courseId ?? null;
     if (linked && !parentWillExist(linked)) continue;
     out.push({
@@ -261,7 +264,7 @@ export function findUnsynced(state, remote) {
   // their own kind keeps that separation: `upsert_planned` writes
   // planned_sessions and touches nothing else.
   for (const ps of state?.plannedSessions || []) {
-    if (!ps?.id || ps.deletedAt || remotePlanned.has(ps.id)) continue;
+    if (!ps?.id || ps.deletedAt || remotePlanned.has(ps.id) || heldIds.has(ps.id)) continue;
     if (ps.subjectId && !parentWillExist(ps.subjectId)) continue;
     out.push({
       kind: 'upsert_planned',
