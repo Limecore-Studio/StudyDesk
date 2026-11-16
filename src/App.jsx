@@ -24,6 +24,7 @@ import { hydrateOnboardedFromCloud, markOnboardedCloud } from "./lib/onboardingC
 import * as sync from "./lib/sync.js";
 import * as outbox from "./lib/outbox.js";
 import { reconcileUnsynced } from "./lib/reconcile.js";
+import { hold, release, replayHeld } from "./lib/autoSaveHold.js";
 import { stampsFromPull, mergeStamps, shouldPull } from "./lib/syncStamps.js";
 import { pastSessionDraft } from "./lib/pastSession.js";
 import { isOpenPlan, nextPlanStartAt, planSaveSteps, planToOffer } from "./lib/planRun.js";
@@ -494,6 +495,8 @@ export default function App() {
     pulledOnceRef.current = false;
     setPulledOnce(false);
     remoteStampsRef.current = null;
+    // StudyDesk#254: queue an automatic save a run that died left held.
+    replayHeld(session.user.id, outbox.enqueue);
     let cancelled = false;
     let lastPullAt = NaN;
     // v1.20 (#202) — Focus Sync, loaded with the live-sync engine below.
@@ -647,6 +650,9 @@ export default function App() {
       if (session) for (const [op, p] of autoSaved.steps.outbox) outbox.enqueue(op, p);
     }
     for (const a of steps.actions) dispatch(a);
+    // StudyDesk#253 / #254: reconcile skips these ids, and the ops survive the
+    // app dying inside the window (lib/autoSaveHold.js).
+    hold(restore.sessionId, planId, session?.user?.id, steps.outbox);
     setAutoSaved({ key: Date.now(), pending: payload, steps, restore });
   };
   // Push when the window closes, or at once if the app is hidden first. Each
@@ -658,6 +664,7 @@ export default function App() {
       if (settled.has(autoSaved)) return;
       settled.add(autoSaved);
       if (session) for (const [op, payload] of autoSaved.steps.outbox) outbox.enqueue(op, payload);
+      release();
       setAutoSaved((cur) => (cur === autoSaved ? null : cur));
     };
     const id = setTimeout(flush, UNDO_MS);
@@ -669,6 +676,7 @@ export default function App() {
     const a = autoSaved;
     if (!a || autoSaveSettled.current.has(a)) return;
     autoSaveSettled.current.add(a);
+    release();
     dispatch(a.restore);
     setAutoSaved(null);
     if (thenEdit) setPendingSession(a.pending);
