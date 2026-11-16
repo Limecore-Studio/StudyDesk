@@ -469,6 +469,7 @@
     "maybeLater": "Maybe later"
   },
   "gv": {
+    "scaleUnsaved": "This scale could not be saved to your account.",
     "addCourseFirst": "Add a course first",
     "gradeAdded": "Grade added",
     "gradeUpdated": "Grade updated",

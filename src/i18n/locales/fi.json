@@ -469,6 +469,7 @@
     "maybeLater": "Ehkä myöhemmin"
   },
   "gv": {
+    "scaleUnsaved": "Tätä asteikkoa ei voitu tallentaa tiliisi.",
     "addCourseFirst": "Lisää ensin kurssi",
     "gradeAdded": "Arvosana lisätty",
     "gradeUpdated": "Arvosana päivitetty",

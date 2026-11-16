@@ -469,6 +469,7 @@
     "maybeLater": "बाद में"
   },
   "gv": {
+    "scaleUnsaved": "यह स्केल आपके खाते में सहेजा नहीं जा सका।",
     "addCourseFirst": "पहले कोई विषय जोड़ें",
     "gradeAdded": "ग्रेड जोड़ा गया",
     "gradeUpdated": "ग्रेड अपडेट हुआ",

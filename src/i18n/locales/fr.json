@@ -473,6 +473,7 @@
     "maybeLater": "Plus tard"
   },
   "gv": {
+    "scaleUnsaved": "Cette échelle n’a pas pu être enregistrée dans votre compte.",
     "addCourseFirst": "Ajoutez d’abord un cours",
     "gradeAdded": "Note ajoutée",
     "gradeUpdated": "Note mise à jour",

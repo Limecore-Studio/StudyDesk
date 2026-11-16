@@ -473,6 +473,7 @@
     "maybeLater": "Quizás más tarde"
   },
   "gv": {
+    "scaleUnsaved": "No se pudo guardar esta escala en tu cuenta.",
     "addCourseFirst": "Añade primero un curso",
     "gradeAdded": "Nota añadida",
     "gradeUpdated": "Nota actualizada",

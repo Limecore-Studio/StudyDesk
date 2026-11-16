@@ -489,6 +489,7 @@
     "maybeLater": "ربما لاحقًا"
   },
   "gv": {
+    "scaleUnsaved": "تعذّر حفظ هذا المقياس في حسابك.",
     "addCourseFirst": "أضف مادةً أولًا",
     "gradeAdded": "تمت إضافة الدرجة",
     "gradeUpdated": "تم تحديث الدرجة",
