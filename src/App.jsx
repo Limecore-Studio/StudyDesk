@@ -13,7 +13,6 @@ import { scheduleOriginStamp } from "./lib/originMarker.js";
 import { watchAppOpens } from "./lib/appOpens.js";
 import { refreshEntitlement } from "./lib/entitlement.js";
 import { wipeAccountLocalData } from "./lib/accountWipe.js";
-import { downloadExport } from "./lib/dataRights.js";
 import StorageAlert from "./features/settings/StorageAlert.jsx";
 import TimerPill from "./features/timer/TimerPill.jsx";
 import { useAccountAvatar } from "./lib/useAccountAvatar.js";
@@ -74,9 +73,14 @@ import { useCloudPushers } from "./app/useCloudPushers.js";
 // v1.21 (StudyDesk#224) — the plan list, the course pane, the course modals and
 // the save-session sheet left the startup chunk too: none of them is on first
 // paint. The startup bundle was at 705.8 of 706 KiB; the budget went down with
-// this change instead of up. `dataRights.js` stays static on purpose: it is the
+// this change instead of up.
+//
+// v1.21.1 (limecore#102): `dataRights.js` left the startup chunk too. It is the
 // export behind StorageAlert and the crash screen, and an escape hatch must not
-// depend on a chunk load succeeding.
+// depend on a chunk load succeeding at the moment it is needed, so it is
+// fetched with the save sheet once launch settles (below); the module cache
+// then holds it.
+const loadDataRights = () => import("./lib/dataRights.js");
 const PlanView = lazy(() => import("./features/plan/PlanView.jsx"));
 const CourseDetailView = lazy(() => import("./features/plan/CourseDetailView.jsx"));
 const AddAsgnModal = lazy(() => import("./features/plan/CourseModals.jsx").then((m) => ({ default: m.AddAsgnModal })));
@@ -124,7 +128,7 @@ export default function App() {
   // `loadSaveSessionSheet` above). A failure here is harmless: the lazy
   // component retries the import when it is first rendered.
   useEffect(() => {
-    const warm = () => { loadSaveSessionSheet().catch(() => {}); };
+    const warm = () => { loadSaveSessionSheet().catch(() => {}); loadDataRights().catch(() => {}); };
     if (typeof window.requestIdleCallback === "function") {
       const id = window.requestIdleCallback(warm, { timeout: 5000 });
       return () => window.cancelIdleCallback?.(id);
@@ -278,6 +282,7 @@ export default function App() {
   // the browser, touching no persistent storage on the way.
   const onExportFromAlert = useCallback(async () => {
     try {
+      const { downloadExport } = await loadDataRights();
       const name = await downloadExport(state, session);
       showFlash(t('settings.exportDone', { name }));
     } catch (e) {
