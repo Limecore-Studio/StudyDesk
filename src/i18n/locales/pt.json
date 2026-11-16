@@ -761,7 +761,8 @@
       "addCourse": "Adicionar disciplina",
       "typeCustomPh": "Nomeie o tipo (ex.: Apresentação)",
       "repeatUntil": "Até",
-      "examRepeatSummary": "{{count}} provas, a última em {{until}}"
+      "examRepeatSummary": "{{count}} provas, a última em {{until}}",
+      "asgnRepeatSummary": "{{count}} trabalhos, o último para {{until}}"
     },
     "act": {
       "addManually": "Adicionar manualmente",
@@ -797,7 +798,8 @@
       "queuedLegacy_one": "{{count}} tarefa antiga aguardando sincronização",
       "queuedLegacy_many": "{{count}} tarefas antigas aguardando sincronização",
       "queuedLegacy_other": "{{count}} tarefas antigas aguardando sincronização",
-      "examsAdded": "{{count}} provas adicionadas"
+      "examsAdded": "{{count}} provas adicionadas",
+      "assignmentsAdded": "{{count}} trabalhos adicionados"
     }
   },
   "ctr": {

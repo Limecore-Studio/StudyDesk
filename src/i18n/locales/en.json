@@ -754,7 +754,8 @@
       "addCourse": "Add a Course",
       "typeCustomPh": "Name the type (e.g. Presentation)",
       "repeatUntil": "Until",
-      "examRepeatSummary": "{{count}} exams, the last on {{until}}"
+      "examRepeatSummary": "{{count}} exams, the last on {{until}}",
+      "asgnRepeatSummary": "{{count}} assignments, the last due {{until}}"
     },
     "act": {
       "addManually": "Add manually",
@@ -789,7 +790,8 @@
       "logged": "Logged {{n}}m",
       "queuedLegacy_one": "{{count}} older to-do waiting to sync",
       "queuedLegacy_other": "{{count}} older to-dos waiting to sync",
-      "examsAdded": "{{count}} exams added"
+      "examsAdded": "{{count}} exams added",
+      "assignmentsAdded": "{{count}} assignments added"
     }
   },
   "ctr": {

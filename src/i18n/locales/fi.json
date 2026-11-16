@@ -754,7 +754,8 @@
       "addCourse": "Lisää kurssi",
       "typeCustomPh": "Nimeä tyyppi (esim. Esitys)",
       "repeatUntil": "Asti",
-      "examRepeatSummary": "{{count}} koetta, viimeinen {{until}}"
+      "examRepeatSummary": "{{count}} koetta, viimeinen {{until}}",
+      "asgnRepeatSummary": "{{count}} tehtävää, viimeinen {{until}}"
     },
     "act": {
       "addManually": "Lisää käsin",
@@ -789,7 +790,8 @@
       "logged": "Kirjattu {{n}} min",
       "queuedLegacy_one": "{{count}} vanha tehtävälistan kohta odottaa synkronointia",
       "queuedLegacy_other": "{{count}} vanhaa tehtävälistan kohtaa odottaa synkronointia",
-      "examsAdded": "{{count}} koetta lisätty"
+      "examsAdded": "{{count}} koetta lisätty",
+      "assignmentsAdded": "{{count}} tehtävää lisätty"
     }
   },
   "ctr": {

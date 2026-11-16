@@ -754,7 +754,8 @@
       "addCourse": "विषय जोड़ें",
       "typeCustomPh": "प्रकार का नाम दें (जैसे प्रस्तुति)",
       "repeatUntil": "तक",
-      "examRepeatSummary": "{{count}} परीक्षाएँ, आख़िरी {{until}} को"
+      "examRepeatSummary": "{{count}} परीक्षाएँ, आख़िरी {{until}} को",
+      "asgnRepeatSummary": "{{count}} असाइनमेंट, आख़िरी की तारीख़ {{until}}"
     },
     "act": {
       "addManually": "मैन्युअल जोड़ें",
@@ -789,7 +790,8 @@
       "logged": "{{n}} मिनट दर्ज",
       "queuedLegacy_one": "{{count}} पुराना काम सिंक होने की प्रतीक्षा में",
       "queuedLegacy_other": "{{count}} पुराने काम सिंक होने की प्रतीक्षा में",
-      "examsAdded": "{{count}} परीक्षाएँ जोड़ी गईं"
+      "examsAdded": "{{count}} परीक्षाएँ जोड़ी गईं",
+      "assignmentsAdded": "{{count}} असाइनमेंट जोड़े गए"
     }
   },
   "ctr": {

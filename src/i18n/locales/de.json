@@ -754,7 +754,8 @@
       "addCourse": "Kurs hinzufügen",
       "typeCustomPh": "Typ benennen (z. B. Präsentation)",
       "repeatUntil": "Bis",
-      "examRepeatSummary": "{{count}} Prüfungen, die letzte am {{until}}"
+      "examRepeatSummary": "{{count}} Prüfungen, die letzte am {{until}}",
+      "asgnRepeatSummary": "{{count}} Aufgaben, die letzte fällig am {{until}}"
     },
     "act": {
       "addManually": "Manuell hinzufügen",
@@ -789,7 +790,8 @@
       "logged": "{{n}} Min erfasst",
       "queuedLegacy_one": "{{count}} älteres To-do wartet auf Synchronisierung",
       "queuedLegacy_other": "{{count}} ältere To-dos warten auf Synchronisierung",
-      "examsAdded": "{{count}} Prüfungen hinzugefügt"
+      "examsAdded": "{{count}} Prüfungen hinzugefügt",
+      "assignmentsAdded": "{{count}} Aufgaben hinzugefügt"
     }
   },
   "ctr": {
