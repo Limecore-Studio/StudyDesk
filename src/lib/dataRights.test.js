@@ -11,6 +11,12 @@ const h = vi.hoisted(() => ({
   stored: null,
   cleared: vi.fn(async () => {}),
   owner: null,
+  save: vi.fn(async () => ({ saved: true })),
+}));
+
+vi.mock('@capacitor/core', () => ({
+  Capacitor: { isNativePlatform: () => true },
+  registerPlugin: () => ({ save: h.save }),
 }));
 
 vi.mock('./supabase.js', () => ({
@@ -26,7 +32,7 @@ vi.mock('./userStorage.js', () => ({ removeForUser: async () => {} }));
 vi.mock('./selectAll.js', () => ({ selectAll: async () => ({ data: [], error: null }) }));
 vi.mock('./profile.js', () => ({ AVATAR_BUCKET: 'avatars', AVATAR_FILE: 'avatar.webp' }));
 
-const { deleteAccount } = await import('./dataRights.js');
+const { deleteAccount, downloadExport } = await import('./dataRights.js');
 
 const SESSION = { user: { id: 'user-a' }, access_token: 'at', refresh_token: 'rt' };
 
@@ -92,5 +98,67 @@ describe('deleteAccount (limecore#102)', () => {
     await expect(deleteAccount({ clearLocal })).rejects.toThrow('unauthorized');
     expect(clearLocal).not.toHaveBeenCalled();
     expect(h.cleared).not.toHaveBeenCalled();
+  });
+});
+
+// v1.21.1 (limecore#103) — the export goes through the native save picker,
+// and never carries a credential. The export is a hand list today; this test
+// makes "no token, session or PIN" a guarantee rather than an observation.
+describe('downloadExport (limecore#103)', () => {
+  const ACCESS = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ1c2VyLWEifQ.c2lnbmF0dXJl';
+  const REFRESH = 'r3fr3sh-t0k3n-v4lu3';
+  const SECRET_KEY = /token|secret|password|passw|passcode|jwt|apikey|api_key|^pin$|pin_?code|^session$|auth_?session|provider_?token/i;
+  const JWT = /eyJ[\w-]{5,}\.[\w-]{5,}\.[\w-]+/;
+
+  function walk(value, path, out) {
+    if (Array.isArray(value)) value.forEach((v, i) => walk(v, `${path}[${i}]`, out));
+    else if (value && typeof value === 'object') {
+      for (const [k, v] of Object.entries(value)) {
+        if (SECRET_KEY.test(k)) out.push(`${path}.${k} (key)`);
+        walk(v, `${path}.${k}`, out);
+      }
+    } else if (typeof value === 'string') {
+      if (JWT.test(value) || value.includes(ACCESS) || value.includes(REFRESH)) out.push(`${path} (value)`);
+    }
+  }
+
+  beforeEach(() => {
+    h.save.mockClear();
+    const store = new Map(Object.entries({
+      limecore_lang: 'fi',
+      'studydesk-supabase-session': JSON.stringify({ access_token: ACCESS, refresh_token: REFRESH }),
+      'sb-nexus-sso-bundle': JSON.stringify({ access_token: ACCESS, refresh_token: REFRESH }),
+    }));
+    vi.stubGlobal('localStorage', { getItem: (k) => (store.has(k) ? store.get(k) : null) });
+  });
+
+  it('saves through the native picker and reports the name only once written', async () => {
+    expect(await downloadExport({}, null)).toMatch(/^studydesk-export-\d{4}-\d\d-\d\d\.json$/);
+    expect(h.save).toHaveBeenCalledWith(expect.objectContaining({ mimeType: 'application/json' }));
+    h.save.mockResolvedValueOnce({ saved: false });
+    expect(await downloadExport({}, null)).toBeNull();
+    h.save.mockRejectedValueOnce(new Error('Could not write the file.'));
+    await expect(downloadExport({}, null)).rejects.toThrow('Could not write the file.');
+  });
+
+  it('no exported key or value looks like a token, session or PIN', async () => {
+    const session = {
+      access_token: ACCESS, refresh_token: REFRESH, provider_token: ACCESS, expires_at: 1,
+      user: { id: 'user-a', email: 'a@x.test', created_at: '2026-01-01', app_metadata: { provider: 'google' } },
+    };
+    const state = {
+      courses: { c1: { id: 'c1', name: 'Maths', color: '#000' } },
+      grades: [{ id: 'g1', courseId: 'c1', grade: 6 }],
+      studySessions: [{ id: 's1', courseId: 'c1', minutes: 25 }],
+      assignments: [{ id: 'a1', title: 'Essay' }],
+      exams: [{ id: 'e1', title: 'Final' }],
+      gradeMode: 'ib', customScale: null,
+    };
+    await downloadExport(state, session);
+    const exported = JSON.parse(h.save.mock.calls[0][0].data);
+    expect(exported.account.userId).toBe('user-a');   // the account is there…
+    const hits = [];
+    walk(exported, '$', hits);
+    expect(hits).toEqual([]);                          // …its credentials are not
   });
 });

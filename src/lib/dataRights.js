@@ -7,6 +7,7 @@
 // and it is still their data. Deletion only means anything when there is a
 // server-side account to delete.
 
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { supabase, readStoredSession, clearStoredSession } from './supabase.js';
 import { readOwner } from './deviceOwner.js';
 import { selectAll } from './selectAll.js';
@@ -100,11 +101,23 @@ async function buildExport(state, session) {
   };
 }
 
-/** Trigger a download of the export as a .json file. Returns the filename. */
+const SaveFile = registerPlugin('SaveFile');
+
+/** Save the export as a .json file. Returns the filename once it is written,
+ *  or null when the user cancelled the save picker; throws on failure.
+ *
+ *  v1.21.1 (limecore#103): in the Android WebView an <a download> writes
+ *  nothing, yet the app said "Saved". On native the file now goes through the
+ *  SaveFile plugin (the system "create document" picker); web and desktop keep
+ *  the anchor. The crash screen and StorageAlert use this same path. */
 export async function downloadExport(state, session) {
   const payload = await buildExport(state, session);
   const json = JSON.stringify(payload, null, 2);
   const name = `studydesk-export-${new Date().toISOString().slice(0, 10)}.json`;
+  if (Capacitor.isNativePlatform()) {
+    const { saved } = await SaveFile.save({ name, data: json, mimeType: 'application/json' });
+    return saved ? name : null;
+  }
   const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
   const a = document.createElement('a');
   a.href = url;
@@ -113,7 +126,7 @@ export async function downloadExport(state, session) {
   a.click();
   a.remove();
   // Revoke on the next tick — revoking synchronously can cancel the download
-  // on some Android WebView versions before it has started.
+  // on some browsers before it has started.
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
   return name;
 }

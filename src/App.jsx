@@ -284,7 +284,7 @@ export default function App() {
     try {
       const { downloadExport } = await loadDataRights();
       const name = await downloadExport(state, session);
-      showFlash(t('settings.exportDone', { name }));
+      if (name) showFlash(t('settings.exportDone', { name }));
     } catch (e) {
       showFlash(t('settings.exportFailed', { msg: e.message }));
     }
