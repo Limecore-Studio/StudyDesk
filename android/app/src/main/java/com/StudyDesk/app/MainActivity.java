@@ -22,6 +22,9 @@ public class MainActivity extends BridgeActivity {
         // v1.20 (#208) — the activity's night mode follows the app's appearance,
         // so native pickers and the navigation bar match it.
         registerPlugin(AppearancePlugin.class);
+        // v1.21.1 (limecore#103) - the data export writes a real file through
+        // the system "create document" picker.
+        registerPlugin(SaveFilePlugin.class);
 
         // Must run BEFORE super.onCreate(): that call builds the bridge and so
         // publishes the plugin instance, which is what stashLaunchView() uses

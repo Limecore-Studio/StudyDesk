@@ -578,7 +578,8 @@ export default function SettingsView({ state, dispatch, showFlash, session }) {
   const onExport = useCallback(async () => {
     try {
       const name = await downloadExport(state, session);
-      showFlash(t('settings.exportDone', { name }));
+      // limecore#103: null is a cancelled save picker, which says nothing.
+      if (name) showFlash(t('settings.exportDone', { name }));
     } catch (e) {
       showFlash(t('settings.exportFailed', { msg: e.message }));
     }
