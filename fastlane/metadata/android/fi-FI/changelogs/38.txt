@@ -1,0 +1,3 @@
+Toista, kertaa, tallenna.
+
+Tehtävät voivat toistua valitsemaasi päivään asti. Kalenterin kertausjaksot ovat luettavia puhelimella: niissä on alkumerkki ja kurssin nimikirjaimet, ja päivänäkymä listaa kertausjaksot. Uusi asetus tallentaa istunnon automaattisesti, kun keskittymisajastin päättyy. Sovellus myös käynnistyy nopeammin.

@@ -1,0 +1,3 @@
+Repite, repasa, guarda.
+
+Las tareas pueden repetirse hasta la fecha que elijas. Las franjas de repaso del calendario se leen bien en el móvil, con una marca de inicio y las iniciales del curso, y la vista del día enumera los periodos de repaso. Un nuevo ajuste guarda la sesión automáticamente cuando termina el temporizador de concentración. Además, la app se inicia más rápido.
