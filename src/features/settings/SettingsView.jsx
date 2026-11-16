@@ -1158,6 +1158,32 @@ export default function SettingsView({ state, dispatch, showFlash, session }) {
               : t('settings.planRemindBlocked')}
           </div>
 
+          {/* v1.21 (#205) — off by default: the sheet stays the default way a
+              round is kept. Every platform, on this device only (like Lock In's
+              rows, it is kept in localStorage, not synced). */}
+          <div className="sv2-row">
+            <span className="sv2-row-label">{t('settings.autoSave')}</span>
+            <span className="sv2-row-value">
+              <span className="sv2-mode">
+                <button
+                  className={!state.autoSaveSessions ? 'active' : ''}
+                  onClick={() => dispatch({ type: 'SET_AUTO_SAVE_SESSIONS', on: false })}
+                >
+                  {t('settings.aiOff')}
+                </button>
+                <button
+                  className={state.autoSaveSessions ? 'active' : ''}
+                  onClick={() => dispatch({ type: 'SET_AUTO_SAVE_SESSIONS', on: true })}
+                >
+                  {t('settings.aiOn')}
+                </button>
+              </span>
+            </span>
+          </div>
+          <div className="sv2-note">
+            {state.autoSaveSessions ? t('settings.autoSaveOnNote') : t('settings.autoSaveOffNote')}
+          </div>
+
           {/* Web only. On Android these are OS alarms and there is nothing to
               grant here beyond the notification permission the app already
               asks for; showing a second, differently-worded control there

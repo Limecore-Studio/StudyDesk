@@ -53,6 +53,9 @@ export function usePersistState(state) {
     try { localStorage.setItem("studydesk-focus-pin", state.focusPin ? "1" : "0"); } catch {}
   }, [state.focusPin]);
   useEffect(() => {
+    try { localStorage.setItem("studydesk-auto-save-sessions", state.autoSaveSessions ? "1" : "0"); } catch {}
+  }, [state.autoSaveSessions]);
+  useEffect(() => {
     try { localStorage.setItem("studydesk-notifications", state.notifEnabled ? "1" : "0"); } catch {}
   }, [state.notifEnabled]);
   useEffect(() => {

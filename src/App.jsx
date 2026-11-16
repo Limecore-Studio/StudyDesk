@@ -15,7 +15,6 @@ import { refreshEntitlement } from "./lib/entitlement.js";
 import { wipeAccountLocalData } from "./lib/accountWipe.js";
 import { downloadExport } from "./lib/dataRights.js";
 import StorageAlert from "./features/settings/StorageAlert.jsx";
-import FdroidUpdateNote from "./features/update/FdroidUpdateNote.jsx";
 import TimerPill from "./features/timer/TimerPill.jsx";
 import { useAccountAvatar } from "./lib/useAccountAvatar.js";
 import ReferralPrompt from "./features/referral/ReferralPrompt.jsx";
@@ -88,6 +87,11 @@ const CoursePicker = lazy(() => import("./lib/CoursePicker.jsx"));
 // fetch then (a web deploy mid-session) must not cost the round.
 const loadSaveSessionSheet = () => import("./features/sessions/SaveSessionSheet.jsx");
 const SaveSessionSheet = lazy(loadSaveSessionSheet);
+// v1.21 (StudyDesk#205 paid for its startup bytes here) — the F-Droid note
+// renders nothing until a check it runs 4 s after mount finds a newer build,
+// so its code, and lib/fdroidUpdate.js behind it, need not be in the startup
+// chunk.
+const FdroidUpdateNote = lazy(() => import("./features/update/FdroidUpdateNote.jsx"));
 const GradesView = lazy(() => import("./features/grades/GradesView.jsx"));
 const SessionsView = lazy(() => import("./features/sessions/SessionsView.jsx"));
 const NotebookView = lazy(() => import("./features/notebook/NotebookView.jsx"));
@@ -587,6 +591,81 @@ export default function App() {
 
   // ── Save-session sheet (raised when timer's focus phase ends) ───────────────
   const [pendingSession, setPendingSession] = useState(null); // { durationMinutes, task, startedAt, planId? } | null
+
+  // v1.19 (#185) / v1.20 (#202) — what saving a round does, shared by the sheet
+  // and the automatic save: a round from a scheduled block's run creates the
+  // block's one session, or adds to it if an earlier round already did; a free
+  // timer run is a plain ADD_SESSION. A timed block is saved under its run's
+  // id, so the same block saved again (from another device) is the same row.
+  const sessionSteps = (pending, save) => planSaveSteps({ save, planId: pending.planId || null, plans: state.plannedSessions, sessions: state.studySessions, newId: pending.runId || newSyncId() });
+
+  // v1.21 (#205) — "Save sessions automatically". A finished focus round is
+  // saved with its course, length, task and plan link, with no sheet. The
+  // sheet stays one tap away (Edit) for notes and a focus rating, and Undo
+  // takes it back. Both act within UNDO_MS, so the rows are written locally
+  // now and the outbox ops wait out that window: undoing a session already
+  // pushed would leave a tombstone under the run's id, and delete-wins on the
+  // server would then refuse the Edit's re-save of that same id. A save cut
+  // off inside the window (app killed) is still recovered by
+  // reconcileUnsynced, which pushes any local session the server lacks.
+  // Only the device that ended the run gets here (TimerView, #202).
+  const [autoSaved, setAutoSaved] = useState(null); // { key, pending, steps, restore } | null
+  const autoSaveSettled = useRef(new WeakSet());
+  const lastAutoRound = useRef(null);
+  const onTimerComplete = (payload) => {
+    // Only a round the timer finished. Stop, Skip and Log a past session still
+    // raise the sheet: someone is there and acting, and a cut-short length is
+    // worth a look before it counts.
+    if (!state.autoSaveSessions || !payload.completed) { setPendingSession(payload); return; }
+    // One save per round. A completion can be reported twice (the tick's
+    // state updater calls it, and React may run an updater twice), and the
+    // second report differs (the first clears the run's start and id), so
+    // the guard is time, not content: no real round ends within seconds of
+    // another. Raising the sheet twice was harmless; saving twice is not.
+    const now = Date.now();
+    if (lastAutoRound.current && now - lastAutoRound.current < 3000) return;
+    lastAutoRound.current = now;
+    const steps = sessionSteps(payload, { subjectId: payload.subjectId || null, durationMinutes: payload.durationMinutes, notes: (payload.task || "").trim() || null, startedAt: payload.startedAt, focusRating: null });
+    const planId = steps.actions.find((a) => a.type === "RESOLVE_PLANNED")?.id || null;
+    const restore = {
+      type: "RESTORE_ROWS",
+      sessionId: steps.sessionId || steps.actions[0].id,
+      session: steps.kind === "extend" ? (state.studySessions || []).find((s) => s.id === steps.sessionId) : null,
+      planId,
+      plan: planId ? (state.plannedSessions || []).find((p) => p.id === planId) : null,
+    };
+    // A previous save still in its window is pushed now rather than dropped.
+    if (autoSaved && !autoSaveSettled.current.has(autoSaved)) {
+      autoSaveSettled.current.add(autoSaved);
+      if (session) for (const [op, p] of autoSaved.steps.outbox) outbox.enqueue(op, p);
+    }
+    for (const a of steps.actions) dispatch(a);
+    setAutoSaved({ key: Date.now(), pending: payload, steps, restore });
+  };
+  // Push when the window closes, or at once if the app is hidden first. Each
+  // save is pushed (or undone) exactly once, however often this re-runs.
+  useEffect(() => {
+    if (!autoSaved) return undefined;
+    const settled = autoSaveSettled.current;
+    const flush = () => {
+      if (settled.has(autoSaved)) return;
+      settled.add(autoSaved);
+      if (session) for (const [op, payload] of autoSaved.steps.outbox) outbox.enqueue(op, payload);
+      setAutoSaved((cur) => (cur === autoSaved ? null : cur));
+    };
+    const id = setTimeout(flush, UNDO_MS);
+    const onHide = () => { if (document.visibilityState === "hidden") flush(); };
+    document.addEventListener("visibilitychange", onHide);
+    return () => { clearTimeout(id); document.removeEventListener("visibilitychange", onHide); };
+  }, [autoSaved, session]);
+  const undoAutoSave = (thenEdit) => {
+    const a = autoSaved;
+    if (!a || autoSaveSettled.current.has(a)) return;
+    autoSaveSettled.current.add(a);
+    dispatch(a.restore);
+    setAutoSaved(null);
+    if (thenEdit) setPendingSession(a.pending);
+  };
   // v1.3 — sub-tab within the Timer view (Timer / Log / Stats), so Log + Stats
   // don't need their own bottom-bar slots.
   const [timerSub, setTimerSub] = useState("timer");
@@ -1022,7 +1101,7 @@ export default function App() {
           <StorageAlert onExport={onExportFromAlert} />
           {/* v1.16 (#67) — Android only, once a day, off in Settings. Renders
               nothing unless F-Droid has a newer build than this one. */}
-          <FdroidUpdateNote />
+          <Suspense fallback={null}><FdroidUpdateNote /></Suspense>
           {(urgent.length>0||urgentExams.length>0)&&state.view==="plan"&&(
             <div className="urgent-banner"><span>⚠️</span><div>
               <strong>{t('av.chrome.urgent')}</strong> —{" "}
@@ -1127,7 +1206,7 @@ export default function App() {
               </div>}
               <div className="page-turn" key={timerSub}>
                 <Suspense fallback={null}>
-                {timerSub==="timer" &&<TimerView   state={state} dispatch={dispatch} session={session} showFlash={showFlash} onTimerComplete={(payload)=>setPendingSession(payload)} startRequest={timerStartReq} onStartHandled={()=>setTimerStartReq(null)}/>}
+                {timerSub==="timer" &&<TimerView   state={state} dispatch={dispatch} session={session} showFlash={showFlash} onTimerComplete={onTimerComplete} startRequest={timerStartReq} onStartHandled={()=>setTimerStartReq(null)}/>}
                 {timerSub==="log"   &&<SessionsView state={state} dispatch={dispatch} showFlash={showFlash} session={session} onLogPast={()=>setPendingSession(pastSessionDraft())}/>}
                 {timerSub==="stats" &&<StatsView    state={state}/>}
                 {/* The mobile home for the notebook. Same component as the
@@ -1207,13 +1286,7 @@ export default function App() {
         canDebrief={!!session && state.aiEnabled}
         onClose={()=>setPendingSession(null)}
         onSave={async (save) => {
-          // v1.19 (#185) — a round from a scheduled block's run creates the
-          // block's one session, or adds to it if an earlier round already
-          // did. A free timer run (no planId) is the plain ADD_SESSION it
-          // always was. See lib/planRun.js.
-          // v1.20 (#202) — a timed block is saved under its run's id, so the
-          // same block saved again (from another device) is the same row.
-          const steps = planSaveSteps({ save, planId: pendingSession.planId || null, plans: state.plannedSessions, sessions: state.studySessions, newId: pendingSession.runId || newSyncId() });
+          const steps = sessionSteps(pendingSession, save);
           for (const a of steps.actions) dispatch(a);
           setPendingSession(null);
           showFlash(t('av.flash.logged', { n: save.durationMinutes }));
@@ -1229,6 +1302,13 @@ export default function App() {
       <div className="undo-bar" role="status" key={undoOffer.key}>
         <span className="undo-bar-text">{t('done.markedDone', { title: undoOffer.title })}</span>
         <button type="button" onClick={()=>{ dispatch(undoOffer.undo); setUndoOffer(null); }}>{t('done.undo')}</button>
+      </div>
+    )}
+    {autoSaved&&!undoOffer&&(
+      <div className="undo-bar" role="status" key={autoSaved.key}>
+        <span className="undo-bar-text">{t('av.flash.logged', { n: autoSaved.pending.durationMinutes })}</span>
+        <button type="button" onClick={()=>undoAutoSave(true)}>{t('common.edit')}</button>
+        <button type="button" onClick={()=>undoAutoSave(false)}>{t('done.undo')}</button>
       </div>
     )}
     {accountNotice&&(
