@@ -33,6 +33,9 @@ import pkg from '../../../package.json';
 import { IS_DESKTOP } from '../../lib/desktop.js';
 import { checkForDesktopUpdate, runDesktopUpdateAction, useDesktopUpdate } from '../../lib/desktopUpdate.js';
 import { setUpdateCheckEnabled, useFdroidUpdate } from '../../lib/fdroidUpdate.js';
+import { readConsent } from '../../lib/consent.js';
+import { setConsent } from '../../lib/consentWrite.js';
+import '../../i18n/consentStrings.js'; // consent.* (loaded on demand)
 import { feedbackStatus, SHOW_FEEDBACK_STATUS } from '../../lib/feedbackStatus.js';
 import DateInput from '../../lib/DateInput.jsx';
 
@@ -352,6 +355,29 @@ function FdroidUpdateRow() {
         </span>
       </div>
       <div className="sv2-note">{t('settings.fdroidCheckNote')}</div>
+    </>
+  );
+}
+
+// v1.21.1 (limecore#87) — the app-open records are opt-in; this changes the
+// answer given to the one-time question. Signed in only: a guest has no
+// account to attribute a day to, so nothing is ever recorded for one.
+function AppOpensRow() {
+  const { t } = useTranslation();
+  const [on, setOn] = useState(() => readConsent().opens === true);
+  const choose = (yes) => { setConsent({ opens: yes }); setOn(yes); };
+  return (
+    <>
+      <div className="sv2-row">
+        <span className="sv2-row-label">{t('consent.opensSetting')}</span>
+        <span className="sv2-row-value">
+          <span className="sv2-mode">
+            <button className={!on ? 'active' : ''} onClick={() => choose(false)}>{t('settings.aiOff')}</button>
+            <button className={on ? 'active' : ''} onClick={() => choose(true)}>{t('settings.aiOn')}</button>
+          </span>
+        </span>
+      </div>
+      <div className="sv2-note">{t('consent.opensSettingNote')}</div>
     </>
   );
 }
@@ -1560,6 +1586,7 @@ export default function SettingsView({ state, dispatch, showFlash, session }) {
           </div>
           {IS_DESKTOP && <DesktopUpdateRow />}
           {Capacitor.getPlatform() === 'android' && <FdroidUpdateRow />}
+          {session && <AppOpensRow />}
           <details className="sv2-tech">
             <summary>{t('settings.techDetails')}</summary>
             <div className="sv2-tech-grid">

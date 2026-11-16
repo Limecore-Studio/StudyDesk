@@ -15,7 +15,7 @@
 //     package F-Droid does not know all mean "no notice", never an error.
 //   - Never on the startup path: the caller fires it after first paint.
 //   - Dismissing hides that version only; the next one is announced again.
-//   - A Settings switch (default on) that stops the request entirely, as the
+//   - A Settings switch that stops the request entirely, as the
 //     privacy policy promises (NCC#50). Off means no network call, not merely
 //     no notice. The request carries nothing about the user: it is a plain GET
 //     for a public package record.
@@ -26,15 +26,18 @@
 import { useSyncExternalStore } from 'react';
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { App } from '@capacitor/app';
+import { readConsent } from './consent.js';
+import { setConsent } from './consentWrite.js';
 
 const PACKAGE = 'com.StudyDesk.app';
 export const FDROID_PAGE = `https://f-droid.org/packages/${PACKAGE}/`;
 const API = `https://f-droid.org/api/v1/packages/${PACKAGE}`;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Device-local, deliberately: whether this phone talks to f-droid.org is a
-// property of the phone, not of the account, so it is not synced.
-const KEY_ENABLED = 'sd-fdroid-check';      // 'off' disables; anything else is on
+// v1.21.1 (limecore#87): opt-in. Off until the owner of this device's data
+// says yes (lib/consent.js); the old device-wide 'sd-fdroid-check' switch,
+// which defaulted to on, is no longer read.
+const enabledNow = () => readConsent().update === true;
 const KEY_LAST = 'sd-fdroid-last';          // { at, code, name } of the last answer
 const KEY_DISMISSED = 'sd-fdroid-dismissed'; // versionCode the user dismissed
 
@@ -49,7 +52,7 @@ function write(key, value) {
 }
 
 // ── A tiny store, so the notice and the Settings switch agree ─────────────
-let state = { enabled: read(KEY_ENABLED) !== 'off', available: null };
+let state = { enabled: enabledNow(), available: null };
 const listeners = new Set();
 function set(next) {
   state = { ...state, ...next };
@@ -59,12 +62,16 @@ function subscribe(l) {
   listeners.add(l);
   return () => listeners.delete(l);
 }
+// Another owner (an account signing in) has its own answer.
+globalThis.addEventListener?.('studydesk:consent', () => {
+  if (state.enabled !== enabledNow()) set({ enabled: enabledNow(), available: enabledNow() ? state.available : null });
+});
 export function useFdroidUpdate() {
   return useSyncExternalStore(subscribe, () => state, () => state);
 }
 
 export function setUpdateCheckEnabled(on) {
-  write(KEY_ENABLED, on ? null : 'off');
+  setConsent({ update: on });
   // Off also forgets what was known, so turning it back on starts clean
   // rather than resurfacing a stale answer from before.
   if (!on) write(KEY_LAST, null);
@@ -103,7 +110,7 @@ async function latestOnFdroid(now, http) {
  */
 export async function checkFdroidUpdate({ now = Date.now(), http = CapacitorHttp, app = App, platform = Capacitor.getPlatform() } = {}) {
   try {
-    if (platform !== 'android' || !state.enabled) return null;
+    if (platform !== 'android' || !enabledNow()) return null;
     const latest = await latestOnFdroid(now, http);
     if (!latest) return null;
     const info = await app.getInfo();
@@ -112,7 +119,7 @@ export async function checkFdroidUpdate({ now = Date.now(), http = CapacitorHttp
     if (read(KEY_DISMISSED) === String(latest.code)) return null;
     const available = { current: { code: running, name: info.version ?? '' }, latest: { code: latest.code, name: latest.name } };
     // The switch may have been turned off while the request was in flight.
-    if (!state.enabled) return null;
+    if (!enabledNow()) return null;
     set({ available });
     return available;
   } catch {
@@ -122,5 +129,5 @@ export async function checkFdroidUpdate({ now = Date.now(), http = CapacitorHttp
 
 /** Test-only: forget module state between cases. */
 export function resetFdroidUpdateForTests() {
-  state = { enabled: read(KEY_ENABLED) !== 'off', available: null };
+  state = { enabled: enabledNow(), available: null };
 }

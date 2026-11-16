@@ -30,6 +30,7 @@
 import { Capacitor } from '@capacitor/core';
 import * as outbox from './outbox.js';
 import { isGuestMode } from './guestMode.js';
+import { readConsent } from './consent.js';
 import pkg from '../../package.json';
 
 const APP = 'studydesk';
@@ -68,7 +69,8 @@ function platform() {
  * Returns true when something was queued, so callers can be tested.
  */
 export function recordAppOpen() {
-  if (isGuestMode()) return false;
+  // v1.21.1 (limecore#87): nothing is queued without a yes.
+  if (isGuestMode() || readConsent().opens !== true) return false;
   const today = localDay();
   try {
     if (localStorage.getItem(LAST_KEY) === today) return false;
