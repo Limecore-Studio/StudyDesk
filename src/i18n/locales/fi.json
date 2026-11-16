@@ -250,6 +250,8 @@
     "deleteAccountConfirm1": "Poistetaanko tilisi ja kaikki tietosi? Tätä ei voi kumota.",
     "deleteAccountConfirm2": "Viimeinen mahdollisuus — kaikki poistetaan välittömästi. Jatketaanko?",
     "deleteAccountDone": "Tilisi ja tietosi on poistettu.",
+    "deleteGuestDone": "Tämän laitteen tiedot poistettiin. Poistettavaa tiliä ei ollut.",
+    "deleteNeedsSignIn": "Tilin poistaminen vaatii verkkoyhteyden ja kirjautumisen. Mitään ei poistettu.",
     "deleteAccountFailed": "Tilin poisto epäonnistui: {{msg}}",
     "remindersLbl": "Muistutukset",
     "reminders": "Opiskelumuistutukset",

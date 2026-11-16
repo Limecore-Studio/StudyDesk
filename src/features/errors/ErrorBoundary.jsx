@@ -12,7 +12,6 @@
 import { Component } from 'react';
 import i18n from '../../i18n';
 import { buildReport, errorReportsEnabled, sendReport } from '../../lib/errorReports.js';
-import { downloadExport } from '../../lib/dataRights.js';
 import { supabase } from '../../lib/supabase.js';
 import '../../styles/errors.css';
 
@@ -50,6 +49,8 @@ export default class ErrorBoundary extends Component {
       let snapshot = {};
       try { snapshot = JSON.parse(localStorage.getItem('studydesk-v1') || '{}') || {}; } catch { /* empty export */ }
       const { data } = await supabase.auth.getSession();
+      // limecore#102: on demand; App warms this chunk once launch settles.
+      const { downloadExport } = await import('../../lib/dataRights.js');
       await downloadExport(snapshot, data?.session ?? null);
       this.setState({ exported: true });
     } catch { /* the export has its own failure surface elsewhere */ }

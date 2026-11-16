@@ -7,7 +7,8 @@
 // and it is still their data. Deletion only means anything when there is a
 // server-side account to delete.
 
-import { supabase } from './supabase.js';
+import { supabase, readStoredSession, clearStoredSession } from './supabase.js';
+import { readOwner } from './deviceOwner.js';
 import { selectAll } from './selectAll.js';
 import { removeForUser } from './userStorage.js';
 import { AVATAR_BUCKET, AVATAR_FILE } from './profile.js';
@@ -130,14 +131,33 @@ export async function downloadExport(state, session) {
  * a client bundle. The function authenticates the caller by their own JWT and
  * deletes only that user, so it cannot be aimed at anyone else.
  *
- * Local data is cleared regardless of what the server says. A user who asked to
- * be deleted should not find their coursework still on the device afterwards.
+ * Local data is cleared once the server has deleted the account. A user who
+ * asked to be deleted should not find their coursework on the device afterwards.
+ *
+ * v1.21.1 (limecore#102): "guest or account" is decided from the device, not
+ * from getSession() alone. An expired session that cannot be refreshed used to
+ * look exactly like a guest: the device was wiped, the account stayed, and the
+ * user was told it was done. Now:
+ *   - an account is recorded (owner record or a stored session) but there is
+ *     no usable session, or getSession errored: refuse, wipe nothing
+ *     ({ deleted: 'none' });
+ *   - a real guest: wipe the device ({ deleted: 'local' });
+ *   - account deleted: also drop the stored session ({ deleted: 'account' }).
  */
 export async function deleteAccount({ clearLocal }) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    // Guest: there is no server-side account. Clearing the device is the whole
-    // of the erasure.
+  let session = null;
+  let failed = false;
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    session = data?.session ?? null;
+    failed = !!error;
+  } catch {
+    failed = true;
+  }
+  if (!session || failed) {
+    if (failed || readOwner() || (await readStoredSession())) return { deleted: 'none' };
+    // A real guest: there is no server-side account. Clearing the device is
+    // the whole of the erasure.
     await clearLocal();
     return { deleted: 'local' };
   }
@@ -170,10 +190,13 @@ export async function deleteAccount({ clearLocal }) {
   if (error) throw new Error(error.message || 'Account deletion failed');
 
   try {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: 'local' });
   } catch {
     // The user row is already gone, so the sign-out call may fail. Not fatal.
   }
+  // signOut keeps the stored session when the call fails on the network; on
+  // Android it lives in Preferences and would survive the wipe.
+  await clearStoredSession();
   await clearLocal();
   return { deleted: 'account' };
 }
