@@ -44,6 +44,34 @@ const run = (http, over = {}) => checkFdroidUpdate({ now: NOW, http, app: app(),
 beforeEach(() => {
   vi.stubGlobal('localStorage', storage());
   resetFdroidUpdateForTests();
+  // v1.21.1 (limecore#87): opt-in. Most cases below are about a yes.
+  setUpdateCheckEnabled(true);
+});
+
+describe('opt-in (limecore#87)', () => {
+  it('not yet asked means no request at all', async () => {
+    vi.stubGlobal('localStorage', storage());
+    resetFdroidUpdateForTests();
+    const http = fdroid(answer(30, '1.15.1'));
+    expect(await run(http)).toBeNull();
+    expect(http.calls).toHaveLength(0);
+  });
+
+  it('an install from before (old switch absent or on) counts as not asked', async () => {
+    vi.stubGlobal('localStorage', storage());
+    localStorage.setItem('sd-fdroid-check', 'on');
+    resetFdroidUpdateForTests();
+    const http = fdroid(answer(30, '1.15.1'));
+    expect(await run(http)).toBeNull();
+    expect(http.calls).toHaveLength(0);
+  });
+
+  it('the answer belongs to the owner of the data, not the device', async () => {
+    localStorage.setItem('studydesk.ownerUserId', 'user-b');   // another account signs in
+    const http = fdroid(answer(30, '1.15.1'));
+    expect(await run(http)).toBeNull();
+    expect(http.calls).toHaveLength(0);
+  });
 });
 
 describe('checkFdroidUpdate', () => {

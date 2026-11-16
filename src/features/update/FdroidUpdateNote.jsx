@@ -9,14 +9,21 @@
 //
 // Written like a margin correction in the notebook: the old version struck
 // through, the new one beside it.
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { readConsent } from '../../lib/consent.js';
 import { useTranslation } from 'react-i18next';
 import { FDROID_PAGE, checkFdroidUpdate, dismissUpdate, useFdroidUpdate } from '../../lib/fdroidUpdate.js';
 
 // After first paint and the initial pull, so it never competes with startup.
 const CHECK_DELAY_MS = 4000;
 
-export default function FdroidUpdateNote() {
+// v1.21.1 (limecore#87) — the one-time opt-in question lives with this note,
+// which is already loaded on demand, so the startup chunk carries none of it;
+// the question itself is fetched only while one is pending.
+const ConsentPrompt = lazy(() => import('./ConsentPrompt.jsx'));
+
+export default function FdroidUpdateNote({ signedIn }) {
   const { t } = useTranslation();
   const { available } = useFdroidUpdate();
 
@@ -25,11 +32,20 @@ export default function FdroidUpdateNote() {
     return () => clearTimeout(id);
   }, []);
 
-  if (!available) return null;
+  const consent = readConsent();
+  const askOpens = signedIn && consent.opens === undefined;
+  const askUpdate = Capacitor.getPlatform() === 'android' && consent.update === undefined;
+  const prompt = (askOpens || askUpdate) && (
+    <Suspense fallback={null}><ConsentPrompt askOpens={askOpens} askUpdate={askUpdate} /></Suspense>
+  );
+
+  if (!available) return prompt || null;
   const { current, latest } = available;
   const latestLabel = latest.name || `#${latest.code}`;
 
   return (
+    <>
+    {prompt}
     <aside className="upd-note" aria-label={t('update.eyebrow')}>
       <div className="upd-note-eyebrow">{t('update.eyebrow')}</div>
       <div className="upd-note-title">{t('update.title', { version: latestLabel })}</div>
@@ -47,5 +63,6 @@ export default function FdroidUpdateNote() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

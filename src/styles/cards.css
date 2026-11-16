@@ -200,6 +200,9 @@
   font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;color:var(--muted);}
 .upd-note-later:hover{color:var(--text);}
 @media (prefers-reduced-motion: reduce){ .upd-note{animation:none;} }
+/* v1.21.1 (limecore#87) — the opt-in question reuses the note: the same card,
+   with one plain sentence on what a yes sends where the versions would be. */
+.consent-note{font-size:12px;line-height:1.45;color:var(--muted);margin:0 0 11px;max-width:52ch;}
 
 /* v1.13 (#45) — the exam edit affordance. Muted until hover, like the course
    row's own edit button, so a card full of controls does not shout. */

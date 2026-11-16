@@ -95,6 +95,7 @@ const SaveSessionSheet = lazy(loadSaveSessionSheet);
 // renders nothing until a check it runs 4 s after mount finds a newer build,
 // so its code, and lib/fdroidUpdate.js behind it, need not be in the startup
 // chunk.
+// v1.21.1 (limecore#87): it also mounts the one-time opt-in question.
 const FdroidUpdateNote = lazy(() => import("./features/update/FdroidUpdateNote.jsx"));
 const GradesView = lazy(() => import("./features/grades/GradesView.jsx"));
 const SessionsView = lazy(() => import("./features/sessions/SessionsView.jsx"));
@@ -835,6 +836,7 @@ export default function App() {
   // arriving. Guests and same-day repeats are filtered inside recordAppOpen.
   useEffect(() => watchAppOpens(), []);
 
+
   // v1.12 Item 5 — supporter entitlement. Keyed on the user id rather than the
   // session object so a token refresh does not re-ask; `refreshEntitlement`
   // additionally serves from cache for six hours, so this is close to free on
@@ -1107,7 +1109,7 @@ export default function App() {
           <StorageAlert onExport={onExportFromAlert} />
           {/* v1.16 (#67) — Android only, once a day, off in Settings. Renders
               nothing unless F-Droid has a newer build than this one. */}
-          <Suspense fallback={null}><FdroidUpdateNote /></Suspense>
+          <Suspense fallback={null}><FdroidUpdateNote signedIn={!!session && !guest} /></Suspense>
           {(urgent.length>0||urgentExams.length>0)&&state.view==="plan"&&(
             <div className="urgent-banner"><span>⚠️</span><div>
               <strong>{t('av.chrome.urgent')}</strong> —{" "}

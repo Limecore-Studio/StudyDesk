@@ -1,0 +1,112 @@
+{
+  "en": {
+    "eyebrow": "Your choice",
+    "opensQ": "Record which days you open StudyDesk?",
+    "opensNote": "One line per day in your account: the date, app version and platform. Nothing about what you do in the app.",
+    "updateQ": "Check F-Droid for updates once a day?",
+    "updateNote": "StudyDesk asks f-droid.org for its newest version. Nothing about you is sent.",
+    "yes": "Yes",
+    "no": "No, thanks",
+    "opensSetting": "Record app opens",
+    "opensSettingNote": "One line per day you open StudyDesk: the date, app version and platform. Off sends nothing."
+  },
+  "fi": {
+    "eyebrow": "Sinun valintasi",
+    "opensQ": "Tallennetaanko, minä päivinä avaat StudyDeskin?",
+    "opensNote": "Yksi rivi päivässä tiliisi: päivämäärä, sovellusversio ja alusta. Ei mitään siitä, mitä teet sovelluksessa.",
+    "updateQ": "Tarkistetaanko F-Droidista päivitykset kerran päivässä?",
+    "updateNote": "StudyDesk kysyy f-droid.orgilta uusinta versiotaan. Sinusta ei lähetetä mitään.",
+    "yes": "Kyllä",
+    "no": "Ei kiitos",
+    "opensSetting": "Tallenna sovelluksen avaukset",
+    "opensSettingNote": "Yksi rivi jokaiselta päivältä, jona avaat StudyDeskin: päivämäärä, sovellusversio ja alusta. Pois päältä ei lähetä mitään."
+  },
+  "de": {
+    "eyebrow": "Deine Entscheidung",
+    "opensQ": "Speichern, an welchen Tagen du StudyDesk öffnest?",
+    "opensNote": "Eine Zeile pro Tag in deinem Konto: Datum, App-Version und Plattform. Nichts darüber, was du in der App tust.",
+    "updateQ": "Einmal am Tag bei F-Droid nach Updates suchen?",
+    "updateNote": "StudyDesk fragt f-droid.org nach der neuesten Version. Über dich wird nichts gesendet.",
+    "yes": "Ja",
+    "no": "Nein, danke",
+    "opensSetting": "App-Öffnungen speichern",
+    "opensSettingNote": "Eine Zeile pro Tag, an dem du StudyDesk öffnest: Datum, App-Version und Plattform. Aus sendet nichts."
+  },
+  "es": {
+    "eyebrow": "Tú decides",
+    "opensQ": "¿Registrar los días en que abres StudyDesk?",
+    "opensNote": "Una línea por día en tu cuenta: la fecha, la versión de la app y la plataforma. Nada sobre lo que haces en la app.",
+    "updateQ": "¿Buscar actualizaciones en F-Droid una vez al día?",
+    "updateNote": "StudyDesk pregunta a f-droid.org por su versión más reciente. No se envía nada sobre ti.",
+    "yes": "Sí",
+    "no": "No, gracias",
+    "opensSetting": "Registrar aperturas de la app",
+    "opensSettingNote": "Una línea por cada día que abres StudyDesk: la fecha, la versión de la app y la plataforma. Desactivado no envía nada."
+  },
+  "fr": {
+    "eyebrow": "À vous de choisir",
+    "opensQ": "Enregistrer les jours où vous ouvrez StudyDesk ?",
+    "opensNote": "Une ligne par jour dans votre compte : la date, la version de l’app et la plateforme. Rien sur ce que vous faites dans l’app.",
+    "updateQ": "Rechercher des mises à jour sur F-Droid une fois par jour ?",
+    "updateNote": "StudyDesk demande à f-droid.org sa version la plus récente. Rien vous concernant n’est envoyé.",
+    "yes": "Oui",
+    "no": "Non merci",
+    "opensSetting": "Enregistrer les ouvertures",
+    "opensSettingNote": "Une ligne par jour où vous ouvrez StudyDesk : la date, la version de l’app et la plateforme. Désactivé n’envoie rien."
+  },
+  "pt": {
+    "eyebrow": "Você decide",
+    "opensQ": "Registrar os dias em que você abre o StudyDesk?",
+    "opensNote": "Uma linha por dia na sua conta: a data, a versão do app e a plataforma. Nada sobre o que você faz no app.",
+    "updateQ": "Procurar atualizações no F-Droid uma vez por dia?",
+    "updateNote": "O StudyDesk pergunta ao f-droid.org qual é a versão mais recente. Nada sobre você é enviado.",
+    "yes": "Sim",
+    "no": "Não, obrigado",
+    "opensSetting": "Registrar aberturas do app",
+    "opensSettingNote": "Uma linha por dia em que você abre o StudyDesk: a data, a versão do app e a plataforma. Desligado não envia nada."
+  },
+  "ar": {
+    "eyebrow": "القرار لك",
+    "opensQ": "هل نسجّل الأيام التي تفتح فيها StudyDesk؟",
+    "opensNote": "سطر واحد يوميًا في حسابك: التاريخ وإصدار التطبيق والمنصة. لا شيء عمّا تفعله في التطبيق.",
+    "updateQ": "هل نتحقق من وجود تحديثات على F-Droid مرة يوميًا؟",
+    "updateNote": "يسأل StudyDesk موقع f-droid.org عن أحدث إصدار. لا يُرسل أي شيء عنك.",
+    "yes": "نعم",
+    "no": "لا، شكرًا",
+    "opensSetting": "تسجيل مرات فتح التطبيق",
+    "opensSettingNote": "سطر واحد لكل يوم تفتح فيه StudyDesk: التاريخ وإصدار التطبيق والمنصة. عند الإيقاف لا يُرسل شيء."
+  },
+  "hi": {
+    "eyebrow": "आपकी पसंद",
+    "opensQ": "क्या StudyDesk खोलने के दिन दर्ज करें?",
+    "opensNote": "आपके खाते में हर दिन एक पंक्ति: तारीख, ऐप संस्करण और प्लैटफ़ॉर्म। ऐप में आप क्या करते हैं, इसके बारे में कुछ नहीं।",
+    "updateQ": "क्या दिन में एक बार F-Droid पर अपडेट जाँचें?",
+    "updateNote": "StudyDesk f-droid.org से अपना नया संस्करण पूछता है। आपके बारे में कुछ नहीं भेजा जाता।",
+    "yes": "हाँ",
+    "no": "नहीं, धन्यवाद",
+    "opensSetting": "ऐप खोलना दर्ज करें",
+    "opensSettingNote": "हर उस दिन की एक पंक्ति जब आप StudyDesk खोलते हैं: तारीख, ऐप संस्करण और प्लैटफ़ॉर्म। बंद होने पर कुछ नहीं भेजा जाता।"
+  },
+  "id": {
+    "eyebrow": "Pilihanmu",
+    "opensQ": "Catat hari-hari kamu membuka StudyDesk?",
+    "opensNote": "Satu baris per hari di akunmu: tanggal, versi aplikasi, dan platform. Tidak ada apa pun tentang yang kamu lakukan di aplikasi.",
+    "updateQ": "Periksa pembaruan di F-Droid sekali sehari?",
+    "updateNote": "StudyDesk menanyakan versi terbarunya ke f-droid.org. Tidak ada data tentangmu yang dikirim.",
+    "yes": "Ya",
+    "no": "Tidak, terima kasih",
+    "opensSetting": "Catat pembukaan aplikasi",
+    "opensSettingNote": "Satu baris untuk setiap hari kamu membuka StudyDesk: tanggal, versi aplikasi, dan platform. Jika mati, tidak ada yang dikirim."
+  },
+  "zh": {
+    "eyebrow": "由你决定",
+    "opensQ": "记录你打开 StudyDesk 的日期？",
+    "opensNote": "每天在你的账户中记一行：日期、应用版本和平台。不涉及你在应用中做了什么。",
+    "updateQ": "每天在 F-Droid 检查一次更新？",
+    "updateNote": "StudyDesk 会向 f-droid.org 询问最新版本。不会发送任何关于你的信息。",
+    "yes": "是",
+    "no": "不用了",
+    "opensSetting": "记录应用打开",
+    "opensSettingNote": "每个打开 StudyDesk 的日子记一行：日期、应用版本和平台。关闭后不发送任何内容。"
+  }
+}

@@ -13,6 +13,8 @@ const SRC = join(dirname(fileURLToPath(import.meta.url)), '..');
 const en = JSON.parse(readFileSync(join(SRC, 'i18n/locales/en.json'), 'utf8'));
 // limecore#73 — the auth.pw* strings load on demand (i18n/passwordStrings.js).
 Object.assign(en.auth, JSON.parse(readFileSync(join(SRC, 'i18n/passwordStrings.json'), 'utf8')).en);
+// limecore#87 — the consent.* strings load on demand too (i18n/consentStrings.js).
+en.consent = JSON.parse(readFileSync(join(SRC, 'i18n/consentStrings.json'), 'utf8')).en;
 const KEY = /\bt\(\s*(['"])([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+)\1/g;
 
 function sourceFiles(dir, out = []) {
