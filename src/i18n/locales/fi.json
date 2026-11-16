@@ -319,6 +319,9 @@
     "focusChipStillBlocked": "Yhä estetty. Ota ilmoitukset käyttöön StudyDeskille Androidin asetuksissa.",
     "focusPinOnNote": "Android kiinnittää näytön jakson alkaessa. Poistu pitämällä Takaisin + Viimeisimmät.",
     "focusPinOffNote": "Voit vaihtaa sovellusta vapaasti jakson aikana.",
+    "autoSave": "Tallenna istunnot automaattisesti",
+    "autoSaveOnNote": "Valmis keskittymisjakso tallennetaan heti. Muokkaa lisää muistiinpanot ja arvion.",
+    "autoSaveOffNote": "Valmis keskittymisjakso kysyy ennen tallennusta.",
     "planningLbl": "Suunnittelu",
     "studyUntil": "Opiskelen enintään klo",
     "studyUntilOnNote": "Kalenterin vapaat ajat ulottuvat klo {{time}} asti, joten ilta näkyy aikana, jota voit suunnitella.",
@@ -754,7 +757,8 @@
       "addCourse": "Lisää kurssi",
       "typeCustomPh": "Nimeä tyyppi (esim. Esitys)",
       "repeatUntil": "Asti",
-      "examRepeatSummary": "{{count}} koetta, viimeinen {{until}}"
+      "examRepeatSummary": "{{count}} koetta, viimeinen {{until}}",
+      "asgnRepeatSummary": "{{count}} tehtävää, viimeinen {{until}}"
     },
     "act": {
       "addManually": "Lisää käsin",
@@ -789,7 +793,8 @@
       "logged": "Kirjattu {{n}} min",
       "queuedLegacy_one": "{{count}} vanha tehtävälistan kohta odottaa synkronointia",
       "queuedLegacy_other": "{{count}} vanhaa tehtävälistan kohtaa odottaa synkronointia",
-      "examsAdded": "{{count}} koetta lisätty"
+      "examsAdded": "{{count}} koetta lisätty",
+      "assignmentsAdded": "{{count}} tehtävää lisätty"
     }
   },
   "ctr": {

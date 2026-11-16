@@ -249,6 +249,9 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
           startedAt: startedAtIso,
           planId: planIdRef.current,
           runId: runIdRef.current,
+          // v1.21 (#205): the timer ran out, rather than Stop or Skip. Only
+          // such a round may be saved without the sheet.
+          completed: true,
         });
       }
       phaseStartedAtRef.current = null;

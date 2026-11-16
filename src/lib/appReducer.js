@@ -42,7 +42,7 @@ export const INITIAL = {
   // The chip is harmless so it defaults on; screen pinning traps the user in
   // the app until they hold Back+Recents, so it defaults off and stays that way
   // until someone deliberately asks for it.
-  focusChip:true, focusPin:false,
+  focusChip:true, focusPin:false, autoSaveSessions:false,
   // v1.10 (owner feedback) — how late you are willing to study, in minutes past
   // midnight, or null for "stop at whatever is already in the day".
   //
@@ -445,6 +445,14 @@ export function reducer(state, action) {
     case "SET_AI_ENABLED": return {...state,aiEnabled:!!action.on};
     case "SET_FOCUS_CHIP": return {...state,focusChip:!!action.on};
     case "SET_FOCUS_PIN": return {...state,focusPin:!!action.on};
+    case "SET_AUTO_SAVE_SESSIONS": return {...state,autoSaveSessions:!!action.on};
+    // v1.21 (#205) — Undo / Edit on an automatic save: put the rows it touched
+    // back exactly as they were (a null row means "it did not exist": remove
+    // it, no tombstone, since nothing was pushed yet).
+    case "RESTORE_ROWS": {
+      const put=(list,id,row)=>!id?list:row?(list||[]).map(x=>x.id===id?row:x):(list||[]).filter(x=>x.id!==id);
+      return {...state,studySessions:put(state.studySessions,action.sessionId,action.session),plannedSessions:put(state.plannedSessions,action.planId,action.plan)};
+    }
     case "SET_PLAN_REMIND": {
       const next = { ...state };
       if (action.lead !== undefined) {

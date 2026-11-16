@@ -319,6 +319,9 @@
     "focusChipStillBlocked": "Weiterhin blockiert. Aktiviere Benachrichtigungen für StudyDesk in den Android-Einstellungen.",
     "focusPinOnNote": "Android heftet den Bildschirm an. Zum Verlassen Zurück + Übersicht gedrückt halten.",
     "focusPinOffNote": "Du kannst die App während eines Blocks frei wechseln.",
+    "autoSave": "Sitzungen automatisch speichern",
+    "autoSaveOnNote": "Eine beendete Fokusrunde wird sofort gespeichert. Mit Bearbeiten fügst du Notizen und eine Bewertung hinzu.",
+    "autoSaveOffNote": "Eine beendete Fokusrunde fragt vor dem Speichern nach.",
     "planningLbl": "Planung",
     "studyUntil": "Lernen bis",
     "studyUntilOnNote": "Freie Zeitfenster im Kalender reichen bis {{time}}, sodass der Abend als planbare Zeit erscheint.",
@@ -754,7 +757,8 @@
       "addCourse": "Kurs hinzufügen",
       "typeCustomPh": "Typ benennen (z. B. Präsentation)",
       "repeatUntil": "Bis",
-      "examRepeatSummary": "{{count}} Prüfungen, die letzte am {{until}}"
+      "examRepeatSummary": "{{count}} Prüfungen, die letzte am {{until}}",
+      "asgnRepeatSummary": "{{count}} Aufgaben, die letzte fällig am {{until}}"
     },
     "act": {
       "addManually": "Manuell hinzufügen",
@@ -789,7 +793,8 @@
       "logged": "{{n}} Min erfasst",
       "queuedLegacy_one": "{{count}} älteres To-do wartet auf Synchronisierung",
       "queuedLegacy_other": "{{count}} ältere To-dos warten auf Synchronisierung",
-      "examsAdded": "{{count}} Prüfungen hinzugefügt"
+      "examsAdded": "{{count}} Prüfungen hinzugefügt",
+      "assignmentsAdded": "{{count}} Aufgaben hinzugefügt"
     }
   },
   "ctr": {

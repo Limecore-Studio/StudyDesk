@@ -1,0 +1,3 @@
+Repita, revise, salve.
+
+As tarefas podem se repetir até a data que você escolher. As faixas de revisão no calendário ficam legíveis no celular, com um marcador de início e as iniciais da matéria, e a visão do dia lista os períodos de revisão. Uma nova opção salva a sessão automaticamente quando o timer de foco termina. O app também abre mais rápido.

@@ -319,6 +319,9 @@
     "focusChipStillBlocked": "अभी भी अवरुद्ध है। एंड्रॉयड सेटिंग्स में StudyDesk की सूचनाएँ चालू करें।",
     "focusPinOnNote": "Android स्क्रीन पिन करता है। बाहर निकलने के लिए Back + Recents दबाए रखें।",
     "focusPinOffNote": "ब्लॉक के दौरान आप स्वतंत्र रूप से ऐप बदल सकते हैं।",
+    "autoSave": "सत्र अपने-आप सेव करें",
+    "autoSaveOnNote": "पूरा हुआ फ़ोकस राउंड तुरंत सेव हो जाता है। एडिट से नोट्स और फ़ोकस रेटिंग जोड़ें।",
+    "autoSaveOffNote": "पूरा हुआ फ़ोकस राउंड सेव करने से पहले पूछता है।",
     "planningLbl": "योजना",
     "studyUntil": "इस समय तक पढ़ाई",
     "studyUntilOnNote": "कैलेंडर में खाली समय {{time}} तक दिखता है, इसलिए शाम भी ऐसे समय के रूप में दिखती है जिसकी योजना बनाई जा सके।",
@@ -754,7 +757,8 @@
       "addCourse": "विषय जोड़ें",
       "typeCustomPh": "प्रकार का नाम दें (जैसे प्रस्तुति)",
       "repeatUntil": "तक",
-      "examRepeatSummary": "{{count}} परीक्षाएँ, आख़िरी {{until}} को"
+      "examRepeatSummary": "{{count}} परीक्षाएँ, आख़िरी {{until}} को",
+      "asgnRepeatSummary": "{{count}} असाइनमेंट, आख़िरी की तारीख़ {{until}}"
     },
     "act": {
       "addManually": "मैन्युअल जोड़ें",
@@ -789,7 +793,8 @@
       "logged": "{{n}} मिनट दर्ज",
       "queuedLegacy_one": "{{count}} पुराना काम सिंक होने की प्रतीक्षा में",
       "queuedLegacy_other": "{{count}} पुराने काम सिंक होने की प्रतीक्षा में",
-      "examsAdded": "{{count}} परीक्षाएँ जोड़ी गईं"
+      "examsAdded": "{{count}} परीक्षाएँ जोड़ी गईं",
+      "assignmentsAdded": "{{count}} असाइनमेंट जोड़े गए"
     }
   },
   "ctr": {
