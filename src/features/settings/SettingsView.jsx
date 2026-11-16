@@ -594,7 +594,7 @@ export default function SettingsView({ state, dispatch, showFlash, session }) {
     if (!(await confirm(t('settings.deleteAccountConfirm2')))) return;
     setDeleting(true);
     try {
-      await deleteAccount({
+      const { deleted } = await deleteAccount({
         clearLocal: async () => {
           wipeAccountLocalData();
           // v1.18.1 (limecore#59 §1): the data is gone, so it has no owner;
@@ -610,7 +610,9 @@ export default function SettingsView({ state, dispatch, showFlash, session }) {
           window.dispatchEvent(new CustomEvent('studydesk:guest-mode-changed'));
         },
       });
-      showFlash(t('settings.deleteAccountDone'));
+      // limecore#102: say what actually happened.
+      showFlash(t(deleted === 'account' ? 'settings.deleteAccountDone'
+        : deleted === 'local' ? 'settings.deleteGuestDone' : 'settings.deleteNeedsSignIn'));
     } catch (e) {
       showFlash(t('settings.deleteAccountFailed', { msg: e.message }));
     } finally {

@@ -247,6 +247,8 @@
     "deleteAccountConfirm1": "Hapus akun dan semua datamu? Tindakan ini tidak dapat dibatalkan.",
     "deleteAccountConfirm2": "Kesempatan terakhir — semuanya akan langsung dihapus. Lanjutkan?",
     "deleteAccountDone": "Akun dan datamu telah dihapus.",
+    "deleteGuestDone": "Data perangkat ini telah dihapus. Tidak ada akun yang perlu dihapus.",
+    "deleteNeedsSignIn": "Kamu harus online dan masuk untuk menghapus akunmu. Tidak ada yang dihapus.",
     "deleteAccountFailed": "Tidak dapat menghapus akun: {{msg}}",
     "remindersLbl": "Pengingat",
     "reminders": "Pengingat belajar",

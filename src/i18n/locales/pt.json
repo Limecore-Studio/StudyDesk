@@ -253,6 +253,8 @@
     "deleteAccountConfirm1": "Apagar sua conta e todos os seus dados? Isso não pode ser desfeito.",
     "deleteAccountConfirm2": "Última chance — tudo será apagado imediatamente. Continuar?",
     "deleteAccountDone": "Sua conta e seus dados foram apagados.",
+    "deleteGuestDone": "Os dados deste dispositivo foram apagados. Não havia nenhuma conta para excluir.",
+    "deleteNeedsSignIn": "Você precisa estar online e conectado para excluir sua conta. Nada foi excluído.",
     "deleteAccountFailed": "Não foi possível apagar a conta: {{msg}}",
     "remindersLbl": "Lembretes",
     "reminders": "Lembretes de estudo",
