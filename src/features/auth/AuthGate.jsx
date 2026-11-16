@@ -5,7 +5,8 @@ import { Browser } from '@capacitor/browser';
 import { App as CapApp } from '@capacitor/app';
 import { supabase, OAUTH_REDIRECT_URL } from '../../lib/supabase.js';
 import { desktop, DESKTOP_REDIRECT_URL } from '../../lib/desktop.js';
-import { inheritFromNexus } from '../../lib/suiteSso.js';
+import { inheritFromNexus, openNexus } from '../../lib/suiteSso.js';
+import '../../i18n/passwordStrings.js'; // auth.nexusStale / nexusOpen (loaded on demand)
 import { setGuestMode } from '../../lib/guestMode.js';
 import { translateAuthError, callbackErrorMessage } from '../../lib/authErrors.js';
 import { withCaptcha } from '../../lib/captcha.js';
@@ -163,6 +164,8 @@ export default function AuthGate() {
   const [loading, setLoading] = useState(false);
   const [nexusAvailable, setNexusAvailable] = useState(false);
   const [, setNexusReason] = useState('');
+  // limecore#101: NCC's published token has expired; it must run once first.
+  const [nexusStale, setNexusStale] = useState(false);
   // v1.7 — code confirmation step. "Confirm email" is ON in the Supabase
   // project, so signUp() returns no session and the account sits unconfirmed
   // until the user acts on the email. 7 of 37 email signups were stuck in that
@@ -214,7 +217,8 @@ export default function AuthGate() {
     setErr(''); setInfo(''); setLoading(true);
     try {
       const result = await inheritFromNexus();
-      if (!result.ok) {
+      if (result.reason === 'nexus-stale') setNexusStale(true);
+      else if (!result.ok) {
         setErr(result.reason || t('auth.errNexus'));
       }
       // On success, supabase.auth.onAuthStateChange fires and App.jsx
@@ -641,11 +645,15 @@ export default function AuthGate() {
 
           {nexusAvailable && (
             <>
-              <button type="button" className="auth-nexus" onClick={onNexus} disabled={loading}>
+              {/* limecore#101: back from NCC, "Continue with Nexus" is offered again. */}
+              <button type="button" className="auth-nexus" disabled={loading}
+                onClick={nexusStale ? () => { setNexusStale(false); openNexus(); } : onNexus}>
                 <span className="auth-nexus-glyph">◈</span>
-                {t('auth.nexus')}
+                {t(nexusStale ? 'auth.nexusOpen' : 'auth.nexus')}
               </button>
-              <div className="auth-nexus-note">{t('auth.nexusNote')}</div>
+              <div className="auth-nexus-note" role={nexusStale ? 'status' : undefined}>
+                {t(nexusStale ? 'auth.nexusStale' : 'auth.nexusNote')}
+              </div>
             </>
           )}
 
