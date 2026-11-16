@@ -463,6 +463,7 @@
     "maybeLater": "Nanti saja"
   },
   "gv": {
+    "scaleUnsaved": "Skala ini tidak dapat disimpan ke akunmu.",
     "addCourseFirst": "Tambahkan mata pelajaran dulu",
     "gradeAdded": "Nilai ditambahkan",
     "gradeUpdated": "Nilai diperbarui",

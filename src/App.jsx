@@ -193,8 +193,6 @@ export default function App() {
   // its useState had run.
   const [onboardChecked, setOnboardChecked] = useState(false);
   usePersistState(state);
-  // v1.18.2: the grade scale follows the account, so NCC can read it.
-  useGradeScaleSync(state, dispatch, session?.user?.id);
 
   useReminders({ onboarded, state, t });
 
@@ -266,6 +264,9 @@ export default function App() {
   const [newCourseName, setNewCourseName] = useState("");
   const [newCourseColor, setNewCourseColor] = useState(COURSE_COLORS[0]);
   const showFlash = useCallback((msg) => { setFlash(msg); setTimeout(()=>setFlash(null),2200); }, []);
+  // v1.18.2: the grade scale follows the account, so NCC can read it.
+  // (Below showFlash: a refused save is shown, StudyDesk#233.)
+  useGradeScaleSync(state, dispatch, session?.user?.id, showFlash, t);
 
   const { onDeleteNote } = useNoteSync({ state, session, pulledOnce, remoteStampsRef, dispatch });
 

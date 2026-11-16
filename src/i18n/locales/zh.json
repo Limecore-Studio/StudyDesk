@@ -465,6 +465,7 @@
     "maybeLater": "以后再说"
   },
   "gv": {
+    "scaleUnsaved": "无法将此评分标准保存到你的账户。",
     "addCourseFirst": "请先添加课程",
     "gradeAdded": "成绩已添加",
     "gradeUpdated": "成绩已更新",
