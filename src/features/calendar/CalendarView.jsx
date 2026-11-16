@@ -34,6 +34,7 @@ import { ChevronLeft, ChevronRight, Download, Printer, Trash2 } from 'lucide-rea
 import {
   resolveWeekStart, weekdayLabels, monthGrid, weekGrid, startOfWeek,
   buildEvents, sortDayItems, layoutBands, layoutDayColumn, timedOn, allDayOn,
+  revisionWindowsOn,
 } from '../../lib/calendar.js';
 import { lessonsOn, localTimestamp, minutesToSqlTime, timeToMinutes } from '../../lib/timetable.js';
 import { commitmentsOn, INTERVAL_CHOICES } from '../../lib/commitments.js';
@@ -189,12 +190,13 @@ function MonthSheet({ rows, bands, byDay, commitmentsByDay, weekStart, locale, s
                       '--band-tint': c ? `${c}55` : 'rgba(26,24,20,0.18)',
                       '--band-wash': c ? `${c}12` : 'rgba(26,24,20,0.04)',
                       '--band-edge': c ? `${c}44` : 'var(--border2)',
+                      '--band-mark': c || 'var(--muted)',
                       '--band-ink': 'var(--text)',
                     }}
                     title={t('cal.revisionFor', { title: seg.band.title })}
                     onClick={() => onSelect(row[seg.startCol].iso)}
                   >
-                    {t('cal.revise')} · {seg.band.title}
+                    <span className="cal-band-label"><span className="cal-band-pre">{t('cal.revise')} · </span>{seg.band.title}</span>
                   </div>
                 );
               })}
@@ -705,8 +707,13 @@ function nextWholeHourMin() {
   return Math.min(23 * 60, (new Date().getHours() + 1) * 60);
 }
 
-function DayAgenda({ iso, byDay, lessons, commitments, locale, onOpen, onClose, onOpenWeek, onOpenDay, onPlanGap, onAddBlocker, studyUntil, t }) {
+function DayAgenda({ iso, byDay, bands = [], lessons, commitments, locale, onOpen, onClose, onOpenWeek, onOpenDay, onPlanGap, onAddBlocker, studyUntil, t }) {
   const items = sortDayItems(byDay.get(iso) || []);
+  // v1.21 (#206) — the revision windows this day is in, nearest exam first.
+  // On a phone the month's bands are too thin to say which exam they are for,
+  // so the day you tap has to.
+  const windows = revisionWindowsOn(bands, iso);
+  const examItem = (w) => (byDay.get(w.examDate) || []).find((i) => i.kind === 'exam' && i.id === w.id);
   const timed = items.filter((i) => i.kind === 'session');
   const planned = items.filter((i) => i.kind === 'planned').sort((a, b) => a.startMin - b.startMin);
   const dated = items.filter((i) => i.kind !== 'session' && i.kind !== 'planned');
@@ -763,8 +770,38 @@ function DayAgenda({ iso, byDay, lessons, commitments, locale, onOpen, onClose, 
         <button type="button" className="cal-agenda-close" onClick={onClose} aria-label={t('common.close')}>×</button>
       </div>
 
-      {items.length === 0 && lessons.length === 0 && commitments.length === 0 && (
+      {items.length === 0 && lessons.length === 0 && commitments.length === 0 && windows.length === 0 && (
         <div className="cal-agenda-empty">{t('cal.dayEmpty')}</div>
+      )}
+
+      {windows.length > 0 && (
+        <div className="cal-agenda-group">
+          <div className="cal-agenda-rel">{t('cal.revise')}</div>
+          {windows.map((w) => {
+            const exam = examItem(w);
+            return (
+              <div
+                key={`rev-${w.id}`}
+                className="cal-row is-revision"
+                role={exam ? 'button' : undefined}
+                tabIndex={exam ? 0 : undefined}
+                style={{ '--row-color': w.color || 'var(--muted)' }}
+                onClick={exam ? () => onOpen(exam) : undefined}
+                onKeyDown={exam ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(exam); } } : undefined}
+              >
+                <div className="cal-row-mark" aria-hidden="true" />
+                <div className="cal-row-body">
+                  <div className="cal-row-title">{w.title}</div>
+                  <div className="cal-row-meta">
+                    {w.courseName && <span>{w.courseName} ·</span>}
+                    <span>{t('cal.exam')} {parseLocalDate(w.examDate).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                    <span>· {relativeDayLabel(w.examDate, t)}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {commitments.length > 0 && (
@@ -1785,6 +1822,7 @@ export default function CalendarView({ state, dispatch, session, showFlash, tier
             // button drills back out to the week instead of emptying the page.
             iso={mode === 'day' ? anchor : selected}
             byDay={byDay}
+            bands={bands}
             lessons={lessonsByDay.get(selected) || []}
             commitments={commitmentsByDay.get(selected) || []}
             locale={locale}

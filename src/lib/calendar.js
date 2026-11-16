@@ -309,6 +309,7 @@ export function buildEvents(state, opts = {}) {
       // revise for it, and letting the band run under the chip reads as an
       // extra commitment on the hardest day of the set.
       to: addDays(e.dueDate, -1),
+      examDate: e.dueDate,
       courseId: e.courseId,
       courseName: course?.name || null,
       color: course?.color || null,
@@ -353,9 +354,13 @@ export function sortDayItems(items) {
 // segments, one per row. Each row packs its segments into lanes so two windows
 // that overlap in time sit on separate lines instead of on top of each other.
 //
-// Greedy first-fit after sorting by start then by length: the longest run
-// claims the top lane, which keeps the tallest thing in the row from being
-// pushed down by a two-day stub that happens to start earlier.
+// v1.21 (#206) — lanes are claimed in EXAM order: the window whose exam comes
+// first gets the top lane, and each later one takes the highest lane that is
+// free across its columns. On a phone the bands are thin strips with little or
+// no room for a label, so position is the cue that survives: the top strip is
+// the most urgent revision, every row, every week. (It used to be start order,
+// longest first, which put a far-off exam's long window above the one due on
+// Friday.) Ties fall back to start, then the longer run.
 
 export function layoutBands(bands, rowDays) {
   if (!bands.length || !rowDays.length) return { segments: [], lanes: 0 };
@@ -379,17 +384,34 @@ export function layoutBands(bands, rowDays) {
     });
   }
 
-  clipped.sort((a, b) => (a.startCol - b.startCol) || (b.span - a.span));
+  // `to` is the day before the exam, so it orders by exam date.
+  clipped.sort((a, b) => (a.band.to < b.band.to ? -1 : a.band.to > b.band.to ? 1 : 0)
+    || (a.startCol - b.startCol) || (b.span - a.span));
 
-  const laneEnds = []; // exclusive column index each lane is free from
+  const used = []; // used[lane][col] — taken cells, per lane
   for (const seg of clipped) {
-    let lane = laneEnds.findIndex((end) => end <= seg.startCol);
-    if (lane === -1) { lane = laneEnds.length; laneEnds.push(0); }
-    laneEnds[lane] = seg.startCol + seg.span;
+    const fits = (cols) => {
+      for (let c = seg.startCol; c < seg.startCol + seg.span; c++) if (cols[c]) return false;
+      return true;
+    };
+    let lane = used.findIndex(fits);
+    if (lane === -1) { lane = used.length; used.push([]); }
+    for (let c = seg.startCol; c < seg.startCol + seg.span; c++) used[lane][c] = true;
     seg.lane = lane;
   }
 
-  return { segments: clipped, lanes: laneEnds.length };
+  return { segments: clipped, lanes: used.length };
+}
+
+/** v1.21 (#206) — the revision windows `iso` falls in, nearest exam first,
+ *  each with its `examDate`. This is what the day sheet lists: on a phone the
+ *  bands are strips too thin to label, and "which exam is this for" has to be
+ *  answerable from the day you tapped. */
+export function revisionWindowsOn(bands, iso) {
+  return bands
+    .filter((b) => b.from <= iso && iso <= b.to)
+    .map((b) => ({ ...b, examDate: b.examDate || addDays(b.to, 1) }))
+    .sort((a, b) => (a.examDate < b.examDate ? -1 : a.examDate > b.examDate ? 1 : 0));
 }
 
 // ── Ranges ─────────────────────────────────────────────────────────────────
