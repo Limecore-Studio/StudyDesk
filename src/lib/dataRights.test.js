@@ -32,7 +32,7 @@ vi.mock('./userStorage.js', () => ({ removeForUser: async () => {} }));
 vi.mock('./selectAll.js', () => ({ selectAll: async () => ({ data: [], error: null }) }));
 vi.mock('./profile.js', () => ({ AVATAR_BUCKET: 'avatars', AVATAR_FILE: 'avatar.webp' }));
 
-const { deleteAccount, downloadExport } = await import('./dataRights.js');
+const { deleteAccount, downloadExport, SESSION_CHECK_MS } = await import('./dataRights.js');
 
 const SESSION = { user: { id: 'user-a' }, access_token: 'at', refresh_token: 'rt' };
 
@@ -160,5 +160,54 @@ describe('downloadExport (limecore#103)', () => {
     const hits = [];
     walk(exported, '$', hits);
     expect(hits).toEqual([]);                          // …its credentials are not
+  });
+});
+
+// limecore#124 — offline with an expired session, getSession() never returns.
+describe('deleteAccount is bounded (limecore#124)', () => {
+  it('a getSession that never resolves is refused within the bound: no function, no wipe', async () => {
+    vi.useFakeTimers();
+    try {
+      h.owner = 'user-a';
+      h.getSession.mockReturnValue(new Promise(() => {}));
+      const clearLocal = vi.fn();
+      let result;
+      const done = deleteAccount({ clearLocal }).then((r) => { result = r; });
+      await vi.advanceTimersByTimeAsync(SESSION_CHECK_MS - 1);
+      expect(result).toBeUndefined();
+      await vi.advanceTimersByTimeAsync(1);
+      await done;
+      expect(result).toEqual({ deleted: 'none' });
+      expect(h.invoke).not.toHaveBeenCalled();
+      expect(clearLocal).not.toHaveBeenCalled();
+      expect(h.cleared).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('offline with an account is refused at once, without asking for the session', async () => {
+    vi.stubGlobal('navigator', { onLine: false });
+    try {
+      h.owner = 'user-a';
+      const clearLocal = vi.fn();
+      expect(await deleteAccount({ clearLocal })).toEqual({ deleted: 'none' });
+      expect(h.getSession).not.toHaveBeenCalled();
+      expect(h.invoke).not.toHaveBeenCalled();
+      expect(clearLocal).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('offline as a real guest still erases the device', async () => {
+    vi.stubGlobal('navigator', { onLine: false });
+    try {
+      const clearLocal = vi.fn();
+      expect(await deleteAccount({ clearLocal })).toEqual({ deleted: 'local' });
+      expect(clearLocal).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

@@ -157,15 +157,30 @@ export async function downloadExport(state, session) {
  *   - a real guest: wipe the device ({ deleted: 'local' });
  *   - account deleted: also drop the stored session ({ deleted: 'account' }).
  */
+// limecore#124: offline with an expired session, getSession() keeps retrying
+// the refresh and never returns, so the button sat on "Deleting..." for good.
+export const SESSION_CHECK_MS = 8000;
+
 export async function deleteAccount({ clearLocal }) {
   let session = null;
   let failed = false;
-  try {
-    const { data, error } = await supabase.auth.getSession();
-    session = data?.session ?? null;
-    failed = !!error;
-  } catch {
-    failed = true;
+  // Offline: no session check at all (it cannot settle), so an account is
+  // refused at once below; a real guest can still erase the device.
+  if (globalThis.navigator?.onLine !== false) {
+    let timer;
+    try {
+      const { data, error } = await Promise.race([
+        supabase.auth.getSession(),
+        new Promise((_, reject) => { timer = setTimeout(reject, SESSION_CHECK_MS); }),
+      ]);
+      session = data?.session ?? null;
+      failed = !!error;
+    } catch {
+      // A throw or the timeout: refused below, nothing wiped.
+      failed = true;
+    } finally {
+      clearTimeout(timer);
+    }
   }
   if (!session || failed) {
     if (failed || readOwner() || (await readStoredSession())) return { deleted: 'none' };
