@@ -250,6 +250,8 @@
     "deleteAccountConfirm1": "Delete your account and all of your data? This cannot be undone.",
     "deleteAccountConfirm2": "Last chance — everything will be erased immediately. Continue?",
     "deleteAccountDone": "Your account and data have been deleted.",
+    "deleteGuestDone": "This device's data was erased. There was no account to delete.",
+    "deleteNeedsSignIn": "You need to be online and signed in to delete your account. Nothing was deleted.",
     "deleteAccountFailed": "Could not delete account: {{msg}}",
     "remindersLbl": "Reminders",
     "reminders": "Study reminders",
@@ -467,6 +469,7 @@
     "maybeLater": "Maybe later"
   },
   "gv": {
+    "scaleUnsaved": "This scale could not be saved to your account.",
     "addCourseFirst": "Add a course first",
     "gradeAdded": "Grade added",
     "gradeUpdated": "Grade updated",

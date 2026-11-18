@@ -249,6 +249,8 @@
     "deleteAccountConfirm1": "删除你的账户和所有数据？此操作无法撤销。",
     "deleteAccountConfirm2": "最后确认 —— 所有数据将立即删除。继续吗？",
     "deleteAccountDone": "你的账户和数据已被删除。",
+    "deleteGuestDone": "已清除此设备上的数据。没有需要删除的账户。",
+    "deleteNeedsSignIn": "你需要联网并登录才能删除账户。未删除任何内容。",
     "deleteAccountFailed": "无法删除账户：{{msg}}",
     "remindersLbl": "提醒",
     "reminders": "学习提醒",
@@ -465,6 +467,7 @@
     "maybeLater": "以后再说"
   },
   "gv": {
+    "scaleUnsaved": "无法将此评分标准保存到你的账户。",
     "addCourseFirst": "请先添加课程",
     "gradeAdded": "成绩已添加",
     "gradeUpdated": "成绩已更新",

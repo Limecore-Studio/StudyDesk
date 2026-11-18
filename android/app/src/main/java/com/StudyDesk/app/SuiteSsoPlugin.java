@@ -7,6 +7,7 @@ package com.StudyDesk.app;
 // rationale + provider URI + return-shape contract.
 
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -101,6 +102,31 @@ public class SuiteSsoPlugin extends Plugin {
             if (cursor != null) {
                 try { cursor.close(); } catch (Exception ignored) { /* */ }
             }
+        }
+    }
+
+    /**
+     * v1.21.1 (limecore#101) - open NCC so it republishes a fresh session.
+     * NCC only publishes while it runs; an expired bundle is never exchanged,
+     * so "Open Nexus once, then come back" is the way back to inherit.
+     */
+    @PluginMethod
+    public void openNexus(PluginCall call) {
+        if (!isGenuineNexus()) {
+            call.reject("Nexus Command Center not installed.");
+            return;
+        }
+        Intent launch = getContext().getPackageManager().getLaunchIntentForPackage(NEXUS_PACKAGE);
+        if (launch == null) {
+            call.reject("Nexus Command Center cannot be opened.");
+            return;
+        }
+        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            getContext().startActivity(launch);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Could not open Nexus Command Center.");
         }
     }
 }

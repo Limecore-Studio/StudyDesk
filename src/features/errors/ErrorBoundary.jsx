@@ -12,7 +12,6 @@
 import { Component } from 'react';
 import i18n from '../../i18n';
 import { buildReport, errorReportsEnabled, sendReport } from '../../lib/errorReports.js';
-import { downloadExport } from '../../lib/dataRights.js';
 import { supabase } from '../../lib/supabase.js';
 import '../../styles/errors.css';
 
@@ -21,7 +20,7 @@ const tr = (key, fallback, opts) => {
 };
 
 export default class ErrorBoundary extends Component {
-  state = { error: null, report: null, status: null, exported: false };
+  state = { error: null, report: null, status: null, exported: false, exportError: null };
 
   static getDerivedStateFromError(error) {
     return { error };
@@ -50,14 +49,20 @@ export default class ErrorBoundary extends Component {
       let snapshot = {};
       try { snapshot = JSON.parse(localStorage.getItem('studydesk-v1') || '{}') || {}; } catch { /* empty export */ }
       const { data } = await supabase.auth.getSession();
-      await downloadExport(snapshot, data?.session ?? null);
-      this.setState({ exported: true });
-    } catch { /* the export has its own failure surface elsewhere */ }
+      // limecore#102: on demand; App warms this chunk once launch settles.
+      const { downloadExport } = await import('../../lib/dataRights.js');
+      // limecore#103: "saved" only once written; a cancelled picker says
+      // nothing; a failure says so on the button.
+      const name = await downloadExport(snapshot, data?.session ?? null);
+      if (name) this.setState({ exported: true, exportError: null });
+    } catch (e) {
+      this.setState({ exported: false, exportError: e?.message || String(e) });
+    }
   };
 
   render() {
     if (!this.state.error) return this.props.children;
-    const { report, status, exported } = this.state;
+    const { report, status, exported, exportError } = this.state;
     const sent = status === 'sent' || status === 'duplicate';
 
     return (
@@ -87,7 +92,9 @@ export default class ErrorBoundary extends Component {
               </button>
             )}
             <button type="button" className="btn-outline" onClick={this.exportData}>
-              {exported ? tr('crash.exported', 'Export downloaded') : tr('crash.export', 'Export my data')}
+              {exported ? tr('crash.exported', 'Export downloaded')
+                : exportError ? tr('settings.exportFailed', 'Export failed: {{msg}}', { msg: exportError })
+                : tr('crash.export', 'Export my data')}
             </button>
           </div>
           {!sent && status !== 'guest' && (

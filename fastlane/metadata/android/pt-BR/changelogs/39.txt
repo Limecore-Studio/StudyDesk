@@ -1,0 +1,3 @@
+Sua escolha, seus dados.
+
+O registro de aberturas e a verificação de atualizações do F-Droid ficam desligados até você dizer sim; o app pergunta uma vez e há um botão em Ajustes. Exportar meus dados salva um arquivo real no Android. Excluir a conta não finge mais: offline, pede para você se conectar. Entrar com Nexus tem sua própria sessão. A escala alemã de 15 pontos é salva na conta e Desfazer funciona.

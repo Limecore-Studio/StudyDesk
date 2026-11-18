@@ -262,6 +262,8 @@
     "deleteAccountConfirm1": "حذف حسابك وكل بياناتك؟ لا يمكن التراجع عن هذا.",
     "deleteAccountConfirm2": "فرصة أخيرة — سيُمحى كل شيء فورًا. هل تريد المتابعة؟",
     "deleteAccountDone": "تم حذف حسابك وبياناتك.",
+    "deleteGuestDone": "تم مسح بيانات هذا الجهاز. لم يكن هناك حساب لحذفه.",
+    "deleteNeedsSignIn": "يجب أن تكون متصلًا بالإنترنت ومسجّل الدخول لحذف حسابك. لم يُحذف أي شيء.",
     "deleteAccountFailed": "تعذّر حذف الحساب: {{msg}}",
     "remindersLbl": "التذكيرات",
     "reminders": "تذكيرات المذاكرة",
@@ -487,6 +489,7 @@
     "maybeLater": "ربما لاحقًا"
   },
   "gv": {
+    "scaleUnsaved": "تعذّر حفظ هذا المقياس في حسابك.",
     "addCourseFirst": "أضف مادةً أولًا",
     "gradeAdded": "تمت إضافة الدرجة",
     "gradeUpdated": "تم تحديث الدرجة",

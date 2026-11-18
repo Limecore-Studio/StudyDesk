@@ -1,0 +1,3 @@
+Your choice, your data.
+
+The app-open record and the F-Droid update check are now off until you say yes; the app asks once and has a switch in Settings. Export my data saves a real file on Android. Delete account never pretends: offline, it tells you to go online first. Sign in with Nexus gets its own session. The German 15-point scale saves to your account, and auto-save Undo really undoes.

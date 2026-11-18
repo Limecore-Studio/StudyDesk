@@ -7,7 +7,9 @@
 // and it is still their data. Deletion only means anything when there is a
 // server-side account to delete.
 
-import { supabase } from './supabase.js';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import { supabase, readStoredSession, clearStoredSession } from './supabase.js';
+import { readOwner } from './deviceOwner.js';
 import { selectAll } from './selectAll.js';
 import { removeForUser } from './userStorage.js';
 import { AVATAR_BUCKET, AVATAR_FILE } from './profile.js';
@@ -99,11 +101,23 @@ async function buildExport(state, session) {
   };
 }
 
-/** Trigger a download of the export as a .json file. Returns the filename. */
+const SaveFile = registerPlugin('SaveFile');
+
+/** Save the export as a .json file. Returns the filename once it is written,
+ *  or null when the user cancelled the save picker; throws on failure.
+ *
+ *  v1.21.1 (limecore#103): in the Android WebView an <a download> writes
+ *  nothing, yet the app said "Saved". On native the file now goes through the
+ *  SaveFile plugin (the system "create document" picker); web and desktop keep
+ *  the anchor. The crash screen and StorageAlert use this same path. */
 export async function downloadExport(state, session) {
   const payload = await buildExport(state, session);
   const json = JSON.stringify(payload, null, 2);
   const name = `studydesk-export-${new Date().toISOString().slice(0, 10)}.json`;
+  if (Capacitor.isNativePlatform()) {
+    const { saved } = await SaveFile.save({ name, data: json, mimeType: 'application/json' });
+    return saved ? name : null;
+  }
   const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
   const a = document.createElement('a');
   a.href = url;
@@ -112,7 +126,7 @@ export async function downloadExport(state, session) {
   a.click();
   a.remove();
   // Revoke on the next tick — revoking synchronously can cancel the download
-  // on some Android WebView versions before it has started.
+  // on some browsers before it has started.
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
   return name;
 }
@@ -130,14 +144,48 @@ export async function downloadExport(state, session) {
  * a client bundle. The function authenticates the caller by their own JWT and
  * deletes only that user, so it cannot be aimed at anyone else.
  *
- * Local data is cleared regardless of what the server says. A user who asked to
- * be deleted should not find their coursework still on the device afterwards.
+ * Local data is cleared once the server has deleted the account. A user who
+ * asked to be deleted should not find their coursework on the device afterwards.
+ *
+ * v1.21.1 (limecore#102): "guest or account" is decided from the device, not
+ * from getSession() alone. An expired session that cannot be refreshed used to
+ * look exactly like a guest: the device was wiped, the account stayed, and the
+ * user was told it was done. Now:
+ *   - an account is recorded (owner record or a stored session) but there is
+ *     no usable session, or getSession errored: refuse, wipe nothing
+ *     ({ deleted: 'none' });
+ *   - a real guest: wipe the device ({ deleted: 'local' });
+ *   - account deleted: also drop the stored session ({ deleted: 'account' }).
  */
+// limecore#124: offline with an expired session, getSession() keeps retrying
+// the refresh and never returns, so the button sat on "Deleting..." for good.
+export const SESSION_CHECK_MS = 8000;
+
 export async function deleteAccount({ clearLocal }) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    // Guest: there is no server-side account. Clearing the device is the whole
-    // of the erasure.
+  let session = null;
+  let failed = false;
+  // Offline: no session check at all (it cannot settle), so an account is
+  // refused at once below; a real guest can still erase the device.
+  if (globalThis.navigator?.onLine !== false) {
+    let timer;
+    try {
+      const { data, error } = await Promise.race([
+        supabase.auth.getSession(),
+        new Promise((_, reject) => { timer = setTimeout(reject, SESSION_CHECK_MS); }),
+      ]);
+      session = data?.session ?? null;
+      failed = !!error;
+    } catch {
+      // A throw or the timeout: refused below, nothing wiped.
+      failed = true;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  if (!session || failed) {
+    if (failed || readOwner() || (await readStoredSession())) return { deleted: 'none' };
+    // A real guest: there is no server-side account. Clearing the device is
+    // the whole of the erasure.
     await clearLocal();
     return { deleted: 'local' };
   }
@@ -170,10 +218,13 @@ export async function deleteAccount({ clearLocal }) {
   if (error) throw new Error(error.message || 'Account deletion failed');
 
   try {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: 'local' });
   } catch {
     // The user row is already gone, so the sign-out call may fail. Not fatal.
   }
+  // signOut keeps the stored session when the call fails on the network; on
+  // Android it lives in Preferences and would survive the wipe.
+  await clearStoredSession();
   await clearLocal();
   return { deleted: 'account' };
 }

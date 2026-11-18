@@ -1,0 +1,3 @@
+Sinun valintasi, sinun tietosi.
+
+Sovelluksen avauskirjaus ja F-Droid-päivitystarkistus ovat pois päältä, kunnes sanot kyllä; sovellus kysyy kerran, ja kytkin on asetuksissa. Tietojen vienti tallentaa Androidilla oikean tiedoston. Tilin poisto ei enää teeskentele: offline-tilassa se pyytää yhdistämään ensin. Nexus-kirjautuminen saa oman istunnon. Saksan 15 pisteen asteikko tallentuu tiliin, ja automaattitallennuksen kumoaminen toimii.

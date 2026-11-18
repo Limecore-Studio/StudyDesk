@@ -1,0 +1,3 @@
+Deine Wahl, deine Daten.
+
+App-Öffnungen und die F-Droid-Updateprüfung sind aus, bis du zustimmst; die App fragt einmal, ein Schalter liegt in den Einstellungen. Der Datenexport speichert auf Android eine echte Datei. Konto löschen täuscht nichts vor: offline sagt es, dass du online sein musst. Anmelden mit Nexus bekommt eine eigene Sitzung. Die 15-Punkte-Skala wird im Konto gespeichert, und Rückgängig beim Auto-Speichern wirkt.

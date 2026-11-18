@@ -13,7 +13,6 @@ import { scheduleOriginStamp } from "./lib/originMarker.js";
 import { watchAppOpens } from "./lib/appOpens.js";
 import { refreshEntitlement } from "./lib/entitlement.js";
 import { wipeAccountLocalData } from "./lib/accountWipe.js";
-import { downloadExport } from "./lib/dataRights.js";
 import StorageAlert from "./features/settings/StorageAlert.jsx";
 import TimerPill from "./features/timer/TimerPill.jsx";
 import { useAccountAvatar } from "./lib/useAccountAvatar.js";
@@ -25,6 +24,7 @@ import { hydrateOnboardedFromCloud, markOnboardedCloud } from "./lib/onboardingC
 import * as sync from "./lib/sync.js";
 import * as outbox from "./lib/outbox.js";
 import { reconcileUnsynced } from "./lib/reconcile.js";
+import { hold, release, replayHeld } from "./lib/autoSaveHold.js";
 import { stampsFromPull, mergeStamps, shouldPull } from "./lib/syncStamps.js";
 import { pastSessionDraft } from "./lib/pastSession.js";
 import { isOpenPlan, nextPlanStartAt, planSaveSteps, planToOffer } from "./lib/planRun.js";
@@ -74,9 +74,14 @@ import { useCloudPushers } from "./app/useCloudPushers.js";
 // v1.21 (StudyDesk#224) — the plan list, the course pane, the course modals and
 // the save-session sheet left the startup chunk too: none of them is on first
 // paint. The startup bundle was at 705.8 of 706 KiB; the budget went down with
-// this change instead of up. `dataRights.js` stays static on purpose: it is the
+// this change instead of up.
+//
+// v1.21.1 (limecore#102): `dataRights.js` left the startup chunk too. It is the
 // export behind StorageAlert and the crash screen, and an escape hatch must not
-// depend on a chunk load succeeding.
+// depend on a chunk load succeeding at the moment it is needed, so it is
+// fetched with the save sheet once launch settles (below); the module cache
+// then holds it.
+const loadDataRights = () => import("./lib/dataRights.js");
 const PlanView = lazy(() => import("./features/plan/PlanView.jsx"));
 const CourseDetailView = lazy(() => import("./features/plan/CourseDetailView.jsx"));
 const AddAsgnModal = lazy(() => import("./features/plan/CourseModals.jsx").then((m) => ({ default: m.AddAsgnModal })));
@@ -91,6 +96,7 @@ const SaveSessionSheet = lazy(loadSaveSessionSheet);
 // renders nothing until a check it runs 4 s after mount finds a newer build,
 // so its code, and lib/fdroidUpdate.js behind it, need not be in the startup
 // chunk.
+// v1.21.1 (limecore#87): it also mounts the one-time opt-in question.
 const FdroidUpdateNote = lazy(() => import("./features/update/FdroidUpdateNote.jsx"));
 const GradesView = lazy(() => import("./features/grades/GradesView.jsx"));
 const SessionsView = lazy(() => import("./features/sessions/SessionsView.jsx"));
@@ -124,7 +130,7 @@ export default function App() {
   // `loadSaveSessionSheet` above). A failure here is harmless: the lazy
   // component retries the import when it is first rendered.
   useEffect(() => {
-    const warm = () => { loadSaveSessionSheet().catch(() => {}); };
+    const warm = () => { loadSaveSessionSheet().catch(() => {}); loadDataRights().catch(() => {}); };
     if (typeof window.requestIdleCallback === "function") {
       const id = window.requestIdleCallback(warm, { timeout: 5000 });
       return () => window.cancelIdleCallback?.(id);
@@ -193,8 +199,6 @@ export default function App() {
   // its useState had run.
   const [onboardChecked, setOnboardChecked] = useState(false);
   usePersistState(state);
-  // v1.18.2: the grade scale follows the account, so NCC can read it.
-  useGradeScaleSync(state, dispatch, session?.user?.id);
 
   useReminders({ onboarded, state, t });
 
@@ -266,6 +270,9 @@ export default function App() {
   const [newCourseName, setNewCourseName] = useState("");
   const [newCourseColor, setNewCourseColor] = useState(COURSE_COLORS[0]);
   const showFlash = useCallback((msg) => { setFlash(msg); setTimeout(()=>setFlash(null),2200); }, []);
+  // v1.18.2: the grade scale follows the account, so NCC can read it.
+  // (Below showFlash: a refused save is shown, StudyDesk#233.)
+  useGradeScaleSync(state, dispatch, session?.user?.id, showFlash, t);
 
   const { onDeleteNote } = useNoteSync({ state, session, pulledOnce, remoteStampsRef, dispatch });
 
@@ -278,8 +285,9 @@ export default function App() {
   // the browser, touching no persistent storage on the way.
   const onExportFromAlert = useCallback(async () => {
     try {
+      const { downloadExport } = await loadDataRights();
       const name = await downloadExport(state, session);
-      showFlash(t('settings.exportDone', { name }));
+      if (name) showFlash(t('settings.exportDone', { name }));
     } catch (e) {
       showFlash(t('settings.exportFailed', { msg: e.message }));
     }
@@ -487,6 +495,8 @@ export default function App() {
     pulledOnceRef.current = false;
     setPulledOnce(false);
     remoteStampsRef.current = null;
+    // StudyDesk#254: queue an automatic save a run that died left held.
+    replayHeld(session.user.id, outbox.enqueue);
     let cancelled = false;
     let lastPullAt = NaN;
     // v1.20 (#202) — Focus Sync, loaded with the live-sync engine below.
@@ -640,6 +650,9 @@ export default function App() {
       if (session) for (const [op, p] of autoSaved.steps.outbox) outbox.enqueue(op, p);
     }
     for (const a of steps.actions) dispatch(a);
+    // StudyDesk#253 / #254: reconcile skips these ids, and the ops survive the
+    // app dying inside the window (lib/autoSaveHold.js).
+    hold(restore.sessionId, planId, session?.user?.id, steps.outbox);
     setAutoSaved({ key: Date.now(), pending: payload, steps, restore });
   };
   // Push when the window closes, or at once if the app is hidden first. Each
@@ -651,6 +664,7 @@ export default function App() {
       if (settled.has(autoSaved)) return;
       settled.add(autoSaved);
       if (session) for (const [op, payload] of autoSaved.steps.outbox) outbox.enqueue(op, payload);
+      release();
       setAutoSaved((cur) => (cur === autoSaved ? null : cur));
     };
     const id = setTimeout(flush, UNDO_MS);
@@ -662,6 +676,7 @@ export default function App() {
     const a = autoSaved;
     if (!a || autoSaveSettled.current.has(a)) return;
     autoSaveSettled.current.add(a);
+    release();
     dispatch(a.restore);
     setAutoSaved(null);
     if (thenEdit) setPendingSession(a.pending);
@@ -828,6 +843,7 @@ export default function App() {
   // auth effect: the trigger is the app being foregrounded, not a session
   // arriving. Guests and same-day repeats are filtered inside recordAppOpen.
   useEffect(() => watchAppOpens(), []);
+
 
   // v1.12 Item 5 — supporter entitlement. Keyed on the user id rather than the
   // session object so a token refresh does not re-ask; `refreshEntitlement`
@@ -1101,7 +1117,7 @@ export default function App() {
           <StorageAlert onExport={onExportFromAlert} />
           {/* v1.16 (#67) — Android only, once a day, off in Settings. Renders
               nothing unless F-Droid has a newer build than this one. */}
-          <Suspense fallback={null}><FdroidUpdateNote /></Suspense>
+          <Suspense fallback={null}><FdroidUpdateNote signedIn={!!session && !guest} /></Suspense>
           {(urgent.length>0||urgentExams.length>0)&&state.view==="plan"&&(
             <div className="urgent-banner"><span>⚠️</span><div>
               <strong>{t('av.chrome.urgent')}</strong> —{" "}

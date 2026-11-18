@@ -105,5 +105,7 @@
          API 30+. -->
     <queries>
         <provider android:authorities="com.limecore.nexus.session" />
+        <!-- v1.21.1 (limecore#101): launch intent for "Open Nexus". -->
+        <package android:name="com.limecore.nexus" />
     </queries>
 </manifest>

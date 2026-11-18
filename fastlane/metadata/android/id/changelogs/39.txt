@@ -1,0 +1,3 @@
+Pilihanmu, datamu.
+
+Catatan pembukaan aplikasi dan cek pembaruan F-Droid kini mati sampai kamu setuju; aplikasi bertanya sekali dan ada sakelar di Pengaturan. Ekspor data menyimpan file sungguhan di Android. Hapus akun tidak lagi berpura-pura: saat offline, kamu diminta online dulu. Masuk dengan Nexus punya sesi sendiri. Skala Jerman 15 poin tersimpan di akunmu, dan Urungkan simpan otomatis benar-benar membatalkan.

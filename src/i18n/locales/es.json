@@ -253,6 +253,8 @@
     "deleteAccountConfirm1": "¿Eliminar tu cuenta y todos tus datos? Esto no se puede deshacer.",
     "deleteAccountConfirm2": "Última oportunidad: todo se borrará de inmediato. ¿Continuar?",
     "deleteAccountDone": "Tu cuenta y tus datos han sido eliminados.",
+    "deleteGuestDone": "Se borraron los datos de este dispositivo. No había ninguna cuenta que eliminar.",
+    "deleteNeedsSignIn": "Para eliminar tu cuenta debes estar en línea y con la sesión iniciada. No se eliminó nada.",
     "deleteAccountFailed": "No se pudo eliminar la cuenta: {{msg}}",
     "remindersLbl": "Recordatorios",
     "reminders": "Recordatorios de estudio",
@@ -471,6 +473,7 @@
     "maybeLater": "Quizás más tarde"
   },
   "gv": {
+    "scaleUnsaved": "No se pudo guardar esta escala en tu cuenta.",
     "addCourseFirst": "Añade primero un curso",
     "gradeAdded": "Nota añadida",
     "gradeUpdated": "Nota actualizada",

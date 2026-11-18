@@ -42,6 +42,7 @@
 // the next mutation triggers another drain). We never silently drop.
 
 import * as sync from './sync.js';
+import { readConsent } from './consent.js';
 import { writeJson } from './localStore.js';
 import { editStamp } from './editStamp.js';
 import { isPageStale } from './deviceOwner.js';
@@ -852,7 +853,9 @@ const KIND_DISPATCH = {
   // foreground before `adoptSession()` has resolved, and RLS would reject the
   // write with no session; and the phone is often offline at exactly the
   // moment the app comes up. Both resolve into a retry rather than a lost day.
-  record_app_open: (p) => sync.recordAppOpen(p),
+  // v1.21.1 (limecore#87): an open queued by an older version, or before the
+  // answer changed to no, is dropped rather than sent.
+  record_app_open: (p) => readConsent().opens === true && sync.recordAppOpen(p),
   // v1.20 (StudyDesk#156) — progress counters. Their push code loads on
   // demand, so it stays out of the startup bundle.
   upsert_counter: (p) => import('./counterSync.js').then((m) => m.upsertCounter(p)),

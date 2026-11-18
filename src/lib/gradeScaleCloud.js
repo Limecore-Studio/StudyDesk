@@ -27,6 +27,11 @@ import { supabase } from './supabase.js';
 import { isGradeMode, normalizeScale } from './gradeScale.js';
 
 const DIRTY_KEY = 'studydesk-grade-scale-dirty'; // holds the user id it is dirty for
+// v1.21.1 (StudyDesk#233): user id + scaleKey of the scale the server refused
+// with a CHECK violation. That exact scale is not sent again, so
+// a refused save no longer retries on every launch. The dirty mark stays, so
+// the server's older scale does not replace the local one either.
+const REFUSED_KEY = 'studydesk-grade-scale-refused';
 const PUSH_DELAY_MS = 1500;
 
 /** The comparable identity of a scale setting. */
@@ -62,9 +67,18 @@ function clearDirty(userId) {
   try { if (localStorage.getItem(DIRTY_KEY) === userId) localStorage.removeItem(DIRTY_KEY); } catch { /* best-effort */ }
 }
 
+// Stored as user id + scaleKey; null removes it.
+function markRefused(value) {
+  try { value ? localStorage.setItem(REFUSED_KEY, value) : localStorage.removeItem(REFUSED_KEY); } catch { /* best-effort */ }
+}
+
 let baseline = null;   // scaleKey of the setting we last synced or adopted
 let timer = null;
 let pending = null;    // { userId, mode, custom }
+
+// Told once per refused save (App shows the message).
+let onRefused = null;
+export function onScaleRefused(fn) { onRefused = fn; }
 
 /** Reset between tests. */
 export function _resetForTests() {
@@ -83,8 +97,14 @@ export async function pushGradeScale(userId, mode, custom) {
     );
     if (error) {
       console.warn('[grade-scale] cloud write failed:', error.message);
+      // 23514: the server will refuse this scale every time. Say so once.
+      if (error.code === '23514') {
+        markRefused(userId + scaleKey(mode, custom));
+        onRefused?.();
+      }
       return false;
     }
+    markRefused(null);
     // Only clear when nothing newer is waiting.
     if (!pending || pending.userId !== userId) clearDirty(userId);
     return true;
@@ -132,6 +152,7 @@ export async function syncGradeScaleOnSignIn(userId, local, apply) {
   try {
     if (dirtyFor() === userId) {
       setBaseline(local.mode, local.custom);
+      if (localStorage.getItem(REFUSED_KEY) === userId + scaleKey(local.mode, local.custom)) return 'refused';
       await pushGradeScale(userId, local.mode, local.custom);
       return 'pushed-dirty';
     }
