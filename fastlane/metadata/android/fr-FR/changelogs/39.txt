@@ -1,0 +1,3 @@
+Votre choix, vos données.
+
+Le relevé d'ouverture et la vérification des mises à jour F-Droid sont désactivés jusqu'à votre accord ; l'app demande une fois, un interrupteur est dans les Réglages. L'export enregistre un vrai fichier sur Android. Supprimer le compte ne fait plus semblant : hors ligne, il vous demande de vous connecter. Nexus a sa propre session. Le barème allemand sur 15 s'enregistre et Annuler fonctionne.

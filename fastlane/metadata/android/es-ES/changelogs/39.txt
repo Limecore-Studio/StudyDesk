@@ -1,0 +1,3 @@
+Tu elección, tus datos.
+
+El registro de aperturas y la comprobación de actualizaciones de F-Droid están apagados hasta que digas que sí; la app pregunta una vez y hay un interruptor en Ajustes. Exportar mis datos guarda un archivo real en Android. Borrar la cuenta ya no finge: sin conexión te pide conectarte. Iniciar con Nexus tiene su propia sesión. La escala alemana de 15 puntos se guarda en tu cuenta y Deshacer funciona.
