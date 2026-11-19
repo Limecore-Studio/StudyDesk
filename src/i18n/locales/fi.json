@@ -761,7 +761,8 @@
       "typeCustomPh": "Nimeä tyyppi (esim. Esitys)",
       "repeatUntil": "Asti",
       "examRepeatSummary": "{{count}} koetta, viimeinen {{until}}",
-      "asgnRepeatSummary": "{{count}} tehtävää, viimeinen {{until}}"
+      "asgnRepeatSummary": "{{count}} tehtävää, viimeinen {{until}}",
+      "nextWeek": "Ensi viikolla"
     },
     "act": {
       "addManually": "Lisää käsin",

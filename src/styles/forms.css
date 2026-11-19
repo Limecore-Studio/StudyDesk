@@ -223,3 +223,10 @@ button.asgn-check.checked{background:var(--text);}
 .undo-bar-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
 .undo-bar button{background:transparent;border:1px solid currentColor;color:inherit;font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 12px;border-radius:3px;cursor:pointer;flex-shrink:0;}
 @media (max-width:768px){.undo-bar{bottom:calc(84px + env(safe-area-inset-bottom));}}
+
+/* StudyDesk#269 — Add Assignment at 360 px. Quick dates use the outline
+   button; the footer sticks to the bottom of the scrolling modal so Save is
+   never under the keyboard. Its paper matches the surface it covers. */
+.quick-dates{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 10px;}
+.quick-dates .btn-outline.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+.modal-footer-sticky{display:flex;gap:8px;position:sticky;bottom:-28px;margin:4px -28px -28px;padding:12px 28px 20px;background:var(--surface);border-top:1px solid var(--border);z-index:1;}

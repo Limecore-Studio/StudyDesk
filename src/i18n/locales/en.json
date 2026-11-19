@@ -761,7 +761,8 @@
       "typeCustomPh": "Name the type (e.g. Presentation)",
       "repeatUntil": "Until",
       "examRepeatSummary": "{{count}} exams, the last on {{until}}",
-      "asgnRepeatSummary": "{{count}} assignments, the last due {{until}}"
+      "asgnRepeatSummary": "{{count}} assignments, the last due {{until}}",
+      "nextWeek": "Next week"
     },
     "act": {
       "addManually": "Add manually",

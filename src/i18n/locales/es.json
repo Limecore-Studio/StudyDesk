@@ -768,7 +768,8 @@
       "typeCustomPh": "Nombra el tipo (p. ej. Presentación)",
       "repeatUntil": "Hasta",
       "examRepeatSummary": "{{count}} exámenes, el último el {{until}}",
-      "asgnRepeatSummary": "{{count}} tareas, la última para el {{until}}"
+      "asgnRepeatSummary": "{{count}} tareas, la última para el {{until}}",
+      "nextWeek": "La próxima semana"
     },
     "act": {
       "addManually": "Añadir manualmente",

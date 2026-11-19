@@ -754,7 +754,8 @@
       "typeCustomPh": "Beri nama jenisnya (mis. Presentasi)",
       "repeatUntil": "Sampai",
       "examRepeatSummary": "{{count}} ujian, yang terakhir {{until}}",
-      "asgnRepeatSummary": "{{count}} tugas, yang terakhir {{until}}"
+      "asgnRepeatSummary": "{{count}} tugas, yang terakhir {{until}}",
+      "nextWeek": "Minggu depan"
     },
     "act": {
       "addManually": "Tambah manual",

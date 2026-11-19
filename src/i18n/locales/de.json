@@ -761,7 +761,8 @@
       "typeCustomPh": "Typ benennen (z. B. Präsentation)",
       "repeatUntil": "Bis",
       "examRepeatSummary": "{{count}} Prüfungen, die letzte am {{until}}",
-      "asgnRepeatSummary": "{{count}} Aufgaben, die letzte fällig am {{until}}"
+      "asgnRepeatSummary": "{{count}} Aufgaben, die letzte fällig am {{until}}",
+      "nextWeek": "Nächste Woche"
     },
     "act": {
       "addManually": "Manuell hinzufügen",
