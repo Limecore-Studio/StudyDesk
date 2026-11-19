@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { toShared, toLocal, transitionKey, sameTransition, savesCompletion, remainingSecs, isActive } from './focusTimer.js';
+import { toShared, toLocal, transitionKey, sameTransition, savesCompletion, remainingSecs, isActive, blockOnClock } from './focusTimer.js';
 
 // v1.20 (#202) — Focus Sync's shape: the `sd-timer` record to shared state
 // and back, and which local changes are worth sending.
@@ -105,5 +105,16 @@ describe('reading shared state (#189)', () => {
     expect(isActive(shared({ running: false, startedAt: null, secsLeft: 1500 }))).toBe(false);
     expect(isActive(shared({ running: false, phase: 'short', secsLeft: 300 }))).toBe(false);
     expect(isActive(null)).toBe(false);
+  });
+});
+
+describe('blockOnClock (StudyDesk#240)', () => {
+  it('a completed block (run and start cleared) is not harvested again', () => {
+    expect(blockOnClock(null, null)).toBe(false);
+  });
+  it('a running or paused block is', () => {
+    expect(blockOnClock('run-1', 1_700_000_000_000)).toBe(true);
+    expect(blockOnClock(null, 1_700_000_000_000)).toBe(true);
+    expect(blockOnClock('run-1', null)).toBe(true);
   });
 });

@@ -15,7 +15,7 @@ import { fmtTime } from '../../lib/dates.js';
 import { startFocus, stopFocus } from '../../lib/focusMode.js';
 import { enterSubmit } from '../../lib/imeSubmit.js';
 import { TIMER_CHANGE_EVENT, finishedWhileAway } from '../../lib/timerSnapshot.js';
-import { FOCUS_REMOTE_EVENT, focusDeviceId, savesCompletion } from '../../lib/focusTimer.js';
+import { FOCUS_REMOTE_EVENT, focusDeviceId, savesCompletion, blockOnClock } from '../../lib/focusTimer.js';
 import { isPageStale } from '../../lib/deviceOwner.js';
 import { pastSessionDraft } from '../../lib/pastSession.js';
 import { preferredDayStart, studyDayKey, todayStudyDayKey, dayKeyToDate } from '../../lib/studyDay.js';
@@ -529,6 +529,9 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
     // A stopwatch has no phases, so the focus-phase check applies only to
     // Pomodoro. In stopwatch mode the counter IS the elapsed time.
     if (!sw && phaseRef.current !== 'focus') return;
+    // StudyDesk#240: a block completed in this same commit (the ended-while-
+    // away effect, then a plan's Start focus) was saved already.
+    if (!blockOnClock(runIdRef.current, phaseStartedAtRef.current)) return;
     const elapsedSecs = sw ? secsLeft : customFocusRef.current*60 - secsLeft;
     // A block abandoned in the first minute is a misclick, not a session.
     // v1.20 (#202): the block is over either way, so its run is too.
