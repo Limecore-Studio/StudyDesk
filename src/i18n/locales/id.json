@@ -226,7 +226,7 @@
     "pullLatest": "Ambil data terbaru sekarang",
     "retrying": "Mencoba lagi…",
     "retryNow": "Coba lagi sekarang",
-    "syncNote": "Realtime menerima perubahan masuk dalam ~1,5 detik. Perubahan keluar melewati outbox lokal yang otomatis mencoba lagi saat jaringan pulih dan aplikasi dibuka kembali.",
+    "syncNote": "Perubahan dari perangkatmu yang lain muncul dalam hitungan detik. Apa pun yang kamu ubah saat offline disimpan di sini dan dikirim saat kamu kembali online.",
     "gradeScale": "Skala nilai",
     "gradeNote": "IB: rata-rata berbobot pada skala 1–7. AS: persentase per mata pelajaran → poin 4.0, lalu dibobot dengan kredit. Disimpan lokal — tidak disinkronkan.",
     "techDetails": "Detail teknis",
@@ -788,7 +788,8 @@
       "loading": "MEMUAT…",
       "updateShort": "Pembaruan tersedia",
       "updateDownloading": "Mengunduh… {{percent}}%",
-      "updateReady": "Mulai ulang untuk memperbarui"
+      "updateReady": "Mulai ulang untuk memperbarui",
+      "moreCount": "+{{n}} lainnya"
     },
     "flash": {
       "courseAdded": "Mata pelajaran ditambahkan",

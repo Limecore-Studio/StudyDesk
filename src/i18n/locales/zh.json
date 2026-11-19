@@ -228,7 +228,7 @@
     "pullLatest": "立即拉取最新",
     "retrying": "重试中…",
     "retryNow": "立即重试",
-    "syncNote": "实时同步在约 1.5 秒内应用传入的更改。传出的写入通过本地发件箱进行，在网络恢复和应用恢复时自动重试。",
+    "syncNote": "你在其他设备上的更改会在几秒内出现。离线时的更改会先保存在这里，联网后自动发送。",
     "gradeScale": "成绩制度",
     "gradeNote": "IB：1–7 制上的加权平均。US：每门课百分比 → 4.0 绩点，再按学分加权。本地存储 — 不同步。",
     "techDetails": "技术详情",
@@ -793,7 +793,8 @@
       "loading": "加载中…",
       "updateShort": "有可用更新",
       "updateDownloading": "正在下载… {{percent}}%",
-      "updateReady": "重启以更新"
+      "updateReady": "重启以更新",
+      "moreCount": "另外 {{n}} 项"
     },
     "flash": {
       "courseAdded": "课程已添加",

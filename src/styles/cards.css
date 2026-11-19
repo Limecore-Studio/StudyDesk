@@ -15,6 +15,8 @@
 .course-card-pill.urgent{background:var(--danger-tint);color:var(--danger);border-color:var(--danger-tint-border);}
 .course-card-chevron{font-size:10px;color:var(--muted2);transition:transform 0.2s;flex-shrink:0;margin-inline-start:6px;}
 .course-card-chevron.open{transform:rotate(90deg);}
+/* StudyDesk#272: points the way the text flows. */
+[dir="rtl"] .course-card-chevron:not(.open){transform:scaleX(-1);}
 .course-card-detail{border-top:1px solid var(--border);padding:12px 16px 14px;background:var(--surface2);}
 .course-card-next{font-size:12px;color:var(--muted);line-height:1.7;}
 .course-card-actions{display:flex;gap:8px;margin-top:10px;}

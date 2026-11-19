@@ -231,7 +231,7 @@
     "pullLatest": "Récupérer maintenant",
     "retrying": "Nouvelle tentative…",
     "retryNow": "Réessayer",
-    "syncNote": "Le temps réel applique les changements entrants en ~1,5 s. Les écritures sortantes passent par une file locale qui réessaie automatiquement au retour du réseau et à la reprise de l’app.",
+    "syncNote": "Les changements faits sur tes autres appareils apparaissent en quelques secondes. Ce que tu modifies hors ligne est enregistré ici et envoyé dès ton retour en ligne.",
     "gradeScale": "Échelle de notes",
     "gradeNote": "IB : moyenne pondérée sur l’échelle 1–7. US : pourcentage par cours → points 4.0, puis pondéré par crédits. Stocké localement — ne se synchronise pas.",
     "techDetails": "Détails techniques",
@@ -802,7 +802,8 @@
       "loading": "CHARGEMENT…",
       "updateShort": "Mise à jour disponible",
       "updateDownloading": "Téléchargement… {{percent}} %",
-      "updateReady": "Redémarrer pour mettre à jour"
+      "updateReady": "Redémarrer pour mettre à jour",
+      "moreCount": "+{{n}} autres"
     },
     "flash": {
       "courseAdded": "Cours ajouté",
