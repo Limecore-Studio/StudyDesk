@@ -23,7 +23,12 @@ import { readFileSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const BUDGET_KIB = 645; // v1.22 (limecore#126): reminders, widget bridge, grade-scale sync, reconciler, SSO probe, timetable, done sheet and one-off cards load on demand; measured 644.6 KiB (was 668 at 666.9)
+// v1.22 (limecore#126): reminders, widget bridge, grade-scale sync, reconciler,
+// SSO probe, timetable, done sheet and one-off cards load on demand; measured
+// 644.6 KiB. 20 KiB of headroom is kept on the owner's decision (2026-11-19) for
+// v1.22 fixes; the v1.22 release PR sets it back to the measured size. Was 668,
+// so this still lowers the budget.
+const BUDGET_KIB = 665;
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
