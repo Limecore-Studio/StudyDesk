@@ -713,6 +713,12 @@ async function drainPass(pushed) {
 // getStatus again, repeat). Invalidated by saveItems/saveMeta/clear.
 let cachedStatus = null;
 
+/** StudyDesk#232: the queued items, oldest first, for a pull to see which
+ *  rows have a delete still waiting (pushDiff.js withoutQueuedDeletes). */
+export function queuedItems() {
+  return loadItems();
+}
+
 /** Current queue depth + meta for the Settings panel.
  *
  *  Stable-reference contract: returns the same object reference until the
