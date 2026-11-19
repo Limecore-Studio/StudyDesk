@@ -30,11 +30,14 @@
 
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import { COURSE_COLORS } from './courseColors.js';
+import { COURSE_COLORS, COURSE_COLOR_NAMES } from './courseColors.js';
 
 const css = `
-.cp-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-.cp-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;padding:0;border:none;outline-offset:2px;}
+.cp-row{display:flex;gap:20px;flex-wrap:wrap;align-items:center;}
+/* StudyDesk#271: a 44 px target around the 24 px swatch, so the row is
+   tappable without precision; the dot is what is drawn and outlined. */
+.cp-swatch{width:44px;height:44px;margin:-10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;border:none;background:none;}
+.cp-swatch-dot{width:24px;height:24px;border-radius:50%;outline-offset:2px;pointer-events:none;}
 .cp-custom{position:relative;width:24px;height:24px;border-radius:50%;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
   /* Conic wheel so the control reads as "any colour" before it is opened. */
   background:conic-gradient(#c0392b,#d4860a,#2e7d52,#1e7d7d,#1a5c9e,#6d3fa0,#8b4a62,#c0392b);}
@@ -74,16 +77,17 @@ export default function CoursePicker({ value, onChange, allowNone = false }) {
             aria-pressed={!value}
           />
         )}
-        {COURSE_COLORS.map((c) => (
+        {COURSE_COLORS.map((c, i) => (
           <button
             key={c}
             type="button"
             className="cp-swatch"
-            style={{ background: c, outline: value === c ? `3px solid ${c}` : '2px solid transparent' }}
             onClick={() => onChange(c)}
-            aria-label={t('course.colorSwatch', { hex: c })}
+            aria-label={t('course.colorSwatch', { name: t(`course.colorName.${COURSE_COLOR_NAMES[i]}`) })}
             aria-pressed={value === c}
-          />
+          >
+            <span className="cp-swatch-dot" style={{ background: c, outline: value === c ? `3px solid ${c}` : '2px solid transparent' }} />
+          </button>
         ))}
         {/* Sits last so tabbing reaches the eight presets first. When a custom
             colour is active the wheel is outlined in it, so the current choice

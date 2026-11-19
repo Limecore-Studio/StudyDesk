@@ -292,8 +292,8 @@ export default function GradesView({ state, dispatch, showFlash, session }) {
                 <span className="gv-row-meta">{g.date || '—'}</span>
                 <span />
                 <span className="gv-row-actions">
-                  <button onClick={() => { setEditing(g); setShowAdd({ subjectId: g.subjectId }); }} title={t('common.edit')}>✎</button>
-                  <button className="danger" onClick={() => delGrade(g.id)} title={t('common.delete')}>×</button>
+                  <button onClick={() => { setEditing(g); setShowAdd({ subjectId: g.subjectId }); }} title={t('common.edit')} aria-label={t('common.edit')}>✎</button>
+                  <button className="danger" onClick={() => delGrade(g.id)} title={t('common.delete')} aria-label={t('common.delete')}>×</button>
                 </span>
               </div>
               );

@@ -129,9 +129,19 @@
     "deleteConfirm": "सारा डेटा मिटाएँ?",
     "yesDelete": "हाँ, मिटाएँ",
     "no": "नहीं",
-    "colorSwatch": "रंग {{hex}}",
+    "colorSwatch": "रंग: {{name}}",
     "colorCustom": "कोई भी रंग चुनें",
-    "colorNone": "कोई रंग नहीं"
+    "colorNone": "कोई रंग नहीं",
+    "colorName": {
+      "red": "लाल",
+      "amber": "एम्बर",
+      "green": "हरा",
+      "blue": "नीला",
+      "purple": "बैंगनी",
+      "rust": "जंग",
+      "teal": "टील",
+      "plum": "प्लम"
+    }
   },
   "history": {
     "title": "अवधि इतिहास · संग्रह",

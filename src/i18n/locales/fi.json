@@ -55,9 +55,19 @@
     "deleteConfirm": "Poistetaanko kaikki tiedot?",
     "yesDelete": "Kyllä, poista",
     "no": "Ei",
-    "colorSwatch": "Väri {{hex}}",
+    "colorSwatch": "Väri: {{name}}",
     "colorCustom": "Valitse mikä tahansa väri",
-    "colorNone": "Ei väriä"
+    "colorNone": "Ei väriä",
+    "colorName": {
+      "red": "Punainen",
+      "amber": "Meripihka",
+      "green": "Vihreä",
+      "blue": "Sininen",
+      "purple": "Violetti",
+      "rust": "Ruoste",
+      "teal": "Sinivihreä",
+      "plum": "Luumu"
+    }
   },
   "history": {
     "title": "Jaksohistoria · Arkisto",

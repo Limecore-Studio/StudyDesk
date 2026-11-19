@@ -55,9 +55,19 @@
     "deleteConfirm": "Alle Daten löschen?",
     "yesDelete": "Ja, löschen",
     "no": "Nein",
-    "colorSwatch": "Farbe {{hex}}",
+    "colorSwatch": "Farbe: {{name}}",
     "colorCustom": "Beliebige Farbe wählen",
-    "colorNone": "Keine Farbe"
+    "colorNone": "Keine Farbe",
+    "colorName": {
+      "red": "Rot",
+      "amber": "Bernstein",
+      "green": "Grün",
+      "blue": "Blau",
+      "purple": "Lila",
+      "rust": "Rost",
+      "teal": "Petrol",
+      "plum": "Pflaume"
+    }
   },
   "history": {
     "title": "Periodenverlauf · Archiv",

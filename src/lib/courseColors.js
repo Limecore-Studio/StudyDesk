@@ -14,3 +14,7 @@ export const COURSE_COLORS = [
   '#c0392b', '#d4860a', '#2e7d52', '#1a5c9e',
   '#6d3fa0', '#b5470b', '#1e7d7d', '#8b4a62',
 ];
+
+// StudyDesk#271 — what a screen reader says for each preset, in the same
+// order (i18n keys course.colorName.*). A hex code is not a colour name.
+export const COURSE_COLOR_NAMES = ['red', 'amber', 'green', 'blue', 'purple', 'rust', 'teal', 'plum'];
