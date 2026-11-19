@@ -86,6 +86,23 @@ log(`app starting — __dirname=${__dirname} DIST_DIR=${DIST_DIR} exists=${fs.ex
 process.on('uncaughtException', (err) => log(`UNCAUGHT EXCEPTION: ${err && err.stack}`));
 process.on('unhandledRejection', (err) => log(`UNHANDLED REJECTION: ${err && err.stack}`));
 
+// StudyDesk#242 — one process per profile. The tray and the glance widget keep
+// the app alive with the main window closed, and a relaunch from the Start
+// menu then started a second process on the same userData: a second tray icon,
+// a second auth listener, two Supabase clients refreshing one refresh token
+// (which can sign the user out), and a fight over the Local Storage lock. The
+// second launch now hands over to the first, which shows its main window.
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  log('another StudyDesk instance is running; handing over to it');
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    log('second launch: showing the main window');
+    if (app.isReady()) openMainWindow();
+  });
+}
+
 const MIME_TYPES = {
   '.html': 'text/html',
   '.js': 'text/javascript',
@@ -556,6 +573,8 @@ setupUpdates({
 
 app.whenReady().then(async () => {
   log('app.whenReady resolved');
+  // StudyDesk#242: this launch is quitting in favour of the running one.
+  if (!gotSingleInstanceLock) return;
   registerProtocolHandler();
   log(`serving ${DIST_DIR} at ${APP_ORIGIN}/ (stable origin)`);
   // Before createWindow: the redirect URI is passed to the renderer as a
@@ -570,5 +589,6 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
+  if (!gotSingleInstanceLock) return;
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
