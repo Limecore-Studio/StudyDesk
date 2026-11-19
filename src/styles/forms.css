@@ -223,3 +223,10 @@ button.asgn-check.checked{background:var(--text);}
 .undo-bar-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
 .undo-bar button{background:transparent;border:1px solid currentColor;color:inherit;font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 12px;border-radius:3px;cursor:pointer;flex-shrink:0;}
 @media (max-width:768px){.undo-bar{bottom:calc(84px + env(safe-area-inset-bottom));}}
+
+/* StudyDesk#270 — a 48 dp hit area without changing the drawn size, so the
+   notebook keeps its small controls. An invisible box centred on each one. */
+.btn-sm,.btn-danger-text,.timer-pill,.topbar-avatar{position:relative;}
+.btn-sm::after,.btn-danger-text::after,.timer-pill::after,.topbar-avatar::after{
+  content:"";position:absolute;inset:50% auto auto 50%;
+  width:max(100%,48px);height:max(100%,48px);transform:translate(-50%,-50%);}
