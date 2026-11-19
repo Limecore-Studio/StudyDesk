@@ -663,7 +663,7 @@ export default function SettingsView({ state, dispatch, showFlash, session }) {
       // v1.12 Item 1 (#38) — same repair as the cold-start pull in App.jsx.
       // Wired here too because this button is what a user reaches for when
       // sync looks wrong, and it is the one the reporter was pressing.
-      reconcileUnsynced(state, remote, outbox);
+      reconcileUnsynced(state, remote, outbox, { userId: session.user?.id });
       setLastPullAt(new Date().toISOString());
       showFlash(t('settings.syncedSummary', { subjects: remote.subjects.length, grades: remote.grades.length, sessions: remote.sessions.length }));
     } catch (e) {
