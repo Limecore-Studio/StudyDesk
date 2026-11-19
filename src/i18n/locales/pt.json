@@ -1086,7 +1086,11 @@
     "examTodayTitle": "📝 Prova hoje — boa sorte",
     "dueTomorrowTitle": "📋 Entrega amanhã",
     "dueTodayTitle": "📋 Entrega hoje",
-    "markDone": "Marcar como feito"
+    "markDone": "Marcar como feito",
+    "focusEndTitle": "Bloco de foco concluído",
+    "focusEndBody": "Hora de fazer uma pausa.",
+    "breakEndTitle": "A pausa acabou",
+    "breakEndBody": "Pronto para o próximo bloco?"
   },
   "referral": {
     "eyebrow": "UMA PERGUNTA",

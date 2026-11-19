@@ -1068,7 +1068,11 @@
     "examTodayTitle": "📝 Ujian hari ini — semoga sukses",
     "dueTomorrowTitle": "📋 Tenggat besok",
     "dueTodayTitle": "📋 Tenggat hari ini",
-    "markDone": "Tandai selesai"
+    "markDone": "Tandai selesai",
+    "focusEndTitle": "Blok fokus selesai",
+    "focusEndBody": "Waktunya istirahat.",
+    "breakEndTitle": "Istirahat selesai",
+    "breakEndBody": "Siap untuk blok fokus berikutnya?"
   },
   "referral": {
     "eyebrow": "SATU PERTANYAAN",

@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import * as outbox from "../lib/outbox.js";
 import { ACTION_DONE_ID } from "../lib/notificationActions.js";
+import { Capacitor } from "@capacitor/core";
+import { TIMER_CHANGE_EVENT } from "../lib/timerSnapshot.js";
 
 export function useOutboxTriggers(requestPullRef) {
   // v1.3 — outbox drain triggers. The outbox holds pending Supabase writes
@@ -52,12 +54,12 @@ export function useOutboxTriggers(requestPullRef) {
 
 export function useReminderActions(dispatch, onOpenPlan) {
   // Listen for "Mark done" action-button taps on assignment reminders.
-  // The handler dispatches TOGGLE_ASSIGNMENT — since reschedules filter out
-  // assignments where done===true, the next scheduling pass naturally drops
-  // any further reminders for the just-completed assignment. The reducer's
-  // toggle (rather than a one-way mark-done) is fine here because Android
-  // auto-dismisses the notification on action tap, so accidental
-  // double-taps that would un-toggle aren't reachable.
+  // The handler dispatches SET_ASSIGNMENT_DONE — since reschedules filter
+  // out assignments where done===true, the next scheduling pass naturally
+  // drops any further reminders for the just-completed assignment. One-way
+  // (StudyDesk#239): a reminder delivered before the assignment was ticked
+  // elsewhere stays in the tray, and a toggle from it reopened the
+  // assignment on every device.
   useEffect(() => {
     // Hold the listener PROMISE and remove via it. With the old
     // `let handle=null; (async)=>{handle=await add()}` pattern, React 19
@@ -82,6 +84,8 @@ export function useReminderActions(dispatch, onOpenPlan) {
               // block's start sheet instead, on top of whatever screen the
               // app was on. With the app killed this fires once the listener
               // is registered at launch, which is the same path.
+              // StudyDesk#241 — the timer's end alarm opens the timer.
+              if (event.notification?.extra?.focusEnd) { dispatch({ type: "SET_VIEW", view: "timer" }); return; }
               const planId = event.notification?.extra?.planId;
               if (planId && onOpenPlan) { onOpenPlan(planId); return; }
               dispatch({ type: "SET_VIEW", view: "plan" });
@@ -90,10 +94,29 @@ export function useReminderActions(dispatch, onOpenPlan) {
             if (event.actionId !== ACTION_DONE_ID) return;
             const assignmentId = event.notification?.extra?.assignmentId;
             if (!assignmentId) return;
-            dispatch({ type: "TOGGLE_ASSIGNMENT", id: assignmentId });
+            dispatch({ type: "SET_ASSIGNMENT_DONE", id: assignmentId });
           },
         );
     handlePromise.catch((e) => console.warn("[StudyDesk] action listener failed:", e));
     return () => { handlePromise.then((h) => h.remove()).catch(() => {}); };
   }, [dispatch, onOpenPlan]);
+}
+
+// StudyDesk#241 — while the app is hidden, a running countdown gets a local
+// notification at its end (lib/focusEndAlarm.js, loaded on demand). Native
+// only: the web and the desktop app keep running their tick in the background.
+export function useFocusEndAlarm() {
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const sync = () => {
+      const hidden = document.visibilityState === "hidden";
+      void import("../lib/focusEndAlarm.js").then((m) => m.syncFocusEndAlarm(hidden)).catch(() => {});
+    };
+    document.addEventListener("visibilitychange", sync);
+    window.addEventListener(TIMER_CHANGE_EVENT, sync);
+    return () => {
+      document.removeEventListener("visibilitychange", sync);
+      window.removeEventListener(TIMER_CHANGE_EVENT, sync);
+    };
+  }, []);
 }

@@ -1077,7 +1077,11 @@
     "examTodayTitle": "📝 Exam today — good luck",
     "dueTomorrowTitle": "📋 Due tomorrow",
     "dueTodayTitle": "📋 Due today",
-    "markDone": "Mark done"
+    "markDone": "Mark done",
+    "focusEndTitle": "Focus block done",
+    "focusEndBody": "Time for a break.",
+    "breakEndTitle": "Break's over",
+    "breakEndBody": "Ready for the next focus block?"
   },
   "referral": {
     "eyebrow": "ONE QUESTION",

@@ -58,7 +58,7 @@ import { usePersistState } from "./app/usePersistState.js";
 import { useGradeScaleSync } from "./app/useGradeScaleSync.js";
 import { useReminders } from "./app/useReminders.js";
 import { useWidgets } from "./app/useWidgets.js";
-import { useOutboxTriggers, useReminderActions } from "./app/useAppEvents.js";
+import { useOutboxTriggers, useReminderActions, useFocusEndAlarm } from "./app/useAppEvents.js";
 import { useNoteSync } from "./app/useNoteSync.js";
 import { useCloudPushers } from "./app/useCloudPushers.js";
 
@@ -230,6 +230,7 @@ export default function App() {
   const openPlanStart = useCallback((planId) => { if (planId) setPlanOffer(planId); }, []);
 
   useReminderActions(dispatch, openPlanStart);
+  useFocusEndAlarm();
   // Notifications are only scheduled after onboarding completes — never on first open
   const handleOnboardingComplete = useCallback((courseData, opts = {}) => {
     if (courseData) {
