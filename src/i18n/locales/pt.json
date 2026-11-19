@@ -842,7 +842,9 @@
     "today": "Hoje",
     "tomorrow": "Amanhã",
     "noPlanToday": "Nada planeado para hoje",
-    "openPlan": "Abrir o plano"
+    "openPlan": "Abrir o plano",
+    "noDate": "Sem data",
+    "upcomingOnlyDated": "Aqui só aparecem tarefas com data. As tarefas sem data estão no widget Next up."
   },
   "cal": {
     "title": "Calendário",

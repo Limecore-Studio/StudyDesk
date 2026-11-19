@@ -106,14 +106,18 @@ final class WidgetSnapshot {
     final String nextUpUrgency;
     final Item[] upcoming;
     final Palette palette;
+    /** StudyDesk#258 — Upcoming's empty text, already localised; "" keeps the
+     *  layout's own "Nothing due". */
+    final String upcomingEmpty;
 
     private WidgetSnapshot(String nextUpTitle, String nextUpSubtitle, String nextUpUrgency,
-                           Item[] upcoming, Palette palette) {
+                           Item[] upcoming, Palette palette, String upcomingEmpty) {
         this.nextUpTitle = nextUpTitle;
         this.nextUpSubtitle = nextUpSubtitle;
         this.nextUpUrgency = nextUpUrgency;
         this.upcoming = upcoming;
         this.palette = palette;
+        this.upcomingEmpty = upcomingEmpty;
     }
 
     /**
@@ -147,8 +151,10 @@ final class WidgetSnapshot {
                     o == null ? "later" : o.optString("urgency", "later")
                 );
             }
+            // optString turns a JSON null into "null"; isNull keeps it empty.
+            String upcomingEmpty = root.isNull("upcomingEmpty") ? "" : root.optString("upcomingEmpty", "");
             return new WidgetSnapshot(title, subtitle, urgency, items,
-                paletteFor(root.optString("palette", "light")));
+                paletteFor(root.optString("palette", "light")), upcomingEmpty);
         } catch (Exception e) {
             // Corrupt or half-written JSON. Draw the empty state rather than
             // letting the launcher show a crashed-widget placeholder.
@@ -157,7 +163,7 @@ final class WidgetSnapshot {
     }
 
     static WidgetSnapshot empty() {
-        return new WidgetSnapshot("", "", "later", new Item[0], LIGHT);
+        return new WidgetSnapshot("", "", "later", new Item[0], LIGHT, "");
     }
 
     boolean hasNextUp() {

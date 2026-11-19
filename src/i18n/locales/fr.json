@@ -842,7 +842,9 @@
     "today": "Aujourd’hui",
     "tomorrow": "Demain",
     "noPlanToday": "Rien de prévu aujourd'hui",
-    "openPlan": "Ouvrir le planning"
+    "openPlan": "Ouvrir le planning",
+    "noDate": "Sans date",
+    "upcomingOnlyDated": "Seules les tâches datées s'affichent ici. Tes tâches sans date sont dans le widget Next up."
   },
   "cal": {
     "title": "Calendrier",

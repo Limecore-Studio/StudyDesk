@@ -831,7 +831,9 @@
     "today": "今天",
     "tomorrow": "明天",
     "noPlanToday": "今天没有安排",
-    "openPlan": "打开计划"
+    "openPlan": "打开计划",
+    "noDate": "无日期",
+    "upcomingOnlyDated": "这里只显示有日期的任务。没有日期的待办在 Next up 小组件里。"
   },
   "cal": {
     "title": "日历",

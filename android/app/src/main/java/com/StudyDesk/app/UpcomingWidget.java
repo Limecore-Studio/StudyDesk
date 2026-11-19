@@ -79,6 +79,13 @@ public class UpcomingWidget extends AppWidgetProvider {
             }
         }
         views.setViewVisibility(R.id.upcoming_empty, shown == 0 ? View.VISIBLE : View.GONE);
+        // StudyDesk#258: Upcoming lists dated work only. When undated work is
+        // all there is, say where it is rather than "Nothing due".
+        if (snap.upcomingEmpty.length() > 0) {
+            views.setTextViewText(R.id.upcoming_empty, snap.upcomingEmpty);
+        } else {
+            views.setTextViewText(R.id.upcoming_empty, context.getString(R.string.widget_nothing_due));
+        }
 
         // "plan" surfaces the full list of upcoming work, which is what this
         // widget is a preview of. Same target the notification body-tap uses
