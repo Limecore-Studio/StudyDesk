@@ -826,7 +826,9 @@
     "today": "Hari ini",
     "tomorrow": "Besok",
     "noPlanToday": "Tidak ada rencana hari ini",
-    "openPlan": "Buka rencana"
+    "openPlan": "Buka rencana",
+    "noDate": "Tanpa tanggal",
+    "upcomingOnlyDated": "Di sini hanya tugas bertanggal. Tugas tanpa tanggal ada di widget Next up."
   },
   "cal": {
     "title": "Kalender",

@@ -834,7 +834,9 @@
     "today": "Heute",
     "tomorrow": "Morgen",
     "noPlanToday": "Heute nichts geplant",
-    "openPlan": "Plan öffnen"
+    "openPlan": "Plan öffnen",
+    "noDate": "Ohne Datum",
+    "upcomingOnlyDated": "Hier steht nur Arbeit mit Datum. Deine Aufgaben ohne Datum zeigt das Widget Next up."
   },
   "cal": {
     "title": "Kalender",

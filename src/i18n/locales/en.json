@@ -834,7 +834,9 @@
     "today": "Today",
     "tomorrow": "Tomorrow",
     "noPlanToday": "Nothing planned today",
-    "openPlan": "Open the plan"
+    "openPlan": "Open the plan",
+    "noDate": "No date",
+    "upcomingOnlyDated": "Only dated work shows here. Your undated to-dos are in Next up."
   },
   "cal": {
     "title": "Calendar",

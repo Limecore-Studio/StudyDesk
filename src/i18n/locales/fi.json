@@ -834,7 +834,9 @@
     "today": "Tänään",
     "tomorrow": "Huomenna",
     "noPlanToday": "Ei suunnitelmia tänään",
-    "openPlan": "Avaa suunnitelma"
+    "openPlan": "Avaa suunnitelma",
+    "noDate": "Ei päivää",
+    "upcomingOnlyDated": "Tässä näkyvät vain päivätyt tehtävät. Päiväämättömät näet Next up -widgetissä."
   },
   "cal": {
     "title": "Kalenteri",
