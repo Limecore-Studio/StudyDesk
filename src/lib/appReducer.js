@@ -133,6 +133,14 @@ export function reducer(state, action) {
     // local state never holds a tombstone and no render site needs a new guard.
     case "ADD_ASSIGNMENT":  { const a={id:action.id||newSyncId(),courseId:action.courseId,title:action.title,type:action.assignType,dueDate:action.dueDate,dueTime:normalizeDueTime(action.dueTime),notes:action.notes||"",done:false,updatedAt:action.updatedAt||stampNow()}; return {...state,assignments:[...state.assignments,a]}; }
     case "TOGGLE_ASSIGNMENT": return {...state,assignments:state.assignments.map(a=>a.id===action.id?{...a,done:!a.done,updatedAt:stampNow()}:a)};
+    // StudyDesk#239: one-way, for a reminder's "Mark done". A reminder can
+    // still be in the tray after the assignment was ticked here or on another
+    // device, and a toggle from it reopened the assignment everywhere.
+    case "SET_ASSIGNMENT_DONE": {
+      const a = state.assignments.find((x) => x.id === action.id);
+      if (!a || a.done) return state;
+      return {...state,assignments:state.assignments.map(x=>x.id===action.id?{...x,done:true,updatedAt:stampNow()}:x)};
+    }
     case "EDIT_ASSIGNMENT":   return {...state,assignments:state.assignments.map(a=>a.id===action.id?{...a,title:action.title,dueDate:action.dueDate,dueTime:normalizeDueTime(action.dueTime),notes:action.notes,updatedAt:stampNow()}:a)};
     case "DELETE_ASSIGNMENT": return {...state,assignments:state.assignments.filter(a=>a.id!==action.id)};
     // v1.13 Tier 3 — upsert by id, for the calendar feed.
