@@ -1117,7 +1117,11 @@
     "examTodayTitle": "📝 الاختبار اليوم — بالتوفيق",
     "dueTomorrowTitle": "📋 موعد التسليم غدًا",
     "dueTodayTitle": "📋 موعد التسليم اليوم",
-    "markDone": "تحديد كمنجز"
+    "markDone": "تحديد كمنجز",
+    "focusEndTitle": "انتهت فترة التركيز",
+    "focusEndBody": "حان وقت الاستراحة.",
+    "breakEndTitle": "انتهت الاستراحة",
+    "breakEndBody": "هل أنت مستعد لفترة التركيز التالية؟"
   },
   "referral": {
     "eyebrow": "سؤال واحد",

@@ -1077,7 +1077,11 @@
     "examTodayTitle": "📝 आज परीक्षा है — शुभकामनाएँ",
     "dueTomorrowTitle": "📋 कल जमा करना है",
     "dueTodayTitle": "📋 आज जमा करना है",
-    "markDone": "पूरा हुआ चिह्नित करें"
+    "markDone": "पूरा हुआ चिह्नित करें",
+    "focusEndTitle": "फ़ोकस ब्लॉक पूरा हुआ",
+    "focusEndBody": "अब ब्रेक का समय है।",
+    "breakEndTitle": "ब्रेक खत्म",
+    "breakEndBody": "अगले फ़ोकस ब्लॉक के लिए तैयार?"
   },
   "referral": {
     "eyebrow": "एक सवाल",

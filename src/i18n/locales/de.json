@@ -1077,7 +1077,11 @@
     "examTodayTitle": "📝 Heute Prüfung — viel Erfolg",
     "dueTomorrowTitle": "📋 Morgen fällig",
     "dueTodayTitle": "📋 Heute fällig",
-    "markDone": "Als erledigt markieren"
+    "markDone": "Als erledigt markieren",
+    "focusEndTitle": "Fokusblock geschafft",
+    "focusEndBody": "Zeit für eine Pause.",
+    "breakEndTitle": "Pause vorbei",
+    "breakEndBody": "Bereit für den nächsten Fokusblock?"
   },
   "referral": {
     "eyebrow": "EINE FRAGE",

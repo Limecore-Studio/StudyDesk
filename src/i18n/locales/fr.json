@@ -1086,7 +1086,11 @@
     "examTodayTitle": "📝 Examen aujourd’hui — bonne chance",
     "dueTomorrowTitle": "📋 À rendre demain",
     "dueTodayTitle": "📋 À rendre aujourd’hui",
-    "markDone": "Marquer comme fait"
+    "markDone": "Marquer comme fait",
+    "focusEndTitle": "Bloc de concentration terminé",
+    "focusEndBody": "C'est l'heure de la pause.",
+    "breakEndTitle": "La pause est finie",
+    "breakEndBody": "Prêt pour le prochain bloc ?"
   },
   "referral": {
     "eyebrow": "UNE QUESTION",

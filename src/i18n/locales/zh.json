@@ -1073,7 +1073,11 @@
     "examTodayTitle": "📝 今天考试 — 祝你好运",
     "dueTomorrowTitle": "📋 明天截止",
     "dueTodayTitle": "📋 今天截止",
-    "markDone": "标记为完成"
+    "markDone": "标记为完成",
+    "focusEndTitle": "专注时段完成",
+    "focusEndBody": "该休息一下了。",
+    "breakEndTitle": "休息结束",
+    "breakEndBody": "准备好开始下一个专注时段了吗？"
   },
   "referral": {
     "eyebrow": "一个问题",

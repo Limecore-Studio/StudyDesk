@@ -1077,7 +1077,11 @@
     "examTodayTitle": "📝 Koe tänään — onnea",
     "dueTomorrowTitle": "📋 Erääntyy huomenna",
     "dueTodayTitle": "📋 Erääntyy tänään",
-    "markDone": "Merkitse tehdyksi"
+    "markDone": "Merkitse tehdyksi",
+    "focusEndTitle": "Keskittymisjakso valmis",
+    "focusEndBody": "Aika pitää tauko.",
+    "breakEndTitle": "Tauko on ohi",
+    "breakEndBody": "Valmis seuraavaan jaksoon?"
   },
   "referral": {
     "eyebrow": "YKSI KYSYMYS",
