@@ -53,6 +53,7 @@ import { AccountAvatar } from "./lib/avatar.jsx";
 import { useShellTier, useSidebarRail } from "./lib/useShell.js";
 import { enterSubmit } from "./lib/imeSubmit.js";
 import { rehydrateState } from "./app/rehydrate.js";
+import { useFocusChip } from "./app/useFocusChip.js";
 import { usePersistState } from "./app/usePersistState.js";
 import { useGradeScaleSync } from "./app/useGradeScaleSync.js";
 import { useReminders } from "./app/useReminders.js";
@@ -273,6 +274,8 @@ export default function App() {
   useGradeScaleSync(state, dispatch, session?.user?.id, showFlash, t);
 
   const { onDeleteNote } = useNoteSync({ state, session, pulledOnce, remoteStampsRef, dispatch });
+  // StudyDesk#259: the live chip / Now Bar for every running focus timer.
+  useFocusChip(state.focusChip, t);
 
   // v1.13 Item 1a — the escape hatch offered by StorageAlert.
   //

@@ -1063,7 +1063,9 @@
   "timer": {
     "focusChipTitle": "Locked in",
     "focusChipRunning": "Focus block running",
-    "focusChipPaused": "Paused"
+    "focusChipPaused": "Paused",
+    "chipFocusTitle": "Focus block",
+    "chipStopwatchTitle": "Stopwatch"
   },
   "notif": {
     "planLeadTitle": "Study block at {{time}}",

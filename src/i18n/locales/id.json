@@ -1055,7 +1055,9 @@
   "timer": {
     "focusChipTitle": "Sedang fokus",
     "focusChipRunning": "Blok fokus berjalan",
-    "focusChipPaused": "Dijeda"
+    "focusChipPaused": "Dijeda",
+    "chipFocusTitle": "Blok fokus",
+    "chipStopwatchTitle": "Stopwatch"
   },
   "notif": {
     "planLeadTitle": "Blok belajar pukul {{time}}",
