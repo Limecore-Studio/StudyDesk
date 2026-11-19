@@ -55,9 +55,19 @@
     "deleteConfirm": "Supprimer toutes les données ?",
     "yesDelete": "Oui, supprimer",
     "no": "Non",
-    "colorSwatch": "Couleur {{hex}}",
+    "colorSwatch": "Couleur : {{name}}",
     "colorCustom": "Choisir n'importe quelle couleur",
-    "colorNone": "Aucune couleur"
+    "colorNone": "Aucune couleur",
+    "colorName": {
+      "red": "Rouge",
+      "amber": "Ambre",
+      "green": "Vert",
+      "blue": "Bleu",
+      "purple": "Violet",
+      "rust": "Rouille",
+      "teal": "Sarcelle",
+      "plum": "Prune"
+    }
   },
   "history": {
     "title": "Historique des périodes · Archive",

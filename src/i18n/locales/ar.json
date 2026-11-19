@@ -129,9 +129,19 @@
     "deleteConfirm": "حذف جميع البيانات؟",
     "yesDelete": "نعم، احذف",
     "no": "لا",
-    "colorSwatch": "اللون {{hex}}",
+    "colorSwatch": "اللون: {{name}}",
     "colorCustom": "اختر أي لون",
-    "colorNone": "بدون لون"
+    "colorNone": "بدون لون",
+    "colorName": {
+      "red": "أحمر",
+      "amber": "كهرماني",
+      "green": "أخضر",
+      "blue": "أزرق",
+      "purple": "بنفسجي",
+      "rust": "صدئي",
+      "teal": "أزرق مخضر",
+      "plum": "برقوقي"
+    }
   },
   "history": {
     "title": "سجل الفترات · الأرشيف",

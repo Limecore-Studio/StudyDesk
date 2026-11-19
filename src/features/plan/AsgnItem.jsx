@@ -57,8 +57,8 @@ export default function AsgnItem({ asgn, courses, dispatch, attachments = [], se
       <Paperclip size={13} strokeWidth={1.75}/>
       {mine.length>0&&<span className="asgn-clip-n">{mine.length}</span>}
     </button>
-    <button className="btn-danger-text" style={{fontSize:13,color:"var(--muted2)"}} onClick={()=>setEditing(true)} title={t('av.pl.edit')}>✎</button>
-    <button className="btn-danger-text" onClick={()=>dispatch({type:"DELETE_ASSIGNMENT",id:asgn.id})}>×</button>
+    <button className="btn-danger-text" style={{fontSize:13,color:"var(--muted2)"}} onClick={()=>setEditing(true)} title={t('av.pl.edit')} aria-label={t('av.pl.edit')}>✎</button>
+    <button className="btn-danger-text" onClick={()=>dispatch({type:"DELETE_ASSIGNMENT",id:asgn.id})} aria-label={t('common.delete')} title={t('common.delete')}>×</button>
     {showAt&&<AttachmentList
       attachments={mine}
       dispatch={dispatch}

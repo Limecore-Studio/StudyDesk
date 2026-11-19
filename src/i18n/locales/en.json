@@ -55,9 +55,19 @@
     "deleteConfirm": "Delete all data?",
     "yesDelete": "Yes, delete",
     "no": "No",
-    "colorSwatch": "Colour {{hex}}",
+    "colorSwatch": "Colour: {{name}}",
     "colorCustom": "Pick any colour",
-    "colorNone": "No colour"
+    "colorNone": "No colour",
+    "colorName": {
+      "red": "Red",
+      "amber": "Amber",
+      "green": "Green",
+      "blue": "Blue",
+      "purple": "Purple",
+      "rust": "Rust",
+      "teal": "Teal",
+      "plum": "Plum"
+    }
   },
   "history": {
     "title": "Period history · Archive",

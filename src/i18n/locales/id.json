@@ -129,9 +129,19 @@
     "deleteConfirm": "Hapus semua data?",
     "yesDelete": "Ya, hapus",
     "no": "Tidak",
-    "colorSwatch": "Warna {{hex}}",
+    "colorSwatch": "Warna: {{name}}",
     "colorCustom": "Pilih warna apa pun",
-    "colorNone": "Tanpa warna"
+    "colorNone": "Tanpa warna",
+    "colorName": {
+      "red": "Merah",
+      "amber": "Kuning amber",
+      "green": "Hijau",
+      "blue": "Biru",
+      "purple": "Ungu",
+      "rust": "Karat",
+      "teal": "Hijau kebiruan",
+      "plum": "Plum"
+    }
   },
   "history": {
     "title": "Riwayat periode · Arsip",

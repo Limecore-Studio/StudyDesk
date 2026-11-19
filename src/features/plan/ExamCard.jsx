@@ -86,7 +86,7 @@ export default function ExamCard({ exam, courses, dispatch }) {
       <button className="exam-edit-btn" style={{flexShrink:0}} onClick={e=>{e.stopPropagation();startEdit();}} aria-label={t('av.ec.editExam')} title={t('av.ec.editExam')}>
         <Pencil size={13} strokeWidth={1.75}/>
       </button>
-      <button className="btn-danger-text" style={{flexShrink:0}} onClick={e=>{e.stopPropagation();dispatch({type:"DELETE_EXAM",id:exam.id});}}>×</button>
+      <button className="btn-danger-text" style={{flexShrink:0}} onClick={e=>{e.stopPropagation();dispatch({type:"DELETE_EXAM",id:exam.id});}} aria-label={t('common.delete')} title={t('common.delete')}>×</button>
     </div>
     {open&&<div className="exam-card-body">
       {exam.notes&&<div className="exam-card-notes">{exam.notes}</div>}

@@ -55,9 +55,19 @@
     "deleteConfirm": "删除所有数据？",
     "yesDelete": "是，删除",
     "no": "否",
-    "colorSwatch": "颜色 {{hex}}",
+    "colorSwatch": "颜色：{{name}}",
     "colorCustom": "选择任意颜色",
-    "colorNone": "无颜色"
+    "colorNone": "无颜色",
+    "colorName": {
+      "red": "红色",
+      "amber": "琥珀色",
+      "green": "绿色",
+      "blue": "蓝色",
+      "purple": "紫色",
+      "rust": "铁锈色",
+      "teal": "青色",
+      "plum": "梅子色"
+    }
   },
   "history": {
     "title": "学段历史 · 归档",
