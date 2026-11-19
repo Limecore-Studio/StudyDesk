@@ -1309,5 +1309,13 @@
     "body": "Si algo falla, StudyDesk puede enviarnos los detalles técnicos: la versión de la app, el error y la pantalla en la que ocurrió. Nunca lo que escribes. Puedes cambiarlo en Ajustes.",
     "yes": "Sí, enviar",
     "notNow": "Ahora no"
+  },
+  "computer": {
+    "eyebrow": "En tu ordenador",
+    "title": "Usa StudyDesk en tu ordenador",
+    "body": "Tus cursos, plazos y sesiones se sincronizan con la app web y la app de Windows. Inicia sesión allí con esta misma cuenta.",
+    "web": "Abrir la app web",
+    "windows": "Descargar la app de Windows",
+    "dismiss": "Entendido"
   }
 }

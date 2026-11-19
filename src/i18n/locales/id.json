@@ -1291,5 +1291,13 @@
     "body": "Jika ada yang rusak, StudyDesk dapat mengirimi kami detail teknisnya: versi aplikasi, galatnya, dan layar tempat terjadinya. Tidak pernah apa yang kamu ketik. Kamu bisa mengubahnya di Pengaturan.",
     "yes": "Ya, kirim",
     "notNow": "Nanti saja"
+  },
+  "computer": {
+    "eyebrow": "Di komputermu",
+    "title": "Pakai StudyDesk di komputermu",
+    "body": "Kursus, tenggat, dan sesimu tersinkron ke aplikasi web dan aplikasi Windows. Masuk di sana dengan akun yang sama.",
+    "web": "Buka aplikasi web",
+    "windows": "Unduh aplikasi Windows",
+    "dismiss": "Oke"
   }
 }

@@ -1300,5 +1300,13 @@
     "body": "If something breaks, StudyDesk can send us the technical details: the app version, the error and the screen it happened on. Never what you type. You can change this in Settings.",
     "yes": "Yes, send reports",
     "notNow": "Not now"
+  },
+  "computer": {
+    "eyebrow": "On your computer",
+    "title": "Use StudyDesk on your computer",
+    "body": "Your courses, deadlines and sessions sync to the web app and the Windows app. Sign in there with this same account.",
+    "web": "Open the web app",
+    "windows": "Get the Windows app",
+    "dismiss": "Got it"
   }
 }
