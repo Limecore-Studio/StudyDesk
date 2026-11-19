@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { studyStartDate, daysUntil, examStudyPlan } from './deadlines.js';
+import { studyStartDate, daysUntil, examStudyPlan, examUrgencyLabel, urgencyLabel } from './deadlines.js';
 
 // v1.18.1 (StudyDesk#148): an exam's date can be cleared, and studyStartDate
 // threw on it, crashing the Plan tab on every device that pulled the row.
@@ -41,5 +41,19 @@ describe('examStudyPlan', () => {
   it('skips done, past and undated exams, and keeps the cap of three', () => {
     const many = [1, 2, 3, 4].map((n) => ({ id: `e${n}`, dueDate: day(n + 10), difficulty: 'medium' }));
     expect(examStudyPlan([...many, { id: 'd', dueDate: day(5), done: true }, { id: 'p', dueDate: day(-2) }, { id: 'u', dueDate: null }])).toHaveLength(3);
+  });
+});
+
+describe('examUrgencyLabel (StudyDesk#277)', () => {
+  const t = (k, o) => (o ? `${k}:${o.n}` : k);
+  it('an exam is today, tomorrow or in N days, never "due"', () => {
+    expect(examUrgencyLabel(0, t)).toBe('cal.today');
+    expect(examUrgencyLabel(1, t)).toBe('cal.tomorrow');
+    expect(examUrgencyLabel(5, t)).toBe('av.ec.inDays:5');
+  });
+  it('a past exam keeps the shared wording; assignments are unchanged', () => {
+    expect(examUrgencyLabel(-2, t)).toBe(urgencyLabel(-2, t));
+    expect(urgencyLabel(1, t)).toBe('av.urgency.dueTomorrow');
+    expect(examUrgencyLabel(null, t)).toBe('');
   });
 });

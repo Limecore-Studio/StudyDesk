@@ -822,6 +822,16 @@ export default function App() {
     setPlanOffer(null);
   }, [offerPlan, state.courses]);
 
+  // StudyDesk#272 — one tap from a Next Up suggestion or an exam card to a
+  // focus block for that course, the task prefilled. No plan, so the block
+  // runs at the user's own length (TimerView uses customFocus when minutes is
+  // null) and saves as an ordinary session.
+  const startFocusFor = useCallback(({ subjectId, label }) => {
+    setTimerStartReq({ nonce: Date.now(), planId: null, subjectId: subjectId || '', minutes: null, label: label || '' });
+    setTimerSub('timer');
+    dispatch({ type: 'SET_VIEW', view: 'timer' });
+  }, []);
+
   const snoozePlanOffer = useCallback(() => {
     if (!offerPlan) return;
     const id = offerPlan.id;
@@ -1147,9 +1157,17 @@ export default function App() {
           {(urgent.length>0||urgentExams.length>0)&&state.view==="plan"&&(
             <div className="urgent-banner"><span>⚠️</span><div>
               <strong>{t('av.chrome.urgent')}</strong> —{" "}
-              {urgentExams.map((e,i)=><span key={e.id} style={{color:"var(--exam)"}}>{t('av.chrome.examPrefix',{title:e.title})}{i<urgentExams.length-1?", ":""}</span>)}
-              {urgent.length>0&&urgentExams.length>0&&", "}
-              {urgent.map((a,i)=><span key={a.id}>{a.title}{i<urgent.length-1?", ":""}</span>)}
+              {/* StudyDesk#282: the first two, then a count. Listing every
+                  item ran to five lines at 360 px and pushed the list down;
+                  the full list is right below. */}
+              {(() => {
+                const items = [
+                  ...urgentExams.map((e) => <span key={e.id} style={{color:"var(--exam)"}}>{t('av.chrome.examPrefix',{title:e.title})}</span>),
+                  ...urgent.map((a) => <span key={a.id}>{a.title}</span>),
+                ];
+                const shown = items.slice(0, 2);
+                return <>{shown.map((el, i) => <span key={el.key}>{i > 0 ? ", " : ""}{el}</span>)}{items.length > 2 && <span>{" "}{t('av.chrome.moreCount',{n:items.length - 2})}</span>}</>;
+              })()}
             </div></div>
           )}
           {/* v1.15 Item 2 — the phone had no equivalent of the sidebar's course
@@ -1202,7 +1220,7 @@ export default function App() {
                 {planSub==="timetable" &&
                   <TimetableView state={state} dispatch={dispatch} session={session} showFlash={showFlash}/>}
                 {planSub==="list" &&
-                  <PlanView state={state} dispatch={dispatch} session={session} showFlash={showFlash} onAddAsgn={()=>setShowAddAsgn(true)} onAddExam={()=>setShowAddExam(true)} onAddCourse={()=>setShowAddCourse(true)} onEditCourse={(c)=>setEditingCourse(c)} onOpenCalendar={()=>choosePlanSub("calendar")}/>}
+                  <PlanView state={state} dispatch={dispatch} session={session} showFlash={showFlash} onAddAsgn={()=>setShowAddAsgn(true)} onAddExam={()=>setShowAddExam(true)} onAddCourse={()=>setShowAddCourse(true)} onEditCourse={(c)=>setEditingCourse(c)} onOpenCalendar={()=>choosePlanSub("calendar")} onStartFocus={startFocusFor}/>}
                 </Suspense>
               </div>
             </>
@@ -1213,8 +1231,8 @@ export default function App() {
               read `undefined`. StatusView existed but was never mounted. It is
               the course-detail pane of the three-pane layout, so it lands here
               rather than being patched out of the sidebar. */}
-          {state.view==="status" &&<CourseDetailView state={state} dispatch={dispatch} session={session} showFlash={showFlash} tier={shellTier} onAddAsgn={()=>setShowAddAsgn(true)} onAddExam={()=>setShowAddExam(true)} onEditCourse={(c)=>setEditingCourse(c)}/>}
-          {state.view==="actions" &&<ActionsView state={state} dispatch={dispatch} showFlash={showFlash} onAddCourse={()=>setShowAddCourse(true)} onFirstStep={goFirstStep} onStartPlan={openPlanStart}/>}
+          {state.view==="status" &&<CourseDetailView state={state} dispatch={dispatch} session={session} showFlash={showFlash} tier={shellTier} onAddAsgn={()=>setShowAddAsgn(true)} onAddExam={()=>setShowAddExam(true)} onEditCourse={(c)=>setEditingCourse(c)} onStartFocus={startFocusFor}/>}
+          {state.view==="actions" &&<ActionsView state={state} dispatch={dispatch} showFlash={showFlash} onAddCourse={()=>setShowAddCourse(true)} onFirstStep={goFirstStep} onStartPlan={openPlanStart} onStartFocus={startFocusFor}/>}
           {/* v1.9 Item 14a — Grades gains a Trends sub-tab. The analytics read
               grades AND study sessions together, and "how am I doing" is the
               question this screen already answers, so it belongs here rather

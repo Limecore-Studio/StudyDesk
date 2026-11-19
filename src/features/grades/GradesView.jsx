@@ -323,7 +323,9 @@ export default function GradesView({ state, dispatch, showFlash, session }) {
                 : t('gv.ibAverage')}
             </div>
             <div className="gv-gpa-value" title={overall.projection ? t('gv.reportProjection') : undefined}>
-              {overall.projection ? '≈' : ''}{gpa.toFixed(2)}
+              {/* StudyDesk#276: 0.00 is not an average, and on a lower-is-better
+                  scale it would read as a perfect one. */}
+              {grades.length === 0 ? '—' : <>{overall.projection ? '≈' : ''}{gpa.toFixed(2)}</>}
             </div>
             <div className="gv-gpa-scale" style={{ textTransform: 'uppercase' }}>
               {report ? t('gv.reportScale', { best: report.best, worst: report.worst })
@@ -338,7 +340,8 @@ export default function GradesView({ state, dispatch, showFlash, session }) {
         </div>
 
         <div className="gv-toolbar">
-          <button className="btn" onClick={() => onAddClick()} disabled={allSubjects.length === 0}>{t('gv.addGrade')}</button>
+          {/* StudyDesk#276: the empty state below carries its own Add button. */}
+          {grades.length > 0 && <button className="btn" onClick={() => onAddClick()} disabled={allSubjects.length === 0}>{t('gv.addGrade')}</button>}
           {/* v1.14 Item 8a. Beside Add grade rather than buried in the archive
               section, which is toggle-gated and empty for exactly the person
               who needs this on their first day. */}
@@ -527,7 +530,7 @@ function GradeEditModal({ mode, scale, subjects, archivedSubjects = [], allGrade
           <div className="input-group">
             {/* A custom scale said "Grade (1–7)", the IB label, whatever its range. */}
             <div className="input-label">{mode === 'us' ? t('gv.fGradeUs') : mode === 'custom' ? t('gv.fGradeCustom', { min: scale.min, max: scale.max }) : t('gv.fGradeIb')}</div>
-            <input type="number" step="0.01" min={scale.min} max={scale.max} placeholder={placeholder} value={grade} onChange={(e) => setGrade(e.target.value)} autoFocus />
+            <input type="number" step="0.01" min={scale.min} max={scale.max} placeholder={placeholder} value={grade} onChange={(e) => setGrade(e.target.value)} autoFocus={!scale.steps} />
           </div>
           <div className="input-group">
             <div className="input-label">{t('gv.fWeight')}</div>

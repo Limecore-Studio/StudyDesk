@@ -221,7 +221,7 @@
     "pullLatest": "Sincronizar ahora",
     "retrying": "Reintentando…",
     "retryNow": "Reintentar",
-    "syncNote": "El tiempo real aplica los cambios entrantes en ~1,5 s. Las escrituras salientes pasan por una cola local que reintenta automáticamente al restaurar la red y al reanudar la app.",
+    "syncNote": "Los cambios de tus otros dispositivos aparecen en segundos. Lo que cambies sin conexión se guarda aquí y se envía cuando vuelvas a estar en línea.",
     "gradeScale": "Escala de notas",
     "gradeNote": "IB: media ponderada en la escala 1–7. US: porcentaje por curso → puntos 4.0, luego ponderado por créditos. Almacenado localmente — no se sincroniza.",
     "techDetails": "Detalles técnicos",
@@ -792,7 +792,8 @@
       "loading": "CARGANDO…",
       "updateShort": "Actualización disponible",
       "updateDownloading": "Descargando… {{percent}} %",
-      "updateReady": "Reiniciar para actualizar"
+      "updateReady": "Reiniciar para actualizar",
+      "moreCount": "+{{n}} más"
     },
     "flash": {
       "courseAdded": "Curso añadido",

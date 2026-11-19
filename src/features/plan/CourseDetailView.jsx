@@ -15,7 +15,7 @@ import ExamCard from "./ExamCard.jsx";
 // that only listed assignments, this is the course-detail pane the build plan
 // asks for: the sidebar is the list, this is the detail, and on the desktop
 // tier a third column carries what is coming up and what has been put in.
-export default function CourseDetailView({ state, dispatch, session, showFlash, tier, onAddAsgn, onAddExam, onEditCourse }) {
+export default function CourseDetailView({ state, dispatch, session, showFlash, tier, onAddAsgn, onAddExam, onEditCourse, onStartFocus }) {
   const { t } = useTranslation();
   const ac = state.activeCourse;
   const course = ac ? state.courses[ac] : null;
@@ -109,7 +109,7 @@ export default function CourseDetailView({ state, dispatch, session, showFlash, 
         <button className="btn btn-sm" style={{ marginLeft: "auto" }} onClick={onAddExam}>{t('av.pl.add')}</button>
       </div>
       {openExams.length === 0 && <div className="empty">{t('av.pl.noExams')}</div>}
-      {openExams.map(e => <ExamCard key={e.id} exam={e} courses={state.courses} dispatch={dispatch} />)}
+      {openExams.map(e => <ExamCard key={e.id} exam={e} courses={state.courses} dispatch={dispatch} onStartFocus={onStartFocus} />)}
     </div>
   );
 

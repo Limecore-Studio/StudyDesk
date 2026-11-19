@@ -219,7 +219,7 @@
     "pullLatest": "Hae uusimmat nyt",
     "retrying": "Yritetään uudelleen…",
     "retryNow": "Yritä nyt",
-    "syncNote": "Reaaliaika tuo saapuvat muutokset ~1,5 s sisällä. Lähtevät kirjoitukset kulkevat paikallisen outboxin kautta, joka yrittää automaattisesti uudelleen verkon palautuessa ja sovelluksen jatkuessa.",
+    "syncNote": "Muilla laitteillasi tehdyt muutokset näkyvät täällä sekunneissa. Offline-tilassa tekemäsi muutokset tallentuvat tänne ja lähtevät, kun olet taas verkossa.",
     "gradeScale": "Arvosana-asteikko",
     "gradeNote": "IB: painotettu keskiarvo 1–7-asteikolla. US: kurssikohtainen prosentti → 4.0 arvosanapistettä, sitten opintopisteillä painotettu. Tallennettu paikallisesti — ei synkronoidu.",
     "techDetails": "Tekniset tiedot",
@@ -785,7 +785,8 @@
       "loading": "LADATAAN…",
       "updateShort": "Päivitys saatavilla",
       "updateDownloading": "Ladataan… {{percent}} %",
-      "updateReady": "Käynnistä uudelleen ja päivitä"
+      "updateReady": "Käynnistä uudelleen ja päivitä",
+      "moreCount": "+{{n}} muuta"
     },
     "flash": {
       "courseAdded": "Kurssi lisätty",

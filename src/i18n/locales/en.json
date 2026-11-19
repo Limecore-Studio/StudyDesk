@@ -219,7 +219,7 @@
     "pullLatest": "Pull latest now",
     "retrying": "Retrying…",
     "retryNow": "Retry now",
-    "syncNote": "Realtime pushes inbound changes within ~1.5s. Outbound writes go through a local outbox that retries automatically on network restore and app resume.",
+    "syncNote": "Changes from your other devices show up within seconds. Anything you change offline is saved here and sent when you're back online.",
     "gradeScale": "Grade scale",
     "gradeNote": "IB: weighted average on the 1–7 scale. US: per-course percent → 4.0 grade points, then credit-weighted. Stored locally — does not sync.",
     "techDetails": "Technical details",
@@ -785,7 +785,8 @@
       "loading": "LOADING…",
       "updateShort": "Update available",
       "updateDownloading": "Downloading… {{percent}}%",
-      "updateReady": "Restart to update"
+      "updateReady": "Restart to update",
+      "moreCount": "+{{n}} more"
     },
     "flash": {
       "courseAdded": "Course added",

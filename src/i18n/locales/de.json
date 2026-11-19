@@ -219,7 +219,7 @@
     "pullLatest": "Jetzt abrufen",
     "retrying": "Erneuter Versuch…",
     "retryNow": "Jetzt erneut versuchen",
-    "syncNote": "Echtzeit übernimmt eingehende Änderungen in ~1,5 s. Ausgehende Schreibvorgänge laufen über eine lokale Outbox, die bei Netzwiederherstellung und App-Fortsetzung automatisch erneut versucht.",
+    "syncNote": "Änderungen von deinen anderen Geräten erscheinen innerhalb von Sekunden. Was du offline änderst, wird hier gespeichert und gesendet, sobald du wieder online bist.",
     "gradeScale": "Notenskala",
     "gradeNote": "IB: gewichteter Durchschnitt auf der 1–7-Skala. US: Prozent pro Kurs → 4.0-Notenpunkte, dann kreditgewichtet. Lokal gespeichert — wird nicht synchronisiert.",
     "techDetails": "Technische Details",
@@ -785,7 +785,8 @@
       "loading": "LÄDT…",
       "updateShort": "Update verfügbar",
       "updateDownloading": "Wird geladen… {{percent}} %",
-      "updateReady": "Neu starten und aktualisieren"
+      "updateReady": "Neu starten und aktualisieren",
+      "moreCount": "+{{n}} weitere"
     },
     "flash": {
       "courseAdded": "Kurs hinzugefügt",
