@@ -2,8 +2,17 @@
 // Moved out of App.jsx unchanged and called from the same place (limecore#12).
 import { useState, useEffect } from "react";
 import { formatLocale } from "../lib/dates.js";
-import { pushWidgetSnapshot, consumeWidgetLaunchView, onWidgetNavigate } from "../lib/widgetBridge.js";
 import { WIDGET_PALETTE_EVENT } from "../lib/theme.js";
+
+// v1.22 (limecore#126): the bridge loads on demand. Both effects below already
+// ran after first paint, and the calls they make were already async. One cached
+// import promise keeps them in the order the effects ran.
+let bridgeLoad = null;
+function loadBridge() {
+  bridgeLoad ??= import("../lib/widgetBridge.js").catch((e) => { bridgeLoad = null; throw e; });
+  return bridgeLoad;
+}
+const warnLoad = (e) => console.warn("[studydesk] widget bridge failed to load:", e);
 
 export function useWidgets({ state, t, dispatch }) {
   // v1.9 (Item 8) — keep the home-screen widgets in step with the same data,
@@ -24,13 +33,14 @@ export function useWidgets({ state, t, dispatch }) {
     return () => window.removeEventListener(WIDGET_PALETTE_EVENT, bump);
   }, []);
   useEffect(() => {
-    void pushWidgetSnapshot({
+    const snapshot = {
       assignments: state.assignments,
       exams: state.exams,
       courses: state.courses,
       t,
       locale: formatLocale(),
-    });
+    };
+    loadBridge().then((m) => { void m.pushWidgetSnapshot(snapshot); }, warnLoad);
   }, [state.assignments, state.exams, state.courses, t, widgetPaletteTick]);
 
   // v1.10 — widget taps land where the widget was about.
@@ -46,19 +56,20 @@ export function useWidgets({ state, t, dispatch }) {
   useEffect(() => {
     let cancelled = false;
 
-    void consumeWidgetLaunchView().then((view) => {
-      if (!cancelled && view) dispatch({ type: "SET_VIEW", view });
-    });
-
     // Await the handle before removing it — the same StrictMode ordering trap
     // that double-registered the notification listener in v1.7.
-    const handlePromise = onWidgetNavigate((view) => {
-      dispatch({ type: "SET_VIEW", view });
-    });
+    const handlePromise = loadBridge().then((m) => {
+      void m.consumeWidgetLaunchView().then((view) => {
+        if (!cancelled && view) dispatch({ type: "SET_VIEW", view });
+      });
+      return m.onWidgetNavigate((view) => {
+        dispatch({ type: "SET_VIEW", view });
+      });
+    }, warnLoad);
 
     return () => {
       cancelled = true;
-      void handlePromise?.then((h) => h.remove()).catch(() => {});
+      void handlePromise.then((h) => h?.remove()).catch(() => {});
     };
   }, [dispatch]);
 }

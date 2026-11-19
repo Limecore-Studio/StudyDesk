@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import * as outbox from "../lib/outbox.js";
-import { ACTION_DONE_ID } from "../lib/planNotifications.js";
+import { ACTION_DONE_ID } from "../lib/notificationActions.js";
 
 export function useOutboxTriggers(requestPullRef) {
   // v1.3 — outbox drain triggers. The outbox holds pending Supabase writes

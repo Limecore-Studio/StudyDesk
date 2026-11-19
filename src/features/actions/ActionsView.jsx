@@ -8,7 +8,6 @@ import { enterSubmit } from "../../lib/imeSubmit.js";
 import FirstSteps from "../onboarding/FirstSteps.jsx";
 import { fmtTime } from "../../lib/dates.js";
 import { openPlansBetween } from "../../lib/planRun.js";
-import DoneList from "./DoneList.jsx";
 import { doneItems, isExpiredDoneAction, offerUndo } from "../../lib/doneList.js";
 
 const BUCKETS = ["today", "this_week", "later"];
@@ -21,6 +20,8 @@ const BUCKET_COLORS = {
 // ── ActionsView — Next Up ─────────────────────────────────────────────────────
 // v1.20 (StudyDesk#156) — progress counters, loaded when the panel renders.
 const CountersPanel = lazy(() => import('../counters/CountersPanel.jsx'));
+// v1.22 (limecore#126): the done sheet opens on a tap, never on first paint.
+const DoneList = lazy(() => import('./DoneList.jsx'));
 
 export default function ActionsView({ state, dispatch, showFlash, onAddCourse, onFirstStep, onStartPlan }) {
   const { t, i18n } = useTranslation();
@@ -30,7 +31,7 @@ export default function ActionsView({ state, dispatch, showFlash, onAddCourse, o
   const [showDone, setShowDone] = useState(false);
   const doneCount = doneItems(state).length;
   const doneLink = doneCount>0&&<button type="button" className="done-open" onClick={()=>setShowDone(true)}>{t('done.open',{count:doneCount})}</button>;
-  const doneSheet = showDone&&<DoneList state={state} dispatch={dispatch} showFlash={showFlash} onClose={()=>setShowDone(false)}/>;
+  const doneSheet = showDone&&<Suspense fallback={null}><DoneList state={state} dispatch={dispatch} showFlash={showFlash} onClose={()=>setShowDone(false)}/></Suspense>;
   const [newText, setNewText] = useState(""); const [newBucket, setNewBucket] = useState("today"); const [newCourse, setNewCourse] = useState("");
   const courses = Object.values(state.courses).filter(c => !c.deletedAt);
   // v1.5 (5D) — active = non-archived. When every course is archived (a new
