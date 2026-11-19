@@ -1308,5 +1308,13 @@
     "body": "Wenn etwas schiefgeht, kann StudyDesk uns die technischen Details senden: App-Version, Fehler und den Bildschirm, auf dem er auftrat. Nie das, was du eingibst. Du kannst das in den Einstellungen ändern.",
     "yes": "Ja, senden",
     "notNow": "Nicht jetzt"
+  },
+  "computer": {
+    "eyebrow": "Auf deinem Computer",
+    "title": "StudyDesk auf dem Computer nutzen",
+    "body": "Deine Kurse, Fristen und Lerneinheiten werden mit der Web-App und der Windows-App synchronisiert. Melde dich dort mit demselben Konto an.",
+    "web": "Web-App öffnen",
+    "windows": "Windows-App laden",
+    "dismiss": "Verstanden"
   }
 }

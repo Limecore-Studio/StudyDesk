@@ -94,6 +94,8 @@ const SaveSessionSheet = lazy(loadSaveSessionSheet);
 // chunk.
 // v1.21.1 (limecore#87): it also mounts the one-time opt-in question.
 const FdroidUpdateNote = lazy(() => import("./features/update/FdroidUpdateNote.jsx"));
+// StudyDesk#260 — "StudyDesk is on your computer too", once per account.
+const ComputerAppsNote = lazy(() => import("./features/update/ComputerAppsNote.jsx"));
 const GradesView = lazy(() => import("./features/grades/GradesView.jsx"));
 const SessionsView = lazy(() => import("./features/sessions/SessionsView.jsx"));
 const NotebookView = lazy(() => import("./features/notebook/NotebookView.jsx"));
@@ -1148,6 +1150,9 @@ export default function App() {
           {/* v1.16 (#67) — Android only, once a day, off in Settings. Renders
               nothing unless F-Droid has a newer build than this one. */}
           <Suspense fallback={null}><FdroidUpdateNote signedIn={!!session && !guest} /></Suspense>
+          {state.view==="actions" && session?.user && !guest && Capacitor.isNativePlatform() && (
+            <Suspense fallback={null}><ComputerAppsNote user={session.user} hasData={Object.values(state.courses).some((c) => c && !c.deletedAt)} /></Suspense>
+          )}
           {(urgent.length>0||urgentExams.length>0)&&state.view==="plan"&&(
             <div className="urgent-banner"><span>⚠️</span><div>
               <strong>{t('av.chrome.urgent')}</strong> —{" "}

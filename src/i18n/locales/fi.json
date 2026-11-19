@@ -1308,5 +1308,13 @@
     "body": "Jos jokin menee rikki, StudyDesk voi lähettää meille tekniset tiedot: sovelluksen version, virheen ja näkymän, jossa se tapahtui. Ei koskaan sitä, mitä kirjoitat. Voit muuttaa tätä asetuksista.",
     "yes": "Kyllä, lähetä",
     "notNow": "Ei nyt"
+  },
+  "computer": {
+    "eyebrow": "Tietokoneella",
+    "title": "Käytä StudyDeskiä tietokoneella",
+    "body": "Kurssisi, määräaikasi ja opiskelukertasi synkronoituvat verkkosovellukseen ja Windows-sovellukseen. Kirjaudu niissä samalla tilillä.",
+    "web": "Avaa verkkosovellus",
+    "windows": "Lataa Windows-sovellus",
+    "dismiss": "Selvä"
   }
 }
