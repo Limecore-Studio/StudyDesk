@@ -39,6 +39,13 @@ function readEpoch() {
 // Read when the module loads, which is before App reads the data from storage.
 let pageEpoch = readEpoch();
 
+/** Which copy of the local data is current: changes on every wipe, in this
+ *  page or another. A module that keeps account data in memory compares it
+ *  with the value it loaded under (counterStore.js, limecore#104). */
+export function localDataEpoch() {
+  return readEpoch();
+}
+
 /** Call when this page replaces the local data (a wipe). Other pages then
  *  find themselves stale; this one does not. */
 export function markLocalDataReplaced() {
