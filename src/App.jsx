@@ -20,6 +20,7 @@ import * as sync from "./lib/sync.js";
 import * as outbox from "./lib/outbox.js";
 import { hold, release, replayHeld } from "./lib/autoSaveHold.js";
 import { stampsFromPull, mergeStamps, shouldPull } from "./lib/syncStamps.js";
+import { withoutQueuedDeletes } from "./lib/pushDiff.js";
 import { pastSessionDraft } from "./lib/pastSession.js";
 import { isOpenPlan, nextPlanStartAt, planSaveSteps, planToOffer } from "./lib/planRun.js";
 import { timerPlanId } from "./lib/timerSnapshot.js";
@@ -523,7 +524,9 @@ export default function App() {
         return null;
       });
       try {
-        const remote = await sync.pullAllStudyData();
+        // StudyDesk#232: a row deleted here whose delete is still queued must
+        // not come back with the server's live copy.
+        const remote = withoutQueuedDeletes(await sync.pullAllStudyData(), outbox.queuedItems());
         const reconcile = await reconcileLoad;
         // StudyDesk#72 — stamps first, merge second. The merge re-runs the
         // push effects, and they must already know which rows are just the
@@ -586,7 +589,7 @@ export default function App() {
       const tables = named.filter((t) => t !== "focus_timers" && t !== "progress_counters" && t !== "progress_counter_days");
       if (tables.length === 0 || !pulledOnceRef.current) return;
       try {
-        const remote = await sync.pullStudyTables(tables);
+        const remote = withoutQueuedDeletes(await sync.pullStudyTables(tables), outbox.queuedItems());
         if (cancelled) return;
         remoteStampsRef.current = mergeStamps(remoteStampsRef.current, remote);
         dispatch({ type: "MERGE_REMOTE", remote });
@@ -761,7 +764,7 @@ export default function App() {
     }
   }, [state.view]);
 
-  useCloudPushers({ session, state, pulledOnce, pulledOnceRef, remoteStampsRef, showFlash, t });
+  useCloudPushers({ session, state, pulledOnce, remoteStampsRef, showFlash, t });
 
   // ── v1.19 (#185) — scheduled block → timer ────────────────────────────────
   // Blocks already offered (or snoozed) in this run of the app, so coming
