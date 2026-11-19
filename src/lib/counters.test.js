@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { counterValue, counterProgress, counterDayId, weekStartKey, stepFor, mergePulled, liveCounters } from './counters.js';
+import { counterValue, counterProgress, counterDayId, weekStartKey, stepFor, mergePulled, liveCounters, findUnsyncedCounters } from './counters.js';
 
 // v1.20 (StudyDesk#156) — progress counters: what the card shows, and how a
 // pull folds in.
@@ -70,5 +70,22 @@ describe('mergePulled', () => {
   it('a counter made here and not pushed yet stays', () => {
     const out = mergePulled({ counters: [C({ id: 'mine' })], days: [] }, { counters: [], days: [] });
     expect(liveCounters(out.counters).map((c) => c.id)).toEqual(['mine']);
+  });
+});
+
+describe('findUnsyncedCounters (StudyDesk#236)', () => {
+  it('queues local counters and days the server lacks, counters first', () => {
+    const local = { counters: [C(), C({ id: 'c2' }), C({ id: 'gone', deletedAt: '2026-10-02T00:00:00Z' })], days: [D('2026-10-30', 3), D('2026-10-31', 1, { id: 'x', counterId: 'gone' })] };
+    const pulled = { counters: [C({ id: 'c2' })], days: [] };
+    expect(findUnsyncedCounters(local, pulled).map((i) => `${i.kind}:${i.payload.id}`)).toEqual([
+      'upsert_counter:c1',
+      'upsert_counter_day:2026-10-30',
+    ]);
+  });
+
+  it('skips rows already queued, and rows the server has (tombstones included)', () => {
+    const local = { counters: [C(), C({ id: 'c3' })], days: [D('2026-10-30', 3)] };
+    const pulled = { counters: [C({ id: 'c3', deletedAt: '2026-10-05T00:00:00Z' })], days: [] };
+    expect(findUnsyncedCounters(local, pulled, new Set(['c1', '2026-10-30']))).toEqual([]);
   });
 });
