@@ -542,7 +542,7 @@ export default function App() {
         // adds remote rows, and local-only is precisely what we are looking
         // for. Cheap when there is nothing to do — two set builds and a walk.
         if (!cancelled && reconcile) {
-          const queued = reconcile.reconcileUnsynced(stateRef.current, remote, outbox);
+          const queued = reconcile.reconcileUnsynced(stateRef.current, remote, outbox, { userId: session.user?.id });
           if (queued) console.warn(`[StudyDesk] reconcile: re-queued ${queued} unsynced row(s)`);
         }
       } catch (e) {
