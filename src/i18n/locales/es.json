@@ -1073,7 +1073,9 @@
   "timer": {
     "focusChipTitle": "Concentrado",
     "focusChipRunning": "Bloque de enfoque en curso",
-    "focusChipPaused": "En pausa"
+    "focusChipPaused": "En pausa",
+    "chipFocusTitle": "Bloque de concentración",
+    "chipStopwatchTitle": "Cronómetro"
   },
   "notif": {
     "planLeadTitle": "Bloque de estudio a las {{time}}",

@@ -1065,7 +1065,9 @@
   "timer": {
     "focusChipTitle": "Lock In päällä",
     "focusChipRunning": "Keskittymisjakso käynnissä",
-    "focusChipPaused": "Tauolla"
+    "focusChipPaused": "Tauolla",
+    "chipFocusTitle": "Keskittymisjakso",
+    "chipStopwatchTitle": "Sekuntikello"
   },
   "notif": {
     "planLeadTitle": "Opiskelujakso alkaa klo {{time}}",

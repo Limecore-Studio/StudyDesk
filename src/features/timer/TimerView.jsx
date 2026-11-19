@@ -638,8 +638,21 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
   const secsRef = useRef(secsLeft);
   useEffect(() => { secsRef.current = secsLeft; }, [secsLeft]);
 
+  // StudyDesk#259: outside Lock In the chip belongs to useFocusChip (App),
+  // which shows it for every running focus timer. Here only Lock In's own
+  // chip is posted, and cleared once when Lock In ends.
+  const lockInChipRef = useRef(false);
   useEffect(() => {
-    if (!lockedIn) { stopFocus(); return; }
+    if (!lockedIn) {
+      if (lockInChipRef.current) {
+        lockInChipRef.current = false;
+        stopFocus();
+        // Hand the chip back: the app-level owner re-reads the timer.
+        window.dispatchEvent(new CustomEvent(TIMER_CHANGE_EVENT));
+      }
+      return;
+    }
+    lockInChipRef.current = true;
     startFocus({
       title: t('timer.focusChipTitle'),
       text: running ? t('timer.focusChipRunning') : t('timer.focusChipPaused'),
@@ -657,7 +670,8 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
 
   // Leaving the screen — or the app going away entirely — must not strand a
   // pinned screen or a chip that outlives the session it describes.
-  useEffect(() => () => { stopFocus(); }, []);
+  // A plain timer's chip outlives this screen on purpose (#259).
+  useEffect(() => () => { if (lockInChipRef.current) stopFocus(); }, []);
 
   // v1.9 Item 14a follow-up — Lock In takes the whole screen, not just the
   // app's own chrome. On desktop the browser's tab strip and address bar are
