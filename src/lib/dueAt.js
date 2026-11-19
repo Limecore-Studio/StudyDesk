@@ -29,7 +29,7 @@
 //
 // This module is the only place that knows either rule.
 
-import { timeToMinutes } from './timetable.js';
+import { timeToMinutes } from './timeOfDay.js';
 
 /** Where an untimed assignment sits within its day. See the note above. */
 export const END_OF_DAY = '23:59';

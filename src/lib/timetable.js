@@ -20,6 +20,9 @@
 // Score from that same table, silently inflate NCC's too.
 
 import { parseLocalDate, toLocalISO } from './dates.js';
+import { timeToMinutes, clampMinute } from './timeOfDay.js';
+
+export { timeToMinutes };
 
 export const TERM_LEVELS = ['year', 'semester', 'period'];
 
@@ -120,23 +123,8 @@ export function entryRunsOnParity(entry, parity) {
 // midnight is the only form the grid geometry uses, so conversion happens once
 // here rather than at every call site.
 
-/** "08:15" / "08:15:00" → 495. Returns null for anything unparseable, which
- *  callers must treat as "no lesson" rather than as midnight — a corrupt row
- *  should drop out of the render, not draw a band across the top of the day. */
-export function timeToMinutes(value) {
-  if (typeof value === 'number' && Number.isFinite(value)) return clampMinute(value);
-  if (typeof value !== 'string') return null;
-  const m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(value.trim());
-  if (!m) return null;
-  const h = Number(m[1]), min = Number(m[2]);
-  if (!Number.isFinite(h) || !Number.isFinite(min)) return null;
-  if (h > 23 || min > 59) return null;
-  return clampMinute(h * 60 + min);
-}
-
-function clampMinute(n) {
-  return Math.max(0, Math.min(24 * 60, Math.round(n)));
-}
+// `timeToMinutes` and `clampMinute` live in timeOfDay.js (v1.22, limecore#126),
+// so the deadline code that runs at startup can use them without this module.
 
 /** 495 → "08:15". The DB column wants seconds, so `:00` is appended. */
 export function minutesToTime(mins) {

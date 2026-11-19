@@ -9,21 +9,15 @@ import { otherAccountClearedMessage, requestNoteFlush } from "./lib/noteFlush.js
 import { claimForUser, readOwner, isPageStale, watchPageStale, reloadStalePage, takeStaleReloadNotice, STALE_RELOAD_FALLBACK_MS } from "./lib/deviceOwner.js";
 import { isRecoveryPending, subscribeRecovery } from "./lib/passwordRecovery.js";
 import { isGuestMode, setGuestMode } from "./lib/guestMode.js";
-import { scheduleOriginStamp } from "./lib/originMarker.js";
-import { watchAppOpens } from "./lib/appOpens.js";
 import { refreshEntitlement } from "./lib/entitlement.js";
 import { wipeAccountLocalData } from "./lib/accountWipe.js";
 import StorageAlert from "./features/settings/StorageAlert.jsx";
 import TimerPill from "./features/timer/TimerPill.jsx";
 import { useAccountAvatar } from "./lib/useAccountAvatar.js";
-import ReferralPrompt from "./features/referral/ReferralPrompt.jsx";
-import PolicyUpdatedNote from "./features/errors/PolicyUpdatedNote.jsx";
 import { setReportScreen } from "./lib/errorReports.js";
-import { inheritFromNexus } from "./lib/suiteSso.js";
 import { hydrateOnboardedFromCloud, markOnboardedCloud } from "./lib/onboardingCloud.js";
 import * as sync from "./lib/sync.js";
 import * as outbox from "./lib/outbox.js";
-import { reconcileUnsynced } from "./lib/reconcile.js";
 import { hold, release, replayHeld } from "./lib/autoSaveHold.js";
 import { stampsFromPull, mergeStamps, shouldPull } from "./lib/syncStamps.js";
 import { pastSessionDraft } from "./lib/pastSession.js";
@@ -120,6 +114,10 @@ const AddExamModal = lazy(() => import("./features/plan/AddExamModal.jsx"));
 const OnboardingView = lazy(() => import("./features/onboarding/OnboardingView.jsx"));
 // v1.20 (limecore#71): almost every launch never shows it.
 const ReportPromptCard = lazy(() => import("./features/settings/ReportPromptCard.jsx"));
+// v1.22 (limecore#126): the referral question and the policy-update note are
+// one-off cards over a screen that is already up, so they load on demand too.
+const ReferralPrompt = lazy(() => import("./features/referral/ReferralPrompt.jsx"));
+const PolicyUpdatedNote = lazy(() => import("./features/errors/PolicyUpdatedNote.jsx"));
 
 // ── Root App ──────────────────────────────────────────────────────────────────
 export default function App() {
@@ -380,7 +378,9 @@ export default function App() {
         otherAccountNoticeRef.current?.(unsent);
       }
       setSession(s);
-      scheduleOriginStamp(s?.user ?? null);
+      // v1.22 (limecore#126): loaded on demand. The stamp was already deferred
+      // off the auth callback (see originMarker.js), and it is fire-and-forget.
+      if (s?.user) void import("./lib/originMarker.js").then((m) => m.scheduleOriginStamp(s.user), () => {});
       // v1.1 — any successful sign-in clears guestMode so the user resumes
       // normal session-based flow. Without this, a user who signed out
       // (which sets guestMode=true to prevent next-launch auto-inherit
@@ -415,6 +415,10 @@ export default function App() {
     const inherit = async () => {
       if (isGuestMode() || !Capacitor.isNativePlatform()) return null;
       try {
+        // v1.22 (limecore#126): loaded here, not at startup. A signed-out launch
+        // shows AuthGate next, which imports the same module, so this costs no
+        // extra chunk; a failed load lands in the catch like a failed probe.
+        const { inheritFromNexus } = await import("./lib/suiteSso.js");
         const result = await inheritFromNexus({ onlyUserId: readOwner() || undefined });
         if (result.ok) return (await supabase.auth.getSession()).data.session;
       } catch (e) {
@@ -509,8 +513,18 @@ export default function App() {
       // v1.20 (#156): progress counters live outside the reducer; their store
       // loads on demand, so this costs nothing until counters are in use.
       if (localStorage.getItem("sd-counters")) void import("./lib/counterStore.js").then((m) => m.refreshCounters());
+      // v1.22 (limecore#126): the reconciler loads on demand. The import starts
+      // with the pull and is awaited before the merge, so everything from the
+      // merge to the reconcile below still runs in one synchronous step, against
+      // the pre-merge state. A failed load (only possible on the web, after a
+      // deploy) skips this one reconcile; the next pull runs it.
+      const reconcileLoad = import("./lib/reconcile.js").catch((e) => {
+        console.warn("[StudyDesk] reconcile failed to load:", e);
+        return null;
+      });
       try {
         const remote = await sync.pullAllStudyData();
+        const reconcile = await reconcileLoad;
         // StudyDesk#72 — stamps first, merge second. The merge re-runs the
         // push effects, and they must already know which rows are just the
         // server's own copy coming back.
@@ -527,8 +541,8 @@ export default function App() {
         // Runs against the PRE-merge local state on purpose: the merge only
         // adds remote rows, and local-only is precisely what we are looking
         // for. Cheap when there is nothing to do — two set builds and a walk.
-        if (!cancelled) {
-          const queued = reconcileUnsynced(stateRef.current, remote, outbox);
+        if (!cancelled && reconcile) {
+          const queued = reconcile.reconcileUnsynced(stateRef.current, remote, outbox);
           if (queued) console.warn(`[StudyDesk] reconcile: re-queued ${queued} unsynced row(s)`);
         }
       } catch (e) {
@@ -842,7 +856,16 @@ export default function App() {
   // v1.12 Item 0 — retention. Mount-only and deliberately independent of the
   // auth effect: the trigger is the app being foregrounded, not a session
   // arriving. Guests and same-day repeats are filtered inside recordAppOpen.
-  useEffect(() => watchAppOpens(), []);
+  //
+  // v1.22 (limecore#126): the module loads on demand, a moment after mount.
+  // The row is keyed on the local date, so a few milliseconds change nothing.
+  useEffect(() => {
+    let stop = null;
+    let cancelled = false;
+    import("./lib/appOpens.js").then((m) => { if (!cancelled) stop = m.watchAppOpens(); },
+      (e) => console.warn("[studydesk] app-open tracking failed to load:", e));
+    return () => { cancelled = true; stop?.(); };
+  }, []);
 
 
   // v1.12 Item 5 — supporter entitlement. Keyed on the user id rather than the
@@ -1336,9 +1359,9 @@ export default function App() {
     {/* Item 8 — asks once per account, only inside the account-age window,
         and only once onboarding is out of the way. Guests have no auth
         metadata to write to, so `session?.user` is the whole gate. */}
-    {onboarded && session?.user && <ReferralPrompt user={session.user}/>}
+    {onboarded && session?.user && <Suspense fallback={null}><ReferralPrompt user={session.user}/></Suspense>}
     {/* v1.16 (limecore#16) — once, for people who used StudyDesk under the
         old policy; pinned to the top edge, clear of the referral corner. */}
-    {onboarded && <PolicyUpdatedNote/>}
+    {onboarded && <Suspense fallback={null}><PolicyUpdatedNote/></Suspense>}
   </>);
 }

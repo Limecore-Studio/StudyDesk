@@ -23,7 +23,7 @@ import { readFileSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const BUDGET_KIB = 668; // v1.21 (StudyDesk#224): plan list, course pane, course modals and save sheet load on demand; measured 667.6 KiB (was 706 at 705.8)
+const BUDGET_KIB = 645; // v1.22 (limecore#126): reminders, widget bridge, grade-scale sync, reconciler, SSO probe, timetable, done sheet and one-off cards load on demand; measured 644.6 KiB (was 668 at 666.9)
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');

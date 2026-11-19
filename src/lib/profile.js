@@ -18,7 +18,6 @@
 
 import { supabase } from './supabase.js';
 import { isPageStale } from './deviceOwner.js';
-import { encodeAvatar } from './imageEncode.js';
 import { uploadForUser, removeForUser, signedUrlForUser } from './userStorage.js';
 
 export const AVATAR_BUCKET = 'avatars';
@@ -153,6 +152,10 @@ export async function uploadAvatar(file) {
   // Encode FIRST. It strips EXIF and enforces the size ceiling before anything
   // leaves the device, so a rejected upload costs no bandwidth and no GPS
   // coordinates are ever transmitted.
+  // v1.22 (limecore#126): the encoder loads here, not at startup. Profile
+  // reads run on every launch for the avatar; only an upload needs it, and that
+  // starts from Settings, whose chunk already imports it.
+  const { encodeAvatar } = await import('./imageEncode.js');
   const blob = await encodeAvatar(file);
 
   const prior = readCache();

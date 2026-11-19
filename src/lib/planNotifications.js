@@ -3,6 +3,7 @@ import { parseLocalDate, addDays, fmtTime } from "./dates.js";
 import { DIFFICULTY_DAYS } from "./examDifficulty.js";
 import { dueDayReminderAt, dueMoment, rankOpenDeadlines } from "./dueAt.js";
 import { studyStartDate } from "./deadlines.js";
+import { ACTION_DONE_ID } from "./notificationActions.js";
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 // Action-type IDs for tap-action buttons. Registered once at app start via
@@ -11,7 +12,7 @@ import { studyStartDate } from "./deadlines.js";
 // actionId === ACTION_DONE_ID and whose notification.extra carries the
 // assignmentId to dispatch TOGGLE_ASSIGNMENT against.
 const ASSIGNMENT_ACTION_TYPE = "assignment-reminder";
-export const ACTION_DONE_ID = "done";
+export { ACTION_DONE_ID };
 // v1.18.1 (StudyDesk#141): the button is labelled in the app's language, so it
 // is registered again whenever that label changes.
 let _actionLabelRegistered = null;
