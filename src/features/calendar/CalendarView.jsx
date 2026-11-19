@@ -1476,6 +1476,9 @@ export default function CalendarView({ state, dispatch, session, showFlash, tier
           notes: p.notes,
           fulfilledBy: p.fulfilledBy,
           dismissedAt: p.dismissedAt,
+          // StudyDesk#238: the server writes series_id from the payload, so a
+          // moved block without it left its series.
+          seriesId: p.seriesId ?? null,
         });
       }
       showFlash?.(t('cal.planMoved'));
@@ -1516,7 +1519,8 @@ export default function CalendarView({ state, dispatch, session, showFlash, tier
     if (form.id) {
       dispatch({ type: 'EDIT_PLANNED', id: form.id, subjectId: form.subjectId, startsAt, durationMinutes: form.durationMinutes, title: form.title, notes: form.notes });
       const prev = (state.plannedSessions || []).find((p) => p.id === form.id);
-      pushPlan({ ...form, startsAt, fulfilledBy: prev?.fulfilledBy ?? null, dismissedAt: prev?.dismissedAt ?? null });
+      // StudyDesk#238: the editor's form has no seriesId; the stored block does.
+      pushPlan({ ...form, startsAt, fulfilledBy: prev?.fulfilledBy ?? null, dismissedAt: prev?.dismissedAt ?? null, seriesId: prev?.seriesId ?? null });
       showFlash?.(t('cal.planSaved'));
     } else {
       // v1.14 Item 7a — a repeat writes every occurrence NOW, as ordinary
