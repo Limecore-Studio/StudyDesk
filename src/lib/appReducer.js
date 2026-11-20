@@ -457,6 +457,15 @@ export function reducer(state, action) {
     // v1.21 (#205) — Undo / Edit on an automatic save: put the rows it touched
     // back exactly as they were (a null row means "it did not exist": remove
     // it, no tombstone, since nothing was pushed yet).
+    // StudyDesk#267 — Undo on a one-tap delete: the row comes back exactly as
+    // it was (its own stamps), replacing a local tombstone or re-adding a row
+    // that was removed. Its server delete was never queued (heldDelete.js).
+    case "RESTORE_DELETED": {
+      const key=action.list, row=action.row;
+      if (!["assignments","exams","grades","studySessions"].includes(key) || !row?.id) return state;
+      const list=state[key]||[];
+      return {...state,[key]:list.some(x=>x.id===row.id)?list.map(x=>x.id===row.id?row:x):[...list,row]};
+    }
     case "RESTORE_ROWS": {
       const put=(list,id,row)=>!id?list:row?(list||[]).map(x=>x.id===id?row:x):(list||[]).filter(x=>x.id!==id);
       return {...state,studySessions:put(state.studySessions,action.sessionId,action.session),plannedSessions:put(state.plannedSessions,action.planId,action.plan)};

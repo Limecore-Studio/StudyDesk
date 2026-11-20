@@ -7,6 +7,7 @@ import { daysUntil, studyStartDate, urgencyColor, examUrgencyLabel } from "../..
 import { enterSubmit } from "../../lib/imeSubmit.js";
 import DateInput from "../../lib/DateInput.jsx";
 import { offerUndo } from "../../lib/doneList.js";
+import { holdDelete } from "../../lib/heldDelete.js";
 
 // ── ExamCard ──────────────────────────────────────────────────────────────────
 export default function ExamCard({ exam, courses, dispatch, onStartFocus }) {
@@ -89,7 +90,7 @@ export default function ExamCard({ exam, courses, dispatch, onStartFocus }) {
       <button className="exam-edit-btn" style={{flexShrink:0}} onClick={e=>{e.stopPropagation();startEdit();}} aria-label={t('av.ec.editExam')} title={t('av.ec.editExam')}>
         <Pencil size={13} strokeWidth={1.75}/>
       </button>
-      <button className="btn-danger-text" style={{flexShrink:0}} onClick={e=>{e.stopPropagation();dispatch({type:"DELETE_EXAM",id:exam.id});}} aria-label={t('common.delete')} title={t('common.delete')}>×</button>
+      <button className="btn-danger-text" style={{flexShrink:0}} onClick={e=>{e.stopPropagation();dispatch({type:"DELETE_EXAM",id:exam.id});holdDelete({title:t('done.deleted',{title:exam.title}),ops:[["delete_exam",{id:exam.id}]],restore:{type:"RESTORE_DELETED",list:"exams",row:exam}});}} aria-label={t('common.delete')} title={t('common.delete')}>×</button>
     </div>
     {open&&<div className="exam-card-body">
       {exam.notes&&<div className="exam-card-notes">{exam.notes}</div>}

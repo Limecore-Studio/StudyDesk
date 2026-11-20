@@ -1322,7 +1322,8 @@
       "exam": "Examen"
     },
     "markedDone": "Terminé : {{title}}",
-    "undo": "Annuler"
+    "undo": "Annuler",
+    "deleted": "Supprimé : {{title}}"
   },
   "reportPrompt": {
     "title": "Envoyer des rapports d’erreur ?",

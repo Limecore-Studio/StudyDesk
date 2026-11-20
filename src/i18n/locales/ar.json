@@ -1365,7 +1365,8 @@
       "exam": "اختبار"
     },
     "markedDone": "تم: {{title}}",
-    "undo": "تراجع"
+    "undo": "تراجع",
+    "deleted": "تم الحذف: {{title}}"
   },
   "reportPrompt": {
     "title": "هل تريد إرسال تقارير الأخطاء؟",

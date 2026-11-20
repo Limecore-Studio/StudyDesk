@@ -1313,7 +1313,8 @@
       "exam": "Prüfung"
     },
     "markedDone": "Erledigt: {{title}}",
-    "undo": "Rückgängig"
+    "undo": "Rückgängig",
+    "deleted": "Gelöscht: {{title}}"
   },
   "reportPrompt": {
     "title": "Fehlerberichte senden?",

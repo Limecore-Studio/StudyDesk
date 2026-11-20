@@ -1313,7 +1313,8 @@
       "exam": "Exam"
     },
     "markedDone": "Done: {{title}}",
-    "undo": "Undo"
+    "undo": "Undo",
+    "deleted": "Deleted: {{title}}"
   },
   "reportPrompt": {
     "title": "Send error reports?",
