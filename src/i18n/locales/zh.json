@@ -769,7 +769,8 @@
       "typeCustomPh": "填写类型（例如：演示）",
       "repeatUntil": "截止",
       "examRepeatSummary": "共 {{count}} 场考试，最后一场在 {{until}}",
-      "asgnRepeatSummary": "共 {{count}} 项作业，最后一项截止于 {{until}}"
+      "asgnRepeatSummary": "共 {{count}} 项作业，最后一项截止于 {{until}}",
+      "nextWeek": "下周"
     },
     "act": {
       "addManually": "手动添加",

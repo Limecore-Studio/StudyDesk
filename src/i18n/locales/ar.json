@@ -803,7 +803,8 @@
       "typeCustomPh": "سمِّ النوع (مثال: عرض تقديمي)",
       "repeatUntil": "حتى",
       "examRepeatSummary": "{{count}} اختبارات، آخرها في {{until}}",
-      "asgnRepeatSummary": "{{count}} واجبات، آخرها مستحق في {{until}}"
+      "asgnRepeatSummary": "{{count}} واجبات، آخرها مستحق في {{until}}",
+      "nextWeek": "الأسبوع القادم"
     },
     "act": {
       "addManually": "إضافة يدوية",

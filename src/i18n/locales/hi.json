@@ -771,7 +771,8 @@
       "typeCustomPh": "प्रकार का नाम दें (जैसे प्रस्तुति)",
       "repeatUntil": "तक",
       "examRepeatSummary": "{{count}} परीक्षाएँ, आख़िरी {{until}} को",
-      "asgnRepeatSummary": "{{count}} असाइनमेंट, आख़िरी की तारीख़ {{until}}"
+      "asgnRepeatSummary": "{{count}} असाइनमेंट, आख़िरी की तारीख़ {{until}}",
+      "nextWeek": "अगले हफ़्ते"
     },
     "act": {
       "addManually": "मैन्युअल जोड़ें",
