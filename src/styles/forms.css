@@ -230,6 +230,21 @@ button.asgn-check.checked{background:var(--text);}
 .quick-dates{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 10px;}
 .quick-dates .btn-outline.active{background:var(--text);color:var(--bg);border-color:var(--text);}
 .modal-footer-sticky{display:flex;gap:8px;position:sticky;bottom:-28px;margin:4px -28px -28px;padding:12px 28px 20px;background:var(--surface);border-top:1px solid var(--border);z-index:1;}
+/* StudyDesk#270 — a 48 dp hit area without changing the drawn size, so the
+   notebook keeps its small controls: an invisible box centred on each one.
+   It grows UPWARD AND DOWNWARD ONLY. These controls sit in rows beside other
+   controls (✎ beside × on every assignment, Start beside the chevron), and a
+   box grown sideways covered its neighbour: the later sibling wins the tap, so
+   a tap meant for ✎ deleted the assignment. The avatar stands alone at the end
+   of the top bar, 12 px from the pill, so it grows 6 px each way. Rows whose
+   controls stack closer than 48 px give them room (quick dates, below). */
+.btn-sm,.btn-danger-text,.timer-pill,.topbar-avatar{position:relative;}
+.btn-sm::after,.btn-danger-text::after,.timer-pill::after{
+  content:"";position:absolute;inset:50% auto auto 50%;
+  width:100%;height:max(100%,48px);transform:translate(-50%,-50%);}
+.topbar-avatar::after{
+  content:"";position:absolute;inset:50% auto auto 50%;
+  width:48px;height:48px;transform:translate(-50%,-50%);}
 
 /* StudyDesk#273 — the next block, offered when a focus block ends: a second
    row on the auto-save bar, and one line in the save sheet. */
