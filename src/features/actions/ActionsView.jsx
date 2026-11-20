@@ -9,6 +9,7 @@ import FirstSteps from "../onboarding/FirstSteps.jsx";
 import { fmtTime } from "../../lib/dates.js";
 import { openPlansBetween } from "../../lib/planRun.js";
 import { doneItems, isExpiredDoneAction, offerUndo } from "../../lib/doneList.js";
+import { haptic } from "../../lib/haptic.js";
 
 const BUCKETS = ["today", "this_week", "later"];
 const BUCKET_COLORS = {
@@ -185,7 +186,8 @@ export default function ActionsView({ state, dispatch, showFlash, onAddCourse, o
             if(!toggle) return;
             dispatch(toggle);
             // v1.19 (#87) — a tick can be taken back for a few seconds.
-            if(!a.done) offerUndo(a.text, toggle);
+            // limecore#130: light feedback on checking it off.
+            if(!a.done){ haptic.light(); offerUndo(a.text, toggle); }
           }}/>
           <div className={"action-text"+(a.done?" done":"")}>{a.text}</div>
           {!a.suggested&&<button className="btn-danger-text" onClick={()=>dispatch({type:"DELETE_ACTION",id:a.id})}>×</button>}
