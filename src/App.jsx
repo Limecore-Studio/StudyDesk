@@ -54,7 +54,7 @@ import { AccountAvatar } from "./lib/avatar.jsx";
 import { useShellTier, useSidebarRail } from "./lib/useShell.js";
 import { enterSubmit } from "./lib/imeSubmit.js";
 import { rehydrateState } from "./app/rehydrate.js";
-import { useFocusChip } from "./app/useFocusChip.js";
+import { useFocusChip, useFocusActions } from "./app/useFocusChip.js";
 import { usePersistState } from "./app/usePersistState.js";
 import { useGradeScaleSync } from "./app/useGradeScaleSync.js";
 import { useReminders } from "./app/useReminders.js";
@@ -678,6 +678,9 @@ export default function App() {
     hold(restore.sessionId, planId, session?.user?.id, steps.outbox);
     setAutoSaved({ key: Date.now(), pending: payload, steps, restore });
   };
+  // StudyDesk#289 — Pause / +5 min / End from the focus chip. End raises the
+  // save sheet with the block it finished, as the Timer screen's Stop does.
+  useFocusActions((session) => onTimerComplete(session));
   // Push when the window closes, or at once if the app is hidden first. Each
   // save is pushed (or undone) exactly once, however often this re-runs.
   useEffect(() => {

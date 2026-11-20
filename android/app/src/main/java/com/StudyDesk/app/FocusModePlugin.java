@@ -47,6 +47,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.view.Window;
 
@@ -54,6 +55,7 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -65,6 +67,52 @@ public class FocusModePlugin extends Plugin {
 
     private static final String CHANNEL_ID = "studydesk_focus";
     private static final int NOTIFICATION_ID = 4201;
+
+    // ── StudyDesk#289: Pause / +5 min / End on the chip ─────────────────────
+    //
+    // Each action opens MainActivity with the action id as an extra. An
+    // activity, not a broadcast, because the timer's state lives in the
+    // WebView (`sd-timer`), so only JS can apply it, and an activity is what
+    // reliably brings a killed process back with its WebView. Delivery follows
+    // WidgetBridgePlugin: a cold start queues the action until JS collects it
+    // (consumeFocusActions); a warm start emits "focusAction" at once.
+    static final String EXTRA_ACTION = "sd_focus_action";
+    private static FocusModePlugin instance;
+    private static final java.util.List<String> pendingActions = new java.util.ArrayList<>();
+
+    @Override
+    public void load() {
+        instance = this;
+    }
+
+    /** Called by MainActivity before super.onCreate() and from onNewIntent. */
+    static void stashFocusAction(Intent intent) {
+        if (intent == null) return;
+        String action = intent.getStringExtra(EXTRA_ACTION);
+        if (action == null) return;
+        // Off the intent, or a configuration change would apply it again.
+        intent.removeExtra(EXTRA_ACTION);
+        if (instance != null && instance.hasListeners("focusAction")) {
+            JSObject payload = new JSObject();
+            payload.put("action", action);
+            instance.notifyListeners("focusAction", payload);
+        } else {
+            synchronized (pendingActions) { pendingActions.add(action); }
+        }
+    }
+
+    /** Actions tapped while no JS was listening (a cold start), oldest first. */
+    @PluginMethod
+    public void consumeFocusActions(PluginCall call) {
+        JSArray out = new JSArray();
+        synchronized (pendingActions) {
+            for (String a : pendingActions) out.put(a);
+            pendingActions.clear();
+        }
+        JSObject result = new JSObject();
+        result.put("actions", out);
+        call.resolve(result);
+    }
 
     /** Whether THIS plugin started the lock task. Screen pinning can also be
      *  started by the user from Recents, and stopping a pin we did not start
@@ -166,7 +214,7 @@ public class FocusModePlugin extends Plugin {
                 out.put("chipError", "notifications-blocked");
             } else {
                 try {
-                    postChip(title, text, endsAt);
+                    postChip(title, text, endsAt, call.getArray("actions", null));
                     out.put("chip", true);
                 } catch (Throwable t) {
                     // A refused notification must not take the focus session
@@ -263,7 +311,7 @@ public class FocusModePlugin extends Plugin {
 
     // ── Notification ───────────────────────────────────────────────────────
 
-    private void postChip(String title, String text, long endsAt) {
+    private void postChip(String title, String text, long endsAt, JSArray actions) {
         Context ctx = getContext();
         NotificationManager nm =
                 (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -296,6 +344,30 @@ public class FocusModePlugin extends Plugin {
                 .setOngoing(true)          // not swipeable — it mirrors live state
                 .setOnlyAlertOnce(true)
                 .setShowWhen(endsAt > 0);
+
+        // StudyDesk#289 — the chip's buttons, as the web layer named them
+        // ([{id, title}]). Each opens the app with its id; see EXTRA_ACTION.
+        if (actions != null) {
+            for (int i = 0; i < actions.length(); i++) {
+                try {
+                    org.json.JSONObject a = actions.getJSONObject(i);
+                    String id = a.getString("id");
+                    Intent act = new Intent(ctx, MainActivity.class);
+                    act.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    act.putExtra(EXTRA_ACTION, id);
+                    // A distinct request code per button, or the system would
+                    // treat them as one PendingIntent and every button would
+                    // carry the last one's extra.
+                    PendingIntent pi = PendingIntent.getActivity(
+                            ctx, 100 + Math.abs(id.hashCode() % 1000), act,
+                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                    b.addAction(new Notification.Action.Builder(
+                            Icon.createWithResource(ctx, getSmallIcon(ctx)), a.getString("title"), pi).build());
+                } catch (Throwable ignored) {
+                    // A malformed button is dropped; the chip still shows.
+                }
+            }
+        }
 
         if (endsAt > 0) {
             // Counting DOWN to the deadline. setWhen carries the deadline and

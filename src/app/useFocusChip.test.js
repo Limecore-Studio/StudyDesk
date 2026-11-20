@@ -7,10 +7,10 @@ const rec = (over = {}) => ({ running: true, mode: 'pomodoro', phase: 'focus', s
 
 describe('chipFor', () => {
   it('a running focus countdown gets a chip counting down to its end', () => {
-    expect(chipFor(rec(), NOW)).toEqual({ endsAt: NOW + 1_500_000, task: 'Essay', stopwatch: false });
+    expect(chipFor(rec(), NOW)).toEqual({ endsAt: NOW + 1_500_000, task: 'Essay', stopwatch: false, paused: false });
   });
   it('a running stopwatch gets a chip with no countdown', () => {
-    expect(chipFor(rec({ mode: 'stopwatch', secsAtStart: 120 }), NOW)).toEqual({ endsAt: 0, task: 'Essay', stopwatch: true });
+    expect(chipFor(rec({ mode: 'stopwatch', secsAtStart: 120 }), NOW)).toEqual({ endsAt: 0, task: 'Essay', stopwatch: true, paused: false });
   });
   it('Lock In is left to TimerView', () => {
     expect(chipFor(rec({ lockedIn: true }), NOW)).toBe('lockin');

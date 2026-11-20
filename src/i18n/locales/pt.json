@@ -1087,7 +1087,10 @@
     "focusChipRunning": "Bloco de foco a decorrer",
     "focusChipPaused": "Em pausa",
     "chipFocusTitle": "Bloco de foco",
-    "chipStopwatchTitle": "Cronômetro"
+    "chipStopwatchTitle": "Cronômetro",
+    "chipResume": "Retomar",
+    "chipPlus5": "+5 min",
+    "chipEnd": "Encerrar"
   },
   "notif": {
     "planLeadTitle": "Bloco de estudo às {{time}}",

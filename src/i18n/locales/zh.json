@@ -1076,7 +1076,10 @@
     "focusChipRunning": "专注时段进行中",
     "focusChipPaused": "已暂停",
     "chipFocusTitle": "专注时段",
-    "chipStopwatchTitle": "秒表"
+    "chipStopwatchTitle": "秒表",
+    "chipResume": "继续",
+    "chipPlus5": "+5 分钟",
+    "chipEnd": "结束"
   },
   "notif": {
     "planLeadTitle": "学习时段将于 {{time}} 开始",
