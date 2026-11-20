@@ -230,3 +230,10 @@ button.asgn-check.checked{background:var(--text);}
 .quick-dates{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 10px;}
 .quick-dates .btn-outline.active{background:var(--text);color:var(--bg);border-color:var(--text);}
 .modal-footer-sticky{display:flex;gap:8px;position:sticky;bottom:-28px;margin:4px -28px -28px;padding:12px 28px 20px;background:var(--surface);border-top:1px solid var(--border);z-index:1;}
+
+/* StudyDesk#273 — the next block, offered when a focus block ends: a second
+   row on the auto-save bar, and one line in the save sheet. */
+.undo-bar--next{flex-wrap:wrap;row-gap:6px;}
+.undo-bar-next{flex-basis:100%;display:flex;align-items:center;gap:14px;min-width:0;opacity:0.9;}
+.undo-bar-next .undo-bar-text{flex:1;}
+.ss-next{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:var(--font-mono);font-size:11px;color:var(--muted);border-top:1px dashed var(--border2);padding-top:10px;margin:4px 0 8px;}

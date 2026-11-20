@@ -1079,7 +1079,9 @@
     "focusChipRunning": "फोकस ब्लॉक चल रहा है",
     "focusChipPaused": "रोका गया",
     "chipFocusTitle": "फ़ोकस ब्लॉक",
-    "chipStopwatchTitle": "स्टॉपवॉच"
+    "chipStopwatchTitle": "स्टॉपवॉच",
+    "nextBlock": "अगला: {{time}} · {{title}}",
+    "startNow": "अभी शुरू करें"
   },
   "notif": {
     "planLeadTitle": "अध्ययन ब्लॉक {{time}} बजे शुरू",

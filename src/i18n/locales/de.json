@@ -1079,7 +1079,9 @@
     "focusChipRunning": "Fokusblock läuft",
     "focusChipPaused": "Pausiert",
     "chipFocusTitle": "Fokusblock",
-    "chipStopwatchTitle": "Stoppuhr"
+    "chipStopwatchTitle": "Stoppuhr",
+    "nextBlock": "Als Nächstes: {{time}} · {{title}}",
+    "startNow": "Jetzt starten"
   },
   "notif": {
     "planLeadTitle": "Lernblock um {{time}}",

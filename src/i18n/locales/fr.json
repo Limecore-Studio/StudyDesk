@@ -1087,7 +1087,9 @@
     "focusChipRunning": "Bloc de concentration en cours",
     "focusChipPaused": "En pause",
     "chipFocusTitle": "Bloc de concentration",
-    "chipStopwatchTitle": "Chronomètre"
+    "chipStopwatchTitle": "Chronomètre",
+    "nextBlock": "Ensuite : {{time}} · {{title}}",
+    "startNow": "Commencer"
   },
   "notif": {
     "planLeadTitle": "Bloc de révision à {{time}}",

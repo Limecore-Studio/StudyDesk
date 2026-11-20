@@ -1079,7 +1079,9 @@
     "focusChipRunning": "Keskittymisjakso käynnissä",
     "focusChipPaused": "Tauolla",
     "chipFocusTitle": "Keskittymisjakso",
-    "chipStopwatchTitle": "Sekuntikello"
+    "chipStopwatchTitle": "Sekuntikello",
+    "nextBlock": "Seuraavaksi: {{time}} · {{title}}",
+    "startNow": "Aloita nyt"
   },
   "notif": {
     "planLeadTitle": "Opiskelujakso alkaa klo {{time}}",

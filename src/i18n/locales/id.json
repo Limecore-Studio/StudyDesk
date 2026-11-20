@@ -1071,7 +1071,9 @@
     "focusChipRunning": "Blok fokus berjalan",
     "focusChipPaused": "Dijeda",
     "chipFocusTitle": "Blok fokus",
-    "chipStopwatchTitle": "Stopwatch"
+    "chipStopwatchTitle": "Stopwatch",
+    "nextBlock": "Berikutnya: {{time}} · {{title}}",
+    "startNow": "Mulai sekarang"
   },
   "notif": {
     "planLeadTitle": "Blok belajar pukul {{time}}",
