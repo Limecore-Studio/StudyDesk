@@ -55,9 +55,19 @@
     "deleteConfirm": "¿Eliminar todos los datos?",
     "yesDelete": "Sí, eliminar",
     "no": "No",
-    "colorSwatch": "Color {{hex}}",
+    "colorSwatch": "Color: {{name}}",
     "colorCustom": "Elegir cualquier color",
-    "colorNone": "Sin color"
+    "colorNone": "Sin color",
+    "colorName": {
+      "red": "Rojo",
+      "amber": "Ámbar",
+      "green": "Verde",
+      "blue": "Azul",
+      "purple": "Morado",
+      "rust": "Óxido",
+      "teal": "Verde azulado",
+      "plum": "Ciruela"
+    }
   },
   "history": {
     "title": "Historial de periodos · Archivo",
@@ -221,7 +231,7 @@
     "pullLatest": "Sincronizar ahora",
     "retrying": "Reintentando…",
     "retryNow": "Reintentar",
-    "syncNote": "El tiempo real aplica los cambios entrantes en ~1,5 s. Las escrituras salientes pasan por una cola local que reintenta automáticamente al restaurar la red y al reanudar la app.",
+    "syncNote": "Los cambios de tus otros dispositivos aparecen en segundos. Lo que cambies sin conexión se guarda aquí y se envía cuando vuelvas a estar en línea.",
     "gradeScale": "Escala de notas",
     "gradeNote": "IB: media ponderada en la escala 1–7. US: porcentaje por curso → puntos 4.0, luego ponderado por créditos. Almacenado localmente — no se sincroniza.",
     "techDetails": "Detalles técnicos",
@@ -768,7 +778,8 @@
       "typeCustomPh": "Nombra el tipo (p. ej. Presentación)",
       "repeatUntil": "Hasta",
       "examRepeatSummary": "{{count}} exámenes, el último el {{until}}",
-      "asgnRepeatSummary": "{{count}} tareas, la última para el {{until}}"
+      "asgnRepeatSummary": "{{count}} tareas, la última para el {{until}}",
+      "nextWeek": "La próxima semana"
     },
     "act": {
       "addManually": "Añadir manualmente",
@@ -792,7 +803,8 @@
       "loading": "CARGANDO…",
       "updateShort": "Actualización disponible",
       "updateDownloading": "Descargando… {{percent}} %",
-      "updateReady": "Reiniciar para actualizar"
+      "updateReady": "Reiniciar para actualizar",
+      "moreCount": "+{{n}} más"
     },
     "flash": {
       "courseAdded": "Curso añadido",
@@ -842,7 +854,9 @@
     "today": "Hoy",
     "tomorrow": "Mañana",
     "noPlanToday": "Nada planeado para hoy",
-    "openPlan": "Abrir el plan"
+    "openPlan": "Abrir el plan",
+    "noDate": "Sin fecha",
+    "upcomingOnlyDated": "Aquí solo aparecen tareas con fecha. Las que no tienen fecha están en el widget Next up."
   },
   "cal": {
     "title": "Calendario",
@@ -1071,7 +1085,9 @@
   "timer": {
     "focusChipTitle": "Concentrado",
     "focusChipRunning": "Bloque de enfoque en curso",
-    "focusChipPaused": "En pausa"
+    "focusChipPaused": "En pausa",
+    "chipFocusTitle": "Bloque de concentración",
+    "chipStopwatchTitle": "Cronómetro"
   },
   "notif": {
     "planLeadTitle": "Bloque de estudio a las {{time}}",
@@ -1086,7 +1102,11 @@
     "examTodayTitle": "📝 Examen hoy — mucha suerte",
     "dueTomorrowTitle": "📋 Vence mañana",
     "dueTodayTitle": "📋 Vence hoy",
-    "markDone": "Marcar como hecho"
+    "markDone": "Marcar como hecho",
+    "focusEndTitle": "Bloque de concentración terminado",
+    "focusEndBody": "Hora de descansar.",
+    "breakEndTitle": "Se acabó el descanso",
+    "breakEndBody": "¿Listo para el siguiente bloque?"
   },
   "referral": {
     "eyebrow": "UNA PREGUNTA",
@@ -1309,5 +1329,13 @@
     "body": "Si algo falla, StudyDesk puede enviarnos los detalles técnicos: la versión de la app, el error y la pantalla en la que ocurrió. Nunca lo que escribes. Puedes cambiarlo en Ajustes.",
     "yes": "Sí, enviar",
     "notNow": "Ahora no"
+  },
+  "computer": {
+    "eyebrow": "En tu ordenador",
+    "title": "Usa StudyDesk en tu ordenador",
+    "body": "Tus cursos, plazos y sesiones se sincronizan con la app web y la app de Windows. Inicia sesión allí con esta misma cuenta.",
+    "web": "Abrir la app web",
+    "windows": "Descargar la app de Windows",
+    "dismiss": "Entendido"
   }
 }

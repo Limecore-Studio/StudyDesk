@@ -101,6 +101,63 @@ function urgencyOf(days) {
 }
 
 /**
+ * The snapshot the widgets draw, from the app's data. Pure apart from the
+ * clock (whenLabel reads today), so it can be tested.
+ *
+ * StudyDesk#258: an open assignment with no due date had no home on either
+ * widget, because both lists are ranked by date. Upcoming stays date-only (it
+ * is a timeline), and says so when it is empty but undated work exists; Next
+ * Up falls back to the oldest undated assignment when nothing dated is open.
+ */
+export function buildWidgetSnapshot({ assignments, exams, courses, t, locale, palette = 'light' }) {
+  const ordered = rank(assignments ?? [], exams ?? []);
+  const undated = (assignments ?? []).filter((a) => a && !a.done && !a.dueDate);
+  const nameOf = (item) => {
+    const course = courses?.[item.courseId];
+    return course ? `${item.title} — ${course.name}` : item.title;
+  };
+  // One pass per item: the due date decides both the words and the dot, and
+  // computing them apart invites them to disagree.
+  const describe = (item) => {
+    const w = whenLabel(item.dueDate, locale);
+    const when = w.today ? t('widget.today') : w.tomorrow ? t('widget.tomorrow') : w.text;
+    return { when, urgency: urgencyOf(w.days) };
+  };
+
+  const top = ordered[0] || undated[0] || null;
+  const topWhen = !top ? null
+    : top.dueDate ? describe(top)
+    : { when: t('widget.noDate'), urgency: 'later' };
+  // Title is the task, subtitle is the context — course and when. Putting
+  // `nameOf` in both would have made the second line repeat the first.
+  const topSubtitle = top
+    ? [courses?.[top.courseId]?.name, topWhen.when].filter(Boolean).join(' · ')
+    : '';
+  return {
+    updatedAt: new Date().toISOString(),
+    // v1.15 — "light" | "dark" | "black"; see resolveWidgetPalette. A
+    // native layer older than this ignores the field and stays cream.
+    palette,
+    nextUp: top
+      ? { title: top.title, subtitle: topSubtitle, urgency: topWhen.urgency }
+      : null,
+    upcoming: ordered.slice(0, MAX_UPCOMING).map((item) => {
+      const d = describe(item);
+      return {
+        title: nameOf(item),
+        when: d.when,
+        urgency: d.urgency,
+        kind: item.kind,
+      };
+    }),
+    // StudyDesk#258: Upcoming's empty state, in the app's language, when the
+    // only open work has no date. Null keeps the widget's own "Nothing due"
+    // (and a native layer older than this ignores the field).
+    upcomingEmpty: ordered.length === 0 && undated.length > 0 ? t('widget.upcomingOnlyDated') : null,
+  };
+}
+
+/**
  * Build and push the snapshot.
  *
  * Safe to call on every data change: it no-ops off-Android, and it asks the
@@ -116,46 +173,7 @@ export async function pushWidgetSnapshot({ assignments, exams, courses, t, local
   try {
     const { placed } = await WidgetBridge.hasWidgets();
     if (!placed) return;
-
-    const ordered = rank(assignments ?? [], exams ?? []);
-    const nameOf = (item) => {
-      const course = courses?.[item.courseId];
-      return course ? `${item.title} — ${course.name}` : item.title;
-    };
-    // One pass per item: the due date decides both the words and the dot, and
-    // computing them apart invites them to disagree.
-    const describe = (item) => {
-      const w = whenLabel(item.dueDate, locale);
-      const when = w.today ? t('widget.today') : w.tomorrow ? t('widget.tomorrow') : w.text;
-      return { when, urgency: urgencyOf(w.days) };
-    };
-
-    const top = ordered[0];
-    const topWhen = top ? describe(top) : null;
-    // Title is the task, subtitle is the context — course and when. Putting
-    // `nameOf` in both would have made the second line repeat the first.
-    const topSubtitle = top
-      ? [courses?.[top.courseId]?.name, topWhen.when].filter(Boolean).join(' · ')
-      : '';
-    const snapshot = {
-      updatedAt: new Date().toISOString(),
-      // v1.15 — "light" | "dark" | "black"; see resolveWidgetPalette. A
-      // native layer older than this ignores the field and stays cream.
-      palette: resolveWidgetPalette(),
-      nextUp: top
-        ? { title: top.title, subtitle: topSubtitle, urgency: topWhen.urgency }
-        : null,
-      upcoming: ordered.slice(0, MAX_UPCOMING).map((item) => {
-        const d = describe(item);
-        return {
-          title: nameOf(item),
-          when: d.when,
-          urgency: d.urgency,
-          kind: item.kind,
-        };
-      }),
-    };
-
+    const snapshot = buildWidgetSnapshot({ assignments, exams, courses, t, locale, palette: resolveWidgetPalette() });
     await WidgetBridge.setSnapshot({ json: JSON.stringify(snapshot) });
   } catch (e) {
     console.warn('[StudyDesk] widget snapshot push failed:', e?.message ?? e);

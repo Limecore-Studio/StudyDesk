@@ -129,9 +129,19 @@
     "deleteConfirm": "Hapus semua data?",
     "yesDelete": "Ya, hapus",
     "no": "Tidak",
-    "colorSwatch": "Warna {{hex}}",
+    "colorSwatch": "Warna: {{name}}",
     "colorCustom": "Pilih warna apa pun",
-    "colorNone": "Tanpa warna"
+    "colorNone": "Tanpa warna",
+    "colorName": {
+      "red": "Merah",
+      "amber": "Kuning amber",
+      "green": "Hijau",
+      "blue": "Biru",
+      "purple": "Ungu",
+      "rust": "Karat",
+      "teal": "Hijau kebiruan",
+      "plum": "Plum"
+    }
   },
   "history": {
     "title": "Riwayat periode · Arsip",
@@ -216,7 +226,7 @@
     "pullLatest": "Ambil data terbaru sekarang",
     "retrying": "Mencoba lagi…",
     "retryNow": "Coba lagi sekarang",
-    "syncNote": "Realtime menerima perubahan masuk dalam ~1,5 detik. Perubahan keluar melewati outbox lokal yang otomatis mencoba lagi saat jaringan pulih dan aplikasi dibuka kembali.",
+    "syncNote": "Perubahan dari perangkatmu yang lain muncul dalam hitungan detik. Apa pun yang kamu ubah saat offline disimpan di sini dan dikirim saat kamu kembali online.",
     "gradeScale": "Skala nilai",
     "gradeNote": "IB: rata-rata berbobot pada skala 1–7. AS: persentase per mata pelajaran → poin 4.0, lalu dibobot dengan kredit. Disimpan lokal — tidak disinkronkan.",
     "techDetails": "Detail teknis",
@@ -754,7 +764,8 @@
       "typeCustomPh": "Beri nama jenisnya (mis. Presentasi)",
       "repeatUntil": "Sampai",
       "examRepeatSummary": "{{count}} ujian, yang terakhir {{until}}",
-      "asgnRepeatSummary": "{{count}} tugas, yang terakhir {{until}}"
+      "asgnRepeatSummary": "{{count}} tugas, yang terakhir {{until}}",
+      "nextWeek": "Minggu depan"
     },
     "act": {
       "addManually": "Tambah manual",
@@ -778,7 +789,8 @@
       "loading": "MEMUAT…",
       "updateShort": "Pembaruan tersedia",
       "updateDownloading": "Mengunduh… {{percent}}%",
-      "updateReady": "Mulai ulang untuk memperbarui"
+      "updateReady": "Mulai ulang untuk memperbarui",
+      "moreCount": "+{{n}} lainnya"
     },
     "flash": {
       "courseAdded": "Mata pelajaran ditambahkan",
@@ -826,7 +838,9 @@
     "today": "Hari ini",
     "tomorrow": "Besok",
     "noPlanToday": "Tidak ada rencana hari ini",
-    "openPlan": "Buka rencana"
+    "openPlan": "Buka rencana",
+    "noDate": "Tanpa tanggal",
+    "upcomingOnlyDated": "Di sini hanya tugas bertanggal. Tugas tanpa tanggal ada di widget Next up."
   },
   "cal": {
     "title": "Kalender",
@@ -1055,7 +1069,9 @@
   "timer": {
     "focusChipTitle": "Sedang fokus",
     "focusChipRunning": "Blok fokus berjalan",
-    "focusChipPaused": "Dijeda"
+    "focusChipPaused": "Dijeda",
+    "chipFocusTitle": "Blok fokus",
+    "chipStopwatchTitle": "Stopwatch"
   },
   "notif": {
     "planLeadTitle": "Blok belajar pukul {{time}}",
@@ -1068,7 +1084,11 @@
     "examTodayTitle": "📝 Ujian hari ini — semoga sukses",
     "dueTomorrowTitle": "📋 Tenggat besok",
     "dueTodayTitle": "📋 Tenggat hari ini",
-    "markDone": "Tandai selesai"
+    "markDone": "Tandai selesai",
+    "focusEndTitle": "Blok fokus selesai",
+    "focusEndBody": "Waktunya istirahat.",
+    "breakEndTitle": "Istirahat selesai",
+    "breakEndBody": "Siap untuk blok fokus berikutnya?"
   },
   "referral": {
     "eyebrow": "SATU PERTANYAAN",
@@ -1291,5 +1311,13 @@
     "body": "Jika ada yang rusak, StudyDesk dapat mengirimi kami detail teknisnya: versi aplikasi, galatnya, dan layar tempat terjadinya. Tidak pernah apa yang kamu ketik. Kamu bisa mengubahnya di Pengaturan.",
     "yes": "Ya, kirim",
     "notNow": "Nanti saja"
+  },
+  "computer": {
+    "eyebrow": "Di komputermu",
+    "title": "Pakai StudyDesk di komputermu",
+    "body": "Kursus, tenggat, dan sesimu tersinkron ke aplikasi web dan aplikasi Windows. Masuk di sana dengan akun yang sama.",
+    "web": "Buka aplikasi web",
+    "windows": "Unduh aplikasi Windows",
+    "dismiss": "Oke"
   }
 }

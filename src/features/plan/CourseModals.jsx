@@ -17,7 +17,7 @@ import CoursePicker from '../../lib/CoursePicker.jsx';
 import { ASSIGN_TYPES, OTHER_ASSIGN_TYPE } from '../../lib/assignTypes.js';
 import { enterSubmit } from '../../lib/imeSubmit.js';
 import DateInput from '../../lib/DateInput.jsx';
-import { fmtDateFull } from '../../lib/dates.js';
+import { fmtDateFull, toLocalISO, addDays } from '../../lib/dates.js';
 import { REPEAT_WEEK_CHOICES, MAX_OCCURRENCES, repeatHorizon, occurrenceDates } from '../../lib/planRepeat.js';
 
 export function AddAsgnModal({ courses, activeCourse, terms, onAdd, onClose }) {
@@ -41,9 +41,15 @@ export function AddAsgnModal({ courses, activeCourse, terms, onAdd, onClose }) {
   const isOtherType = type===OTHER_ASSIGN_TYPE;
   const resolvedType = isOtherType ? customType.trim() : type;
   const submit=()=>{ if(!title.trim()||!courseId||!resolvedType) return; onAdd({title:title.trim(),courseId,type:resolvedType,dueDate,dueTime:dueDate?dueTime:"",notes,dates}); };
+  const today = toLocalISO(new Date());
+  const quickDates = [
+    { key: 'today', iso: today, label: t('cal.today') },
+    { key: 'tomorrow', iso: addDays(today, 1), label: t('cal.tomorrow') },
+    { key: 'week', iso: addDays(today, 7), label: t('av.md.nextWeek') },
+  ];
   return <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={t('av.md.addAssignment')} onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}>
     <div className="modal-title">{t('av.md.addAssignment')}</div>
-    <div className="input-group"><div className="input-label">{t('av.md.title')}</div><input type="text" placeholder={t('av.md.titlePh')} value={title} onChange={e=>setTitle(e.target.value)} autoFocus/></div>
+    <div className="input-group"><div className="input-label">{t('av.md.title')}</div><input type="text" placeholder={t('av.md.titlePh')} value={title} onChange={e=>setTitle(e.target.value)} {...enterSubmit(submit)} autoFocus/></div>
     <div className="modal-grid">
       <div className="input-group"><div className="input-label">{t('av.md.course')}</div><select value={courseId} onChange={e=>setCourse(e.target.value)}>{courses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
       <div className="input-group"><div className="input-label">{t('av.md.type')}</div><select value={type} onChange={e=>setType(e.target.value)}>{ASSIGN_TYPES.map(ty=><option key={ty} value={ty}>{t(`av.assignType.${ty}`,{defaultValue:ty})}</option>)}</select></div>
@@ -54,22 +60,28 @@ export function AddAsgnModal({ courses, activeCourse, terms, onAdd, onClose }) {
         and letting it be typed only to be dropped on save is worse than not
         offering it. Optional throughout: most assignments are due "that day"
         and always have been. */}
-    <div className="modal-grid">
-      <div className="input-group"><div className="input-label">{t('av.md.dueDateOpt')}</div><DateInput type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}/></div>
-      <div className="input-group"><div className="input-label">{t('av.md.dueTimeOpt')}</div><DateInput type="time" value={dueTime} disabled={!dueDate} onChange={e=>setDueTime(e.target.value)}/></div>
+    {/* StudyDesk#269: the common dates are one tap; the picker stays for the rest. */}
+    <div className="quick-dates" role="group" aria-label={t('av.md.dueDateOpt')}>
+      {quickDates.map(q=><button key={q.key} type="button" className={"btn-outline btn-sm"+(dueDate===q.iso?" active":"")} aria-pressed={dueDate===q.iso} onClick={()=>setDueDate(q.iso)}>{q.label}</button>)}
     </div>
     <div className="modal-grid">
+      <div className="input-group"><div className="input-label">{t('av.md.dueDateOpt')}</div><DateInput type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}/></div>
+      {/* StudyDesk#269: hidden, not disabled, until there is a date. */}
+      {dueDate&&<div className="input-group"><div className="input-label">{t('av.md.dueTimeOpt')}</div><DateInput type="time" value={dueTime} onChange={e=>setDueTime(e.target.value)}/></div>}
+    </div>
+    {dueDate&&<div className="modal-grid">
       <div className="input-group"><div className="input-label">{t('cal.planRepeat')}</div><select value={String(repeatWeeks)} disabled={!dueDate} onChange={e=>setRepeatWeeks(Number(e.target.value))}>
         <option value="0">{t('cal.planRepeatNone')}</option>
         {REPEAT_WEEK_CHOICES.map(n=><option key={n} value={n}>{n===1?t('cm.everyWeek'):t('cm.everyNWeeks',{count:n})}</option>)}
       </select></div>
       <div className="input-group"><div className="input-label">{t('av.md.repeatUntil')}</div><DateInput type="date" value={repeatWeeks&&dueDate?untilEff:""} min={dueDate||undefined} disabled={!repeatWeeks||!dueDate} onChange={e=>setUntil(e.target.value)}/></div>
-    </div>
+    </div>}
     {repeatWeeks>0&&dueDate&&<div style={{fontFamily:"var(--font-mono)",fontSize:11,color:"var(--muted)",marginBottom:12}}>
       {t('av.md.asgnRepeatSummary',{count:dates.length,until:fmtDateFull(dates[dates.length-1])})}{dates.length>=MAX_OCCURRENCES?` ${t('cal.planRepeatCapped',{max:MAX_OCCURRENCES})}`:""}
     </div>}
     <div className="input-group"><div className="input-label">{t('av.md.notesOpt')}</div><textarea placeholder={t('av.md.asgnNotesPh')} value={notes} onChange={e=>setNotes(e.target.value)} style={{minHeight:60}}/></div>
-    <div style={{display:"flex",gap:8,marginTop:4}}><button className="btn" onClick={submit}>{t('av.md.addAssignment')}</button><button className="btn-outline" onClick={onClose}>{t('common.cancel')}</button></div>
+    {/* StudyDesk#269: stays in view when the keyboard is up at 360 px. */}
+    <div className="modal-footer-sticky"><button className="btn" onClick={submit}>{t('av.md.addAssignment')}</button><button className="btn-outline" onClick={onClose}>{t('common.cancel')}</button></div>
   </div></div>;
 }
 

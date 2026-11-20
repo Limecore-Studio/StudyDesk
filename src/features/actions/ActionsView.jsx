@@ -23,7 +23,7 @@ const CountersPanel = lazy(() => import('../counters/CountersPanel.jsx'));
 // v1.22 (limecore#126): the done sheet opens on a tap, never on first paint.
 const DoneList = lazy(() => import('./DoneList.jsx'));
 
-export default function ActionsView({ state, dispatch, showFlash, onAddCourse, onFirstStep, onStartPlan }) {
+export default function ActionsView({ state, dispatch, showFlash, onAddCourse, onFirstStep, onStartPlan, onStartFocus }) {
   const { t, i18n } = useTranslation();
   const currentLang = (i18n.language || "en").split("-")[0];
   const langRef = useScrollSelectedIntoView();
@@ -189,6 +189,8 @@ export default function ActionsView({ state, dispatch, showFlash, onAddCourse, o
           }}/>
           <div className={"action-text"+(a.done?" done":"")}>{a.text}</div>
           {!a.suggested&&<button className="btn-danger-text" onClick={()=>dispatch({type:"DELETE_ACTION",id:a.id})}>×</button>}
+          {/* StudyDesk#272: the planned-block Start, where the app already knows the moment. */}
+          {a.suggested&&!a.done&&a.courseId&&onStartFocus&&<button className="btn btn-sm" style={{flexShrink:0}} onClick={()=>onStartFocus({subjectId:a.courseId,label:a.text})}>{t('pr.start')}</button>}
           {a.suggested&&<span style={{fontFamily:"var(--font-mono)",fontSize:9,color:"#1a5c9e",letterSpacing:"0.06em",flexShrink:0}}>{t('av.act.auto')}</span>}
         </div>)}
       </div>;

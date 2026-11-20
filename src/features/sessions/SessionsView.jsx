@@ -177,8 +177,8 @@ export default function SessionsView({ state, dispatch, showFlash, session, onLo
                     </div>
                     <span className="sv-item-dur">{s.durationMinutes}m</span>
                     <span className="sv-item-actions">
-                      <button onClick={() => setEditing(s)} title={t('common.edit')}>✎</button>
-                      <button className="danger" onClick={() => delSession(s.id)} title={t('common.delete')}>×</button>
+                      <button onClick={() => setEditing(s)} title={t('common.edit')} aria-label={t('common.edit')}>✎</button>
+                      <button className="danger" onClick={() => delSession(s.id)} title={t('common.delete')} aria-label={t('common.delete')}>×</button>
                     </span>
                   </div>
                 );

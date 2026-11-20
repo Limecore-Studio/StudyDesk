@@ -55,9 +55,19 @@
     "deleteConfirm": "Delete all data?",
     "yesDelete": "Yes, delete",
     "no": "No",
-    "colorSwatch": "Colour {{hex}}",
+    "colorSwatch": "Colour: {{name}}",
     "colorCustom": "Pick any colour",
-    "colorNone": "No colour"
+    "colorNone": "No colour",
+    "colorName": {
+      "red": "Red",
+      "amber": "Amber",
+      "green": "Green",
+      "blue": "Blue",
+      "purple": "Purple",
+      "rust": "Rust",
+      "teal": "Teal",
+      "plum": "Plum"
+    }
   },
   "history": {
     "title": "Period history · Archive",
@@ -219,7 +229,7 @@
     "pullLatest": "Pull latest now",
     "retrying": "Retrying…",
     "retryNow": "Retry now",
-    "syncNote": "Realtime pushes inbound changes within ~1.5s. Outbound writes go through a local outbox that retries automatically on network restore and app resume.",
+    "syncNote": "Changes from your other devices show up within seconds. Anything you change offline is saved here and sent when you're back online.",
     "gradeScale": "Grade scale",
     "gradeNote": "IB: weighted average on the 1–7 scale. US: per-course percent → 4.0 grade points, then credit-weighted. Stored locally — does not sync.",
     "techDetails": "Technical details",
@@ -761,7 +771,8 @@
       "typeCustomPh": "Name the type (e.g. Presentation)",
       "repeatUntil": "Until",
       "examRepeatSummary": "{{count}} exams, the last on {{until}}",
-      "asgnRepeatSummary": "{{count}} assignments, the last due {{until}}"
+      "asgnRepeatSummary": "{{count}} assignments, the last due {{until}}",
+      "nextWeek": "Next week"
     },
     "act": {
       "addManually": "Add manually",
@@ -785,7 +796,8 @@
       "loading": "LOADING…",
       "updateShort": "Update available",
       "updateDownloading": "Downloading… {{percent}}%",
-      "updateReady": "Restart to update"
+      "updateReady": "Restart to update",
+      "moreCount": "+{{n}} more"
     },
     "flash": {
       "courseAdded": "Course added",
@@ -834,7 +846,9 @@
     "today": "Today",
     "tomorrow": "Tomorrow",
     "noPlanToday": "Nothing planned today",
-    "openPlan": "Open the plan"
+    "openPlan": "Open the plan",
+    "noDate": "No date",
+    "upcomingOnlyDated": "Only dated work shows here. Your undated to-dos are in Next up."
   },
   "cal": {
     "title": "Calendar",
@@ -1063,7 +1077,9 @@
   "timer": {
     "focusChipTitle": "Locked in",
     "focusChipRunning": "Focus block running",
-    "focusChipPaused": "Paused"
+    "focusChipPaused": "Paused",
+    "chipFocusTitle": "Focus block",
+    "chipStopwatchTitle": "Stopwatch"
   },
   "notif": {
     "planLeadTitle": "Study block at {{time}}",
@@ -1077,7 +1093,11 @@
     "examTodayTitle": "📝 Exam today — good luck",
     "dueTomorrowTitle": "📋 Due tomorrow",
     "dueTodayTitle": "📋 Due today",
-    "markDone": "Mark done"
+    "markDone": "Mark done",
+    "focusEndTitle": "Focus block done",
+    "focusEndBody": "Time for a break.",
+    "breakEndTitle": "Break's over",
+    "breakEndBody": "Ready for the next focus block?"
   },
   "referral": {
     "eyebrow": "ONE QUESTION",
@@ -1300,5 +1320,13 @@
     "body": "If something breaks, StudyDesk can send us the technical details: the app version, the error and the screen it happened on. Never what you type. You can change this in Settings.",
     "yes": "Yes, send reports",
     "notNow": "Not now"
+  },
+  "computer": {
+    "eyebrow": "On your computer",
+    "title": "Use StudyDesk on your computer",
+    "body": "Your courses, deadlines and sessions sync to the web app and the Windows app. Sign in there with this same account.",
+    "web": "Open the web app",
+    "windows": "Get the Windows app",
+    "dismiss": "Got it"
   }
 }

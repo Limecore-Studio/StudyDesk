@@ -55,9 +55,19 @@
     "deleteConfirm": "Poistetaanko kaikki tiedot?",
     "yesDelete": "Kyllä, poista",
     "no": "Ei",
-    "colorSwatch": "Väri {{hex}}",
+    "colorSwatch": "Väri: {{name}}",
     "colorCustom": "Valitse mikä tahansa väri",
-    "colorNone": "Ei väriä"
+    "colorNone": "Ei väriä",
+    "colorName": {
+      "red": "Punainen",
+      "amber": "Meripihka",
+      "green": "Vihreä",
+      "blue": "Sininen",
+      "purple": "Violetti",
+      "rust": "Ruoste",
+      "teal": "Sinivihreä",
+      "plum": "Luumu"
+    }
   },
   "history": {
     "title": "Jaksohistoria · Arkisto",
@@ -219,7 +229,7 @@
     "pullLatest": "Hae uusimmat nyt",
     "retrying": "Yritetään uudelleen…",
     "retryNow": "Yritä nyt",
-    "syncNote": "Reaaliaika tuo saapuvat muutokset ~1,5 s sisällä. Lähtevät kirjoitukset kulkevat paikallisen outboxin kautta, joka yrittää automaattisesti uudelleen verkon palautuessa ja sovelluksen jatkuessa.",
+    "syncNote": "Muilla laitteillasi tehdyt muutokset näkyvät täällä sekunneissa. Offline-tilassa tekemäsi muutokset tallentuvat tänne ja lähtevät, kun olet taas verkossa.",
     "gradeScale": "Arvosana-asteikko",
     "gradeNote": "IB: painotettu keskiarvo 1–7-asteikolla. US: kurssikohtainen prosentti → 4.0 arvosanapistettä, sitten opintopisteillä painotettu. Tallennettu paikallisesti — ei synkronoidu.",
     "techDetails": "Tekniset tiedot",
@@ -761,7 +771,8 @@
       "typeCustomPh": "Nimeä tyyppi (esim. Esitys)",
       "repeatUntil": "Asti",
       "examRepeatSummary": "{{count}} koetta, viimeinen {{until}}",
-      "asgnRepeatSummary": "{{count}} tehtävää, viimeinen {{until}}"
+      "asgnRepeatSummary": "{{count}} tehtävää, viimeinen {{until}}",
+      "nextWeek": "Ensi viikolla"
     },
     "act": {
       "addManually": "Lisää käsin",
@@ -785,7 +796,8 @@
       "loading": "LADATAAN…",
       "updateShort": "Päivitys saatavilla",
       "updateDownloading": "Ladataan… {{percent}} %",
-      "updateReady": "Käynnistä uudelleen ja päivitä"
+      "updateReady": "Käynnistä uudelleen ja päivitä",
+      "moreCount": "+{{n}} muuta"
     },
     "flash": {
       "courseAdded": "Kurssi lisätty",
@@ -834,7 +846,9 @@
     "today": "Tänään",
     "tomorrow": "Huomenna",
     "noPlanToday": "Ei suunnitelmia tänään",
-    "openPlan": "Avaa suunnitelma"
+    "openPlan": "Avaa suunnitelma",
+    "noDate": "Ei päivää",
+    "upcomingOnlyDated": "Tässä näkyvät vain päivätyt tehtävät. Päiväämättömät näet Next up -widgetissä."
   },
   "cal": {
     "title": "Kalenteri",
@@ -1063,7 +1077,9 @@
   "timer": {
     "focusChipTitle": "Lock In päällä",
     "focusChipRunning": "Keskittymisjakso käynnissä",
-    "focusChipPaused": "Tauolla"
+    "focusChipPaused": "Tauolla",
+    "chipFocusTitle": "Keskittymisjakso",
+    "chipStopwatchTitle": "Sekuntikello"
   },
   "notif": {
     "planLeadTitle": "Opiskelujakso alkaa klo {{time}}",
@@ -1077,7 +1093,11 @@
     "examTodayTitle": "📝 Koe tänään — onnea",
     "dueTomorrowTitle": "📋 Erääntyy huomenna",
     "dueTodayTitle": "📋 Erääntyy tänään",
-    "markDone": "Merkitse tehdyksi"
+    "markDone": "Merkitse tehdyksi",
+    "focusEndTitle": "Keskittymisjakso valmis",
+    "focusEndBody": "Aika pitää tauko.",
+    "breakEndTitle": "Tauko on ohi",
+    "breakEndBody": "Valmis seuraavaan jaksoon?"
   },
   "referral": {
     "eyebrow": "YKSI KYSYMYS",
@@ -1300,5 +1320,13 @@
     "body": "Jos jokin menee rikki, StudyDesk voi lähettää meille tekniset tiedot: sovelluksen version, virheen ja näkymän, jossa se tapahtui. Ei koskaan sitä, mitä kirjoitat. Voit muuttaa tätä asetuksista.",
     "yes": "Kyllä, lähetä",
     "notNow": "Ei nyt"
+  },
+  "computer": {
+    "eyebrow": "Tietokoneella",
+    "title": "Käytä StudyDeskiä tietokoneella",
+    "body": "Kurssisi, määräaikasi ja opiskelukertasi synkronoituvat verkkosovellukseen ja Windows-sovellukseen. Kirjaudu niissä samalla tilillä.",
+    "web": "Avaa verkkosovellus",
+    "windows": "Lataa Windows-sovellus",
+    "dismiss": "Selvä"
   }
 }

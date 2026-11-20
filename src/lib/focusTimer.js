@@ -180,3 +180,12 @@ export function isActive(shared) {
   const full = shared.phase === 'short' ? 300 : shared.phase === 'long' ? 900 : int(shared.customFocus, 5, 240, 25) * 60;
   return shared.mode === 'stopwatch' ? int(shared.secsLeft, 0, 86_400, 0) > 0 : int(shared.secsLeft, 0, 86_400, full) < full;
 }
+
+/** StudyDesk#240 — whether a focus block is still on the clock to be saved by
+ *  Stop, Skip, a mode switch or a plan's "Start focus". Completing a block
+ *  (handlePhaseEnd) clears both its run id and its start time, synchronously;
+ *  the displayed seconds and phase only catch up a render later, so they alone
+ *  made a block that had just been saved look like a full one still running. */
+export function blockOnClock(runId, phaseStartedAt) {
+  return runId != null || phaseStartedAt != null;
+}

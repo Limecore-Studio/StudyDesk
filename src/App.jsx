@@ -54,11 +54,12 @@ import { AccountAvatar } from "./lib/avatar.jsx";
 import { useShellTier, useSidebarRail } from "./lib/useShell.js";
 import { enterSubmit } from "./lib/imeSubmit.js";
 import { rehydrateState } from "./app/rehydrate.js";
+import { useFocusChip } from "./app/useFocusChip.js";
 import { usePersistState } from "./app/usePersistState.js";
 import { useGradeScaleSync } from "./app/useGradeScaleSync.js";
 import { useReminders } from "./app/useReminders.js";
 import { useWidgets } from "./app/useWidgets.js";
-import { useOutboxTriggers, useReminderActions } from "./app/useAppEvents.js";
+import { useOutboxTriggers, useReminderActions, useFocusEndAlarm } from "./app/useAppEvents.js";
 import { useNoteSync } from "./app/useNoteSync.js";
 import { useCloudPushers } from "./app/useCloudPushers.js";
 
@@ -93,6 +94,8 @@ const SaveSessionSheet = lazy(loadSaveSessionSheet);
 // chunk.
 // v1.21.1 (limecore#87): it also mounts the one-time opt-in question.
 const FdroidUpdateNote = lazy(() => import("./features/update/FdroidUpdateNote.jsx"));
+// StudyDesk#260 — "StudyDesk is on your computer too", once per account.
+const ComputerAppsNote = lazy(() => import("./features/update/ComputerAppsNote.jsx"));
 const GradesView = lazy(() => import("./features/grades/GradesView.jsx"));
 const SessionsView = lazy(() => import("./features/sessions/SessionsView.jsx"));
 const NotebookView = lazy(() => import("./features/notebook/NotebookView.jsx"));
@@ -230,6 +233,7 @@ export default function App() {
   const openPlanStart = useCallback((planId) => { if (planId) setPlanOffer(planId); }, []);
 
   useReminderActions(dispatch, openPlanStart);
+  useFocusEndAlarm();
   // Notifications are only scheduled after onboarding completes — never on first open
   const handleOnboardingComplete = useCallback((courseData, opts = {}) => {
     if (courseData) {
@@ -274,6 +278,8 @@ export default function App() {
   useGradeScaleSync(state, dispatch, session?.user?.id, showFlash, t);
 
   const { onDeleteNote } = useNoteSync({ state, session, pulledOnce, remoteStampsRef, dispatch });
+  // StudyDesk#259: the live chip / Now Bar for every running focus timer.
+  useFocusChip(state.focusChip, t);
 
   // v1.13 Item 1a — the escape hatch offered by StorageAlert.
   //
@@ -822,6 +828,16 @@ export default function App() {
     setPlanOffer(null);
   }, [offerPlan, state.courses]);
 
+  // StudyDesk#272 — one tap from a Next Up suggestion or an exam card to a
+  // focus block for that course, the task prefilled. No plan, so the block
+  // runs at the user's own length (TimerView uses customFocus when minutes is
+  // null) and saves as an ordinary session.
+  const startFocusFor = useCallback(({ subjectId, label }) => {
+    setTimerStartReq({ nonce: Date.now(), planId: null, subjectId: subjectId || '', minutes: null, label: label || '' });
+    setTimerSub('timer');
+    dispatch({ type: 'SET_VIEW', view: 'timer' });
+  }, []);
+
   const snoozePlanOffer = useCallback(() => {
     if (!offerPlan) return;
     const id = offerPlan.id;
@@ -1144,12 +1160,23 @@ export default function App() {
           {/* v1.16 (#67) — Android only, once a day, off in Settings. Renders
               nothing unless F-Droid has a newer build than this one. */}
           <Suspense fallback={null}><FdroidUpdateNote signedIn={!!session && !guest} /></Suspense>
+          {state.view==="actions" && session?.user && !guest && Capacitor.isNativePlatform() && (
+            <Suspense fallback={null}><ComputerAppsNote user={session.user} hasData={Object.values(state.courses).some((c) => c && !c.deletedAt)} /></Suspense>
+          )}
           {(urgent.length>0||urgentExams.length>0)&&state.view==="plan"&&(
             <div className="urgent-banner"><span>⚠️</span><div>
               <strong>{t('av.chrome.urgent')}</strong> —{" "}
-              {urgentExams.map((e,i)=><span key={e.id} style={{color:"var(--exam)"}}>{t('av.chrome.examPrefix',{title:e.title})}{i<urgentExams.length-1?", ":""}</span>)}
-              {urgent.length>0&&urgentExams.length>0&&", "}
-              {urgent.map((a,i)=><span key={a.id}>{a.title}{i<urgent.length-1?", ":""}</span>)}
+              {/* StudyDesk#282: the first two, then a count. Listing every
+                  item ran to five lines at 360 px and pushed the list down;
+                  the full list is right below. */}
+              {(() => {
+                const items = [
+                  ...urgentExams.map((e) => <span key={e.id} style={{color:"var(--exam)"}}>{t('av.chrome.examPrefix',{title:e.title})}</span>),
+                  ...urgent.map((a) => <span key={a.id}>{a.title}</span>),
+                ];
+                const shown = items.slice(0, 2);
+                return <>{shown.map((el, i) => <span key={el.key}>{i > 0 ? ", " : ""}{el}</span>)}{items.length > 2 && <span>{" "}{t('av.chrome.moreCount',{n:items.length - 2})}</span>}</>;
+              })()}
             </div></div>
           )}
           {/* v1.15 Item 2 — the phone had no equivalent of the sidebar's course
@@ -1202,7 +1229,7 @@ export default function App() {
                 {planSub==="timetable" &&
                   <TimetableView state={state} dispatch={dispatch} session={session} showFlash={showFlash}/>}
                 {planSub==="list" &&
-                  <PlanView state={state} dispatch={dispatch} session={session} showFlash={showFlash} onAddAsgn={()=>setShowAddAsgn(true)} onAddExam={()=>setShowAddExam(true)} onAddCourse={()=>setShowAddCourse(true)} onEditCourse={(c)=>setEditingCourse(c)} onOpenCalendar={()=>choosePlanSub("calendar")}/>}
+                  <PlanView state={state} dispatch={dispatch} session={session} showFlash={showFlash} onAddAsgn={()=>setShowAddAsgn(true)} onAddExam={()=>setShowAddExam(true)} onAddCourse={()=>setShowAddCourse(true)} onEditCourse={(c)=>setEditingCourse(c)} onOpenCalendar={()=>choosePlanSub("calendar")} onStartFocus={startFocusFor}/>}
                 </Suspense>
               </div>
             </>
@@ -1213,8 +1240,8 @@ export default function App() {
               read `undefined`. StatusView existed but was never mounted. It is
               the course-detail pane of the three-pane layout, so it lands here
               rather than being patched out of the sidebar. */}
-          {state.view==="status" &&<CourseDetailView state={state} dispatch={dispatch} session={session} showFlash={showFlash} tier={shellTier} onAddAsgn={()=>setShowAddAsgn(true)} onAddExam={()=>setShowAddExam(true)} onEditCourse={(c)=>setEditingCourse(c)}/>}
-          {state.view==="actions" &&<ActionsView state={state} dispatch={dispatch} showFlash={showFlash} onAddCourse={()=>setShowAddCourse(true)} onFirstStep={goFirstStep} onStartPlan={openPlanStart}/>}
+          {state.view==="status" &&<CourseDetailView state={state} dispatch={dispatch} session={session} showFlash={showFlash} tier={shellTier} onAddAsgn={()=>setShowAddAsgn(true)} onAddExam={()=>setShowAddExam(true)} onEditCourse={(c)=>setEditingCourse(c)} onStartFocus={startFocusFor}/>}
+          {state.view==="actions" &&<ActionsView state={state} dispatch={dispatch} showFlash={showFlash} onAddCourse={()=>setShowAddCourse(true)} onFirstStep={goFirstStep} onStartPlan={openPlanStart} onStartFocus={startFocusFor}/>}
           {/* v1.9 Item 14a — Grades gains a Trends sub-tab. The analytics read
               grades AND study sessions together, and "how am I doing" is the
               question this screen already answers, so it belongs here rather

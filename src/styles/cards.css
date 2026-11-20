@@ -15,6 +15,8 @@
 .course-card-pill.urgent{background:var(--danger-tint);color:var(--danger);border-color:var(--danger-tint-border);}
 .course-card-chevron{font-size:10px;color:var(--muted2);transition:transform 0.2s;flex-shrink:0;margin-inline-start:6px;}
 .course-card-chevron.open{transform:rotate(90deg);}
+/* StudyDesk#272: points the way the text flows. */
+[dir="rtl"] .course-card-chevron:not(.open){transform:scaleX(-1);}
 .course-card-detail{border-top:1px solid var(--border);padding:12px 16px 14px;background:var(--surface2);}
 .course-card-next{font-size:12px;color:var(--muted);line-height:1.7;}
 .course-card-actions{display:flex;gap:8px;margin-top:10px;}
@@ -194,6 +196,8 @@
 .upd-note-versions{display:flex;align-items:baseline;gap:8px;font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:11px;}
 .upd-note-versions s{text-decoration-thickness:1px;}
 .upd-note-new{color:var(--accent);font-weight:500;}
+/* StudyDesk#260 — a sentence under the title (the computer-apps note). */
+.upd-note-body{font-size:13px;line-height:1.45;color:var(--muted);margin:0 0 11px;}
 .upd-note-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .upd-note-actions .btn{text-decoration:none;display:inline-block;}
 .upd-note-later{background:none;border:none;cursor:pointer;padding:2px 0;

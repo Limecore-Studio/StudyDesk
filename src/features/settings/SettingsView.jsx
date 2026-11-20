@@ -22,6 +22,7 @@ import CalendarFeeds from './CalendarFeeds.jsx';
 import { downloadExport, deleteAccount } from '../../lib/dataRights.js';
 import { useConfirm } from '../../lib/useConfirm.js';
 import { focusCapabilities, ensureNotificationPermission } from '../../lib/focusMode.js';
+import { WEB_APP_URL, DESKTOP_DOWNLOAD_URL } from '../../lib/computerApps.js';
 import { scaleFor, normalizeScale, describeScale, SCALE_PRESETS } from '../../lib/gradeScale.js';
 import { preferredWeekStart, setPreferredWeekStart, resolveWeekStart, weekdayLabels } from '../../lib/calendar.js';
 import { preferredDayStart, setPreferredDayStart, DAY_START_CHOICES } from '../../lib/studyDay.js';
@@ -1537,6 +1538,27 @@ export default function SettingsView({ state, dispatch, showFlash, session }) {
             >
               {deleting ? t('settings.deletingAccount') : t('settings.deleteAccount')}
             </button>
+          </div>
+        </div>
+
+        {/* ── On your computer (StudyDesk#260) ──
+            People asked for "a way to sync on PC", which exists: the web app
+            and the Windows app sign in to the same account. The link to where
+            you already are is left out. */}
+        <div className="sv2-section">
+          <div className="sv2-section-title">{t('computer.title')}</div>
+          <div className="sv2-note">{t('computer.body')}</div>
+          <div className="sv2-action">
+            {(IS_DESKTOP || Capacitor.isNativePlatform()) && (
+              <a className="btn-outline" href={WEB_APP_URL} target="_blank" rel="noopener noreferrer">
+                {t('computer.web')}
+              </a>
+            )}
+            {!IS_DESKTOP && (
+              <a className="btn-outline" href={DESKTOP_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
+                {t('computer.windows')}
+              </a>
+            )}
           </div>
         </div>
 

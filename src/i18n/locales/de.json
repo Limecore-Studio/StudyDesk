@@ -55,9 +55,19 @@
     "deleteConfirm": "Alle Daten löschen?",
     "yesDelete": "Ja, löschen",
     "no": "Nein",
-    "colorSwatch": "Farbe {{hex}}",
+    "colorSwatch": "Farbe: {{name}}",
     "colorCustom": "Beliebige Farbe wählen",
-    "colorNone": "Keine Farbe"
+    "colorNone": "Keine Farbe",
+    "colorName": {
+      "red": "Rot",
+      "amber": "Bernstein",
+      "green": "Grün",
+      "blue": "Blau",
+      "purple": "Lila",
+      "rust": "Rost",
+      "teal": "Petrol",
+      "plum": "Pflaume"
+    }
   },
   "history": {
     "title": "Periodenverlauf · Archiv",
@@ -219,7 +229,7 @@
     "pullLatest": "Jetzt abrufen",
     "retrying": "Erneuter Versuch…",
     "retryNow": "Jetzt erneut versuchen",
-    "syncNote": "Echtzeit übernimmt eingehende Änderungen in ~1,5 s. Ausgehende Schreibvorgänge laufen über eine lokale Outbox, die bei Netzwiederherstellung und App-Fortsetzung automatisch erneut versucht.",
+    "syncNote": "Änderungen von deinen anderen Geräten erscheinen innerhalb von Sekunden. Was du offline änderst, wird hier gespeichert und gesendet, sobald du wieder online bist.",
     "gradeScale": "Notenskala",
     "gradeNote": "IB: gewichteter Durchschnitt auf der 1–7-Skala. US: Prozent pro Kurs → 4.0-Notenpunkte, dann kreditgewichtet. Lokal gespeichert — wird nicht synchronisiert.",
     "techDetails": "Technische Details",
@@ -761,7 +771,8 @@
       "typeCustomPh": "Typ benennen (z. B. Präsentation)",
       "repeatUntil": "Bis",
       "examRepeatSummary": "{{count}} Prüfungen, die letzte am {{until}}",
-      "asgnRepeatSummary": "{{count}} Aufgaben, die letzte fällig am {{until}}"
+      "asgnRepeatSummary": "{{count}} Aufgaben, die letzte fällig am {{until}}",
+      "nextWeek": "Nächste Woche"
     },
     "act": {
       "addManually": "Manuell hinzufügen",
@@ -785,7 +796,8 @@
       "loading": "LÄDT…",
       "updateShort": "Update verfügbar",
       "updateDownloading": "Wird geladen… {{percent}} %",
-      "updateReady": "Neu starten und aktualisieren"
+      "updateReady": "Neu starten und aktualisieren",
+      "moreCount": "+{{n}} weitere"
     },
     "flash": {
       "courseAdded": "Kurs hinzugefügt",
@@ -834,7 +846,9 @@
     "today": "Heute",
     "tomorrow": "Morgen",
     "noPlanToday": "Heute nichts geplant",
-    "openPlan": "Plan öffnen"
+    "openPlan": "Plan öffnen",
+    "noDate": "Ohne Datum",
+    "upcomingOnlyDated": "Hier steht nur Arbeit mit Datum. Deine Aufgaben ohne Datum zeigt das Widget Next up."
   },
   "cal": {
     "title": "Kalender",
@@ -1063,7 +1077,9 @@
   "timer": {
     "focusChipTitle": "Fokus aktiv",
     "focusChipRunning": "Fokusblock läuft",
-    "focusChipPaused": "Pausiert"
+    "focusChipPaused": "Pausiert",
+    "chipFocusTitle": "Fokusblock",
+    "chipStopwatchTitle": "Stoppuhr"
   },
   "notif": {
     "planLeadTitle": "Lernblock um {{time}}",
@@ -1077,7 +1093,11 @@
     "examTodayTitle": "📝 Heute Prüfung — viel Erfolg",
     "dueTomorrowTitle": "📋 Morgen fällig",
     "dueTodayTitle": "📋 Heute fällig",
-    "markDone": "Als erledigt markieren"
+    "markDone": "Als erledigt markieren",
+    "focusEndTitle": "Fokusblock geschafft",
+    "focusEndBody": "Zeit für eine Pause.",
+    "breakEndTitle": "Pause vorbei",
+    "breakEndBody": "Bereit für den nächsten Fokusblock?"
   },
   "referral": {
     "eyebrow": "EINE FRAGE",
@@ -1300,5 +1320,13 @@
     "body": "Wenn etwas schiefgeht, kann StudyDesk uns die technischen Details senden: App-Version, Fehler und den Bildschirm, auf dem er auftrat. Nie das, was du eingibst. Du kannst das in den Einstellungen ändern.",
     "yes": "Ja, senden",
     "notNow": "Nicht jetzt"
+  },
+  "computer": {
+    "eyebrow": "Auf deinem Computer",
+    "title": "StudyDesk auf dem Computer nutzen",
+    "body": "Deine Kurse, Fristen und Lerneinheiten werden mit der Web-App und der Windows-App synchronisiert. Melde dich dort mit demselben Konto an.",
+    "web": "Web-App öffnen",
+    "windows": "Windows-App laden",
+    "dismiss": "Verstanden"
   }
 }

@@ -47,3 +47,30 @@ describe('widget dates west of UTC', () => {
     expect(order).toEqual(['a-timed', 'e-day', 'a-day', 'a-late']);
   });
 });
+
+describe('undated assignments on the widgets (StudyDesk#258)', () => {
+  const t = (k) => k;
+  const courses = { c1: { name: 'History' } };
+  const undated = { id: 'u1', title: 'Read chapter 4', courseId: 'c1', dueDate: '', done: false };
+
+  it('Next up falls back to the oldest undated assignment when nothing dated is open', async () => {
+    const { buildWidgetSnapshot } = await import('./widgetBridge.js');
+    const snap = buildWidgetSnapshot({ assignments: [undated, { ...undated, id: 'u2', title: 'Later one' }], exams: [], courses, t, locale: 'en' });
+    expect(snap.nextUp).toEqual({ title: 'Read chapter 4', subtitle: 'History · widget.noDate', urgency: 'later' });
+    // Upcoming stays a dated timeline, and its empty state says why.
+    expect(snap.upcoming).toEqual([]);
+    expect(snap.upcomingEmpty).toBe('widget.upcomingOnlyDated');
+  });
+
+  it('dated work still comes first, and Upcoming keeps its own empty state', async () => {
+    const { buildWidgetSnapshot } = await import('./widgetBridge.js');
+    const dated = { id: 'd1', title: 'Essay', courseId: 'c1', dueDate: '2026-10-14', done: false };
+    const snap = buildWidgetSnapshot({ assignments: [undated, dated], exams: [], courses, t, locale: 'en' });
+    expect(snap.nextUp.title).toBe('Essay');
+    expect(snap.upcoming.map((u) => u.title)).toEqual(['Essay — History']);
+    expect(snap.upcomingEmpty).toBeNull();
+    const none = buildWidgetSnapshot({ assignments: [{ ...undated, done: true }], exams: [], courses, t, locale: 'en' });
+    expect(none.nextUp).toBeNull();
+    expect(none.upcomingEmpty).toBeNull();
+  });
+});

@@ -114,3 +114,32 @@ export function mergePulled(local, pulled) {
 export function liveCounters(counters) {
   return (counters || []).filter((c) => !c.deletedAt).sort((a, b) => a.position - b.position || a.name.localeCompare(b.name));
 }
+
+/**
+ * StudyDesk#236 — counters and counted days this device holds that the server
+ * does not, ready to enqueue: counters first, then days, as the outbox ranks
+ * them. A guest's counters (queued only while signed in) and any counter whose
+ * queued push was lost are uploaded this way after the next pull.
+ *
+ * `pulled` holds every server counter, tombstones included, so a counter
+ * deleted on another device is present and skipped. Rows that already have an
+ * outbox item (`queuedIds`) are on their way and are left alone. A day is
+ * pushed only when its counter is live here and is, or will be, on the server.
+ */
+export function findUnsyncedCounters(local, pulled, queuedIds = new Set()) {
+  const remoteCounters = new Set((pulled?.counters || []).map((c) => c.id));
+  const remoteDays = new Set((pulled?.days || []).map((d) => d.id));
+  const out = [];
+  const live = new Set();
+  for (const c of local?.counters || []) {
+    if (!c?.id || c.deletedAt) continue;
+    live.add(c.id);
+    if (remoteCounters.has(c.id) || queuedIds.has(c.id)) continue;
+    out.push({ kind: 'upsert_counter', payload: c });
+  }
+  for (const d of local?.days || []) {
+    if (!d?.id || remoteDays.has(d.id) || queuedIds.has(d.id) || !live.has(d.counterId)) continue;
+    out.push({ kind: 'upsert_counter_day', payload: { id: d.id, counterId: d.counterId, day: d.day, value: d.value, updatedAt: d.updatedAt } });
+  }
+  return out;
+}

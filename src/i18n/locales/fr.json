@@ -55,9 +55,19 @@
     "deleteConfirm": "Supprimer toutes les données ?",
     "yesDelete": "Oui, supprimer",
     "no": "Non",
-    "colorSwatch": "Couleur {{hex}}",
+    "colorSwatch": "Couleur : {{name}}",
     "colorCustom": "Choisir n'importe quelle couleur",
-    "colorNone": "Aucune couleur"
+    "colorNone": "Aucune couleur",
+    "colorName": {
+      "red": "Rouge",
+      "amber": "Ambre",
+      "green": "Vert",
+      "blue": "Bleu",
+      "purple": "Violet",
+      "rust": "Rouille",
+      "teal": "Sarcelle",
+      "plum": "Prune"
+    }
   },
   "history": {
     "title": "Historique des périodes · Archive",
@@ -221,7 +231,7 @@
     "pullLatest": "Récupérer maintenant",
     "retrying": "Nouvelle tentative…",
     "retryNow": "Réessayer",
-    "syncNote": "Le temps réel applique les changements entrants en ~1,5 s. Les écritures sortantes passent par une file locale qui réessaie automatiquement au retour du réseau et à la reprise de l’app.",
+    "syncNote": "Les changements faits sur tes autres appareils apparaissent en quelques secondes. Ce que tu modifies hors ligne est enregistré ici et envoyé dès ton retour en ligne.",
     "gradeScale": "Échelle de notes",
     "gradeNote": "IB : moyenne pondérée sur l’échelle 1–7. US : pourcentage par cours → points 4.0, puis pondéré par crédits. Stocké localement — ne se synchronise pas.",
     "techDetails": "Détails techniques",
@@ -768,7 +778,8 @@
       "typeCustomPh": "Nommez le type (ex. Présentation)",
       "repeatUntil": "Jusqu'au",
       "examRepeatSummary": "{{count}} examens, le dernier le {{until}}",
-      "asgnRepeatSummary": "{{count}} devoirs, le dernier pour le {{until}}"
+      "asgnRepeatSummary": "{{count}} devoirs, le dernier pour le {{until}}",
+      "nextWeek": "Semaine prochaine"
     },
     "act": {
       "addManually": "Ajouter manuellement",
@@ -792,7 +803,8 @@
       "loading": "CHARGEMENT…",
       "updateShort": "Mise à jour disponible",
       "updateDownloading": "Téléchargement… {{percent}} %",
-      "updateReady": "Redémarrer pour mettre à jour"
+      "updateReady": "Redémarrer pour mettre à jour",
+      "moreCount": "+{{n}} autres"
     },
     "flash": {
       "courseAdded": "Cours ajouté",
@@ -842,7 +854,9 @@
     "today": "Aujourd’hui",
     "tomorrow": "Demain",
     "noPlanToday": "Rien de prévu aujourd'hui",
-    "openPlan": "Ouvrir le planning"
+    "openPlan": "Ouvrir le planning",
+    "noDate": "Sans date",
+    "upcomingOnlyDated": "Seules les tâches datées s'affichent ici. Tes tâches sans date sont dans le widget Next up."
   },
   "cal": {
     "title": "Calendrier",
@@ -1071,7 +1085,9 @@
   "timer": {
     "focusChipTitle": "Concentration",
     "focusChipRunning": "Bloc de concentration en cours",
-    "focusChipPaused": "En pause"
+    "focusChipPaused": "En pause",
+    "chipFocusTitle": "Bloc de concentration",
+    "chipStopwatchTitle": "Chronomètre"
   },
   "notif": {
     "planLeadTitle": "Bloc de révision à {{time}}",
@@ -1086,7 +1102,11 @@
     "examTodayTitle": "📝 Examen aujourd’hui — bonne chance",
     "dueTomorrowTitle": "📋 À rendre demain",
     "dueTodayTitle": "📋 À rendre aujourd’hui",
-    "markDone": "Marquer comme fait"
+    "markDone": "Marquer comme fait",
+    "focusEndTitle": "Bloc de concentration terminé",
+    "focusEndBody": "C'est l'heure de la pause.",
+    "breakEndTitle": "La pause est finie",
+    "breakEndBody": "Prêt pour le prochain bloc ?"
   },
   "referral": {
     "eyebrow": "UNE QUESTION",
@@ -1309,5 +1329,13 @@
     "body": "En cas de problème, StudyDesk peut nous envoyer les détails techniques : la version de l’app, l’erreur et l’écran où elle s’est produite. Jamais ce que vous saisissez. Vous pouvez changer cela dans les Réglages.",
     "yes": "Oui, envoyer",
     "notNow": "Pas maintenant"
+  },
+  "computer": {
+    "eyebrow": "Sur ton ordinateur",
+    "title": "Utilise StudyDesk sur ton ordinateur",
+    "body": "Tes cours, échéances et sessions se synchronisent avec l'application web et l'application Windows. Connecte-toi avec ce même compte.",
+    "web": "Ouvrir l'application web",
+    "windows": "Télécharger l'application Windows",
+    "dismiss": "Compris"
   }
 }

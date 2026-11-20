@@ -70,9 +70,10 @@ function runLatest(job) {
 export function cancelAllNotifications() {
   return runLatest(async () => {
     try {
-      const pending = await LocalNotifications.getPending();
-      if (pending.notifications.length > 0) {
-        await LocalNotifications.cancel({ notifications: pending.notifications });
+      // StudyDesk#241: reminders off does not silence a running timer.
+      const pending = (await LocalNotifications.getPending()).notifications.filter((p) => !p?.extra?.focusEnd);
+      if (pending.length > 0) {
+        await LocalNotifications.cancel({ notifications: pending });
       }
     } catch (e) {
       console.error("[StudyDesk] cancelAllNotifications failed:", e);
@@ -238,7 +239,7 @@ export function buildReminders(exams, assignments, courses, plannedSessions, pla
     // from "Essay — History · 09:00" at eight in the morning.
     const base = c ? `${asgn.title} — ${c.name}` : asgn.title;
     const label = asgn.dueTime ? `${base} · ${asgn.dueTime}` : base;
-    // Day before at 6pm. Action button "Mark done" → TOGGLE_ASSIGNMENT
+    // Day before at 6pm. Action button "Mark done" → SET_ASSIGNMENT_DONE
     // (see App-level useEffect listener). extra.assignmentId carries the
     // target id; both reminders for the same assignment share that id so
     // either notification can mark it done.
@@ -328,6 +329,8 @@ async function scheduleNow(exams, assignments, courses, plannedSessions, planPre
     const kept = new Set();
     const stale = [];
     for (const p of pending) {
+      // StudyDesk#241: the running timer's end alarm is not a reminder.
+      if (p?.extra?.focusEnd) continue;
       const n = wanted.get(p.id);
       if (n && samePending(p, n)) kept.add(p.id);
       else if (!n && dueAndPending(p, now)) continue;

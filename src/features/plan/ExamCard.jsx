@@ -3,13 +3,13 @@ import { useTranslation } from "react-i18next";
 import { Pencil } from "lucide-react";
 import { fmtDate, fmtDateFull } from "../../lib/dates.js";
 import { DIFFICULTY_COLORS } from "../../lib/examDifficulty.js";
-import { daysUntil, studyStartDate, urgencyColor, urgencyLabel } from "../../lib/deadlines.js";
+import { daysUntil, studyStartDate, urgencyColor, examUrgencyLabel } from "../../lib/deadlines.js";
 import { enterSubmit } from "../../lib/imeSubmit.js";
 import DateInput from "../../lib/DateInput.jsx";
 import { offerUndo } from "../../lib/doneList.js";
 
 // ── ExamCard ──────────────────────────────────────────────────────────────────
-export default function ExamCard({ exam, courses, dispatch }) {
+export default function ExamCard({ exam, courses, dispatch, onStartFocus }) {
   const { t } = useTranslation();
   const [topicInput, setTopicInput] = useState("");
   const [open, setOpen] = useState(false);
@@ -76,17 +76,20 @@ export default function ExamCard({ exam, courses, dispatch }) {
         <div className="exam-card-meta">
           {course&&<span className="asgn-course" style={{background:course.color+"18",color:course.color}}>{course.name}</span>}
           <span className="tag tag-exam">{t('av.ec.examTag')}</span>
-          {exam.dueDate&&<span style={{fontFamily:"var(--font-mono)",fontSize:11,fontWeight:500,color:exam.done?"var(--muted2)":urgencyColor(days)}}>{fmtDate(exam.dueDate,t)} · {urgencyLabel(days,t)}</span>}
+          {exam.dueDate&&<span style={{fontFamily:"var(--font-mono)",fontSize:11,fontWeight:500,color:exam.done?"var(--muted2)":urgencyColor(days)}}>{fmtDate(exam.dueDate,t)} · {examUrgencyLabel(days,t)}</span>}
         </div>
         {topics.length>0&&<div className="exam-header-progress"><div className="exam-header-progress-track"><div className="exam-header-progress-fill" style={{width:pct+"%",background:progressColor}}/></div><span className="exam-header-progress-txt">{t('av.ec.topicsCount',{done:doneCnt,total:topics.length})}{pct===100?" ✓":""}</span></div>}
       </div>
-      <span style={{fontSize:10,color:"var(--muted2)",transform:open?"rotate(90deg)":"rotate(0deg)",transition:"transform 0.2s",flexShrink:0,marginLeft:6}}>▶</span>
+      {/* StudyDesk#272: Start focus on this exam, one tap. The expand caret is
+          the course cards' chevron, decorative and mirrored in RTL. */}
+      {!exam.done&&onStartFocus&&<button className="btn btn-sm" style={{flexShrink:0}} onClick={e=>{e.stopPropagation();onStartFocus({subjectId:exam.courseId,label:exam.title});}}>{t('pr.start')}</button>}
+      <span className={"course-card-chevron"+(open?" open":"")} aria-hidden="true">▶</span>
       {/* v1.13 (#45). Beside delete, because that is where somebody who wants
           to change an exam has been going and finding only delete. */}
       <button className="exam-edit-btn" style={{flexShrink:0}} onClick={e=>{e.stopPropagation();startEdit();}} aria-label={t('av.ec.editExam')} title={t('av.ec.editExam')}>
         <Pencil size={13} strokeWidth={1.75}/>
       </button>
-      <button className="btn-danger-text" style={{flexShrink:0}} onClick={e=>{e.stopPropagation();dispatch({type:"DELETE_EXAM",id:exam.id});}}>×</button>
+      <button className="btn-danger-text" style={{flexShrink:0}} onClick={e=>{e.stopPropagation();dispatch({type:"DELETE_EXAM",id:exam.id});}} aria-label={t('common.delete')} title={t('common.delete')}>×</button>
     </div>
     {open&&<div className="exam-card-body">
       {exam.notes&&<div className="exam-card-notes">{exam.notes}</div>}

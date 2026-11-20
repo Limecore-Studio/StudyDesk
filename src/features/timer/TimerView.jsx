@@ -15,7 +15,7 @@ import { fmtTime } from '../../lib/dates.js';
 import { startFocus, stopFocus } from '../../lib/focusMode.js';
 import { enterSubmit } from '../../lib/imeSubmit.js';
 import { TIMER_CHANGE_EVENT, finishedWhileAway } from '../../lib/timerSnapshot.js';
-import { FOCUS_REMOTE_EVENT, focusDeviceId, savesCompletion } from '../../lib/focusTimer.js';
+import { FOCUS_REMOTE_EVENT, focusDeviceId, savesCompletion, blockOnClock } from '../../lib/focusTimer.js';
 import { isPageStale } from '../../lib/deviceOwner.js';
 import { pastSessionDraft } from '../../lib/pastSession.js';
 import { preferredDayStart, studyDayKey, todayStudyDayKey, dayKeyToDate } from '../../lib/studyDay.js';
@@ -529,6 +529,9 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
     // A stopwatch has no phases, so the focus-phase check applies only to
     // Pomodoro. In stopwatch mode the counter IS the elapsed time.
     if (!sw && phaseRef.current !== 'focus') return;
+    // StudyDesk#240: a block completed in this same commit (the ended-while-
+    // away effect, then a plan's Start focus) was saved already.
+    if (!blockOnClock(runIdRef.current, phaseStartedAtRef.current)) return;
     const elapsedSecs = sw ? secsLeft : customFocusRef.current*60 - secsLeft;
     // A block abandoned in the first minute is a misclick, not a session.
     // v1.20 (#202): the block is over either way, so its run is too.
@@ -635,8 +638,21 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
   const secsRef = useRef(secsLeft);
   useEffect(() => { secsRef.current = secsLeft; }, [secsLeft]);
 
+  // StudyDesk#259: outside Lock In the chip belongs to useFocusChip (App),
+  // which shows it for every running focus timer. Here only Lock In's own
+  // chip is posted, and cleared once when Lock In ends.
+  const lockInChipRef = useRef(false);
   useEffect(() => {
-    if (!lockedIn) { stopFocus(); return; }
+    if (!lockedIn) {
+      if (lockInChipRef.current) {
+        lockInChipRef.current = false;
+        stopFocus();
+        // Hand the chip back: the app-level owner re-reads the timer.
+        window.dispatchEvent(new CustomEvent(TIMER_CHANGE_EVENT));
+      }
+      return;
+    }
+    lockInChipRef.current = true;
     startFocus({
       title: t('timer.focusChipTitle'),
       text: running ? t('timer.focusChipRunning') : t('timer.focusChipPaused'),
@@ -654,7 +670,8 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
 
   // Leaving the screen — or the app going away entirely — must not strand a
   // pinned screen or a chip that outlives the session it describes.
-  useEffect(() => () => { stopFocus(); }, []);
+  // A plain timer's chip outlives this screen on purpose (#259).
+  useEffect(() => () => { if (lockInChipRef.current) stopFocus(); }, []);
 
   // v1.9 Item 14a follow-up — Lock In takes the whole screen, not just the
   // app's own chrome. On desktop the browser's tab strip and address bar are
@@ -765,7 +782,7 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
       <button className="pomo-btn-sec" onClick={reset} title={t('av.tm.reset')}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3.3-6.7"/><polyline points="3 3 3 8 8 8"/></svg>
       </button>
-      <button className={"pomo-btn-main"+(!running && secsLeft < totalSecs?" paused":"")} onClick={toggle}>
+      <button className={"pomo-btn-main"+(!running && secsLeft < totalSecs?" paused":"")} onClick={toggle} aria-label={running?t('av.tm.pause'):t('av.tm.start')}>
         {running
           ? <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>
           : <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><polygon points="6,3 20,12 6,21"/></svg>
