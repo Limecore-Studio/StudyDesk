@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- limecore#127: launcher shortcut labels. Other strings fall back to values/. -->
+<resources>
+    <string name="shortcut_focus_short">تركيز</string>
+    <string name="shortcut_focus_long">ابدأ فترة تركيز</string>
+    <string name="shortcut_add_short">إضافة واجب</string>
+    <string name="shortcut_add_long">أضف واجبًا</string>
+    <string name="shortcut_today_short">اليوم</string>
+    <string name="shortcut_today_long">افتح «التالي»</string>
+</resources>

@@ -42,6 +42,22 @@
                 <data android:scheme="com.studydesk.app" android:host="login-callback" />
             </intent-filter>
 
+            <!--
+                limecore#127: the router's deep links, com.studydesk.app://open/<route>
+                (today, plan, timer, course/<id>), for the launcher shortcuts below and
+                for the other suite apps. Same lowercase scheme as the login callback;
+                a separate host so neither handler sees the other's links.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.studydesk.app" android:host="open" />
+            </intent-filter>
+
+            <!-- limecore#127: long-press launcher shortcuts (res/xml/shortcuts.xml). -->
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+
         </activity>
 
         <provider

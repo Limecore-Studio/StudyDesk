@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    limecore#127: static launcher shortcuts (long-press the app icon). Each opens
+    a router deep link (src/lib/deepLink.js); a signed-out tap shows sign-in
+    first, then the target. targetPackage is the applicationId, which has no
+    per-build suffix (android/app/build.gradle).
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="focus"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_focus"
+        android:shortcutShortLabel="@string/shortcut_focus_short"
+        android:shortcutLongLabel="@string/shortcut_focus_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.StudyDesk.app"
+            android:targetClass="com.StudyDesk.app.MainActivity"
+            android:data="com.studydesk.app://open/timer?start=focus" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="add_assignment"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_add"
+        android:shortcutShortLabel="@string/shortcut_add_short"
+        android:shortcutLongLabel="@string/shortcut_add_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.StudyDesk.app"
+            android:targetClass="com.StudyDesk.app.MainActivity"
+            android:data="com.studydesk.app://open/plan?add=assignment" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="today"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_today"
+        android:shortcutShortLabel="@string/shortcut_today_short"
+        android:shortcutLongLabel="@string/shortcut_today_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.StudyDesk.app"
+            android:targetClass="com.StudyDesk.app.MainActivity"
+            android:data="com.studydesk.app://open/today" />
+    </shortcut>
+</shortcuts>

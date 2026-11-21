@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- limecore#127: launcher shortcut labels. Other strings fall back to values/. -->
+<resources>
+    <string name="shortcut_focus_short">Fokus</string>
+    <string name="shortcut_focus_long">Mulai blok fokus</string>
+    <string name="shortcut_add_short">Tambah tugas</string>
+    <string name="shortcut_add_long">Tambahkan tugas</string>
+    <string name="shortcut_today_short">Hari ini</string>
+    <string name="shortcut_today_long">Buka Berikutnya</string>
+</resources>

@@ -60,7 +60,7 @@ import { usePersistState } from "./app/usePersistState.js";
 import { useGradeScaleSync } from "./app/useGradeScaleSync.js";
 import { useReminders } from "./app/useReminders.js";
 import { useWidgets } from "./app/useWidgets.js";
-import { useOutboxTriggers, useReminderActions, useFocusEndAlarm } from "./app/useAppEvents.js";
+import { useOutboxTriggers, useReminderActions, useFocusEndAlarm, useDeepLinks } from "./app/useAppEvents.js";
 import { useNoteSync } from "./app/useNoteSync.js";
 import { useCloudPushers } from "./app/useCloudPushers.js";
 
@@ -859,6 +859,35 @@ export default function App() {
     setTimerSub('timer');
     dispatch({ type: 'SET_VIEW', view: 'timer' });
   }, []);
+
+  // limecore#127 — deep links (launcher shortcuts, the other suite apps). A
+  // link that arrives before the app can show it (signed out, onboarding,
+  // still loading) waits, so sign-in comes first and the target after.
+  const pendingLink = useRef(null);
+  const [linkTick, setLinkTick] = useState(0);
+  useDeepLinks((route) => { pendingLink.current = route; setLinkTick((n) => n + 1); });
+  const linkReady = session !== undefined && (session !== null || guest) && onboarded;
+  useEffect(() => {
+    if (!linkReady || !pendingLink.current) return undefined;
+    // Applied on the next tick: navigation is state, not part of this render.
+    const id = setTimeout(() => {
+      const r = pendingLink.current;
+      pendingLink.current = null;
+      if (!r) return;
+      if (r.view === "today") dispatch({ type: "SET_VIEW", view: "actions" });
+      else if (r.view === "timer") {
+        if (r.startFocus) startFocusFor({});
+        else { setTimerSub("timer"); dispatch({ type: "SET_VIEW", view: "timer" }); }
+      } else if (r.view === "course" && state.courses[r.courseId] && !state.courses[r.courseId].deletedAt) {
+        dispatch({ type: "SET_VIEW", view: "status", course: r.courseId });
+      } else {
+        dispatch({ type: "SET_VIEW", view: "plan" });
+        if (r.addAssignment) setShowAddAsgn(true);
+      }
+    }, 0);
+    return () => clearTimeout(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkReady, linkTick]);
 
   const snoozePlanOffer = useCallback(() => {
     if (!offerPlan) return;

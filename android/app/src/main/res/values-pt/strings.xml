@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- limecore#127: launcher shortcut labels. Other strings fall back to values/. -->
+<resources>
+    <string name="shortcut_focus_short">Foco</string>
+    <string name="shortcut_focus_long">Começar um bloco de foco</string>
+    <string name="shortcut_add_short">Adicionar tarefa</string>
+    <string name="shortcut_add_long">Adicionar uma tarefa</string>
+    <string name="shortcut_today_short">Hoje</string>
+    <string name="shortcut_today_long">Abrir A seguir</string>
+</resources>

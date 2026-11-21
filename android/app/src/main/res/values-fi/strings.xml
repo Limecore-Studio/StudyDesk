@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- limecore#127: launcher shortcut labels. Other strings fall back to values/. -->
+<resources>
+    <string name="shortcut_focus_short">Keskity</string>
+    <string name="shortcut_focus_long">Aloita keskittymisjakso</string>
+    <string name="shortcut_add_short">Lisää tehtävä</string>
+    <string name="shortcut_add_long">Lisää tehtävä</string>
+    <string name="shortcut_today_short">Tänään</string>
+    <string name="shortcut_today_long">Avaa Seuraavaksi</string>
+</resources>
