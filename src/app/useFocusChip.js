@@ -21,16 +21,54 @@ import { TIMER_CHANGE_EVENT } from "../lib/timerSnapshot.js";
 export function chipFor(rec, now = Date.now()) {
   if (!rec || typeof rec !== "object") return null;
   if (rec.lockedIn) return "lockin";
-  if (!rec.running || (rec.phase && rec.phase !== "focus")) return null;
+  if (rec.phase && rec.phase !== "focus") return null;
   const stopwatch = rec.mode === "stopwatch";
+  const task = typeof rec.task === "string" ? rec.task.trim() : "";
+  if (!rec.running) {
+    // StudyDesk#289: a block paused part-way keeps its chip, with no
+    // countdown and a Resume button. Idle at a full block shows nothing.
+    const left = rec.secsLeft;
+    const midBlock = stopwatch ? left > 0 : Number.isFinite(left) && left > 0 && left < (rec.customFocus || 25) * 60;
+    return midBlock ? { endsAt: 0, task, stopwatch, paused: true } : null;
+  }
   let endsAt = 0;
   if (!stopwatch) {
     if (!Number.isFinite(rec.startedAt) || !Number.isFinite(rec.secsAtStart)) return null;
     endsAt = rec.startedAt + rec.secsAtStart * 1000;
     if (endsAt <= now) return null;
   }
-  const task = typeof rec.task === "string" ? rec.task.trim() : "";
-  return { endsAt, task, stopwatch };
+  return { endsAt, task, stopwatch, paused: false };
+}
+
+/** StudyDesk#289 — the chip's buttons for a chip state, ids as focusActions.js
+ *  applies them. A stopwatch has no end to move, so no +5 min. */
+export function chipActions(want, t) {
+  if (!want || want === "lockin") return [];
+  const out = [want.paused
+    ? { id: "resume", title: t("timer.chipResume") }
+    : { id: "pause", title: t("av.tm.pause") }];
+  if (!want.stopwatch) out.push({ id: "plus5", title: t("timer.chipPlus5") });
+  out.push({ id: "end", title: t("timer.chipEnd") });
+  return out;
+}
+
+/** StudyDesk#289 — apply chip button taps (a killed app's included) to the
+ *  timer. End hands its session to `onSession` (App's onTimerComplete). */
+export function useFocusActions(onSession) {
+  const ref = useRef(onSession);
+  useEffect(() => { ref.current = onSession; });
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    let off = () => {};
+    let gone = false;
+    void import("../lib/focusMode.js").then((m) => {
+      if (gone) return;
+      off = m.onFocusAction((action) => {
+        void import("../lib/focusActions.js").then((f) => f.runFocusAction(action, (s) => ref.current?.(s)));
+      });
+    }).catch(() => {});
+    return () => { gone = true; off(); };
+  }, []);
 }
 
 function readTimer() {
@@ -58,7 +96,7 @@ export function useFocusChip(enabled, t) {
       // at its end, so the chip does not sit at 0:00.
       if (want?.endsAt) endTimer = setTimeout(sync, Math.max(0, want.endsAt - Date.now()) + 500);
       // Two seconds' slack: a resume re-anchors the start by up to a second.
-      const key = want ? `${Math.round(want.endsAt / 2000)}|${want.task}|${want.stopwatch}` : "none";
+      const key = want ? `${Math.round(want.endsAt / 2000)}|${want.task}|${want.stopwatch}|${want.paused}` : "none";
       if (key === lastKey) return;
       const wasLockIn = lastKey === "lockin";
       lastKey = key;
@@ -71,11 +109,12 @@ export function useFocusChip(enabled, t) {
         const tr = tRef.current;
         return m.startFocus({
           title: tr(want.stopwatch ? "timer.chipStopwatchTitle" : "timer.chipFocusTitle"),
-          text: want.task || tr("timer.focusChipRunning"),
+          text: want.paused ? tr("timer.focusChipPaused") : want.task || tr("timer.focusChipRunning"),
           endsAt: want.endsAt,
           chip: true,
           pin: false,
           immersive: false,
+          actions: chipActions(want, tr),
         });
       }).catch(() => {});
     };

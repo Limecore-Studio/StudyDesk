@@ -1115,7 +1115,10 @@
     "focusChipRunning": "جلسة تركيز جارية",
     "focusChipPaused": "موقفة مؤقتاً",
     "chipFocusTitle": "فترة تركيز",
-    "chipStopwatchTitle": "ساعة الإيقاف"
+    "chipStopwatchTitle": "ساعة الإيقاف",
+    "chipResume": "استئناف",
+    "chipPlus5": "+5 دقائق",
+    "chipEnd": "إنهاء"
   },
   "notif": {
     "planLeadTitle": "فترة الدراسة تبدأ الساعة {{time}}",
