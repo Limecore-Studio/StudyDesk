@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as outbox from '../../lib/outbox.js';
+import { holdDelete } from '../../lib/heldDelete.js';
 import { fmtTime } from '../../lib/dates.js';
 import { enterSubmit } from '../../lib/imeSubmit.js';
 import { preferredDayStart, studyDayKey, todayStudyDayKey, dayKeyToDate } from '../../lib/studyDay.js';
@@ -84,10 +85,12 @@ export default function SessionsView({ state, dispatch, showFlash, session, onLo
 
   const [editing, setEditing] = useState(null);
 
+  // StudyDesk#267: deleted here at once, pushed after the undo window.
   function delSession(id) {
+    const row = (state.studySessions || []).find((s) => s.id === id);
     dispatch({ type: 'DELETE_SESSION', id });
-    showFlash(t('sv.sessionDeleted'));
-    if (session) outbox.enqueue('delete_session', { id });
+    if (!row) return;
+    holdDelete({ title: t('sv.sessionDeleted'), ops: [['delete_session', { id }]], restore: { type: 'RESTORE_DELETED', list: 'studySessions', row } });
   }
 
   return (

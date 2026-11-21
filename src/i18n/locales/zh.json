@@ -1077,6 +1077,9 @@
     "focusChipPaused": "已暂停",
     "chipFocusTitle": "专注时段",
     "chipStopwatchTitle": "秒表",
+    "chipResume": "继续",
+    "chipPlus5": "+5 分钟",
+    "chipEnd": "结束",
     "nextBlock": "下一个：{{time}} · {{title}}",
     "startNow": "立即开始"
   },
@@ -1311,7 +1314,8 @@
       "exam": "考试"
     },
     "markedDone": "已完成：{{title}}",
-    "undo": "撤销"
+    "undo": "撤销",
+    "deleted": "已删除：{{title}}"
   },
   "reportPrompt": {
     "title": "发送错误报告吗？",

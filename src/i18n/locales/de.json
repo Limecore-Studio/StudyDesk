@@ -1080,6 +1080,9 @@
     "focusChipPaused": "Pausiert",
     "chipFocusTitle": "Fokusblock",
     "chipStopwatchTitle": "Stoppuhr",
+    "chipResume": "Fortsetzen",
+    "chipPlus5": "+5 Min.",
+    "chipEnd": "Beenden",
     "nextBlock": "Als Nächstes: {{time}} · {{title}}",
     "startNow": "Jetzt starten"
   },
@@ -1315,7 +1318,8 @@
       "exam": "Prüfung"
     },
     "markedDone": "Erledigt: {{title}}",
-    "undo": "Rückgängig"
+    "undo": "Rückgängig",
+    "deleted": "Gelöscht: {{title}}"
   },
   "reportPrompt": {
     "title": "Fehlerberichte senden?",

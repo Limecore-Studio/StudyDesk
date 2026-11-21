@@ -53,7 +53,7 @@ export function focusCapabilities() {
  * `immersive` (v1.17, #68) hides the status and navigation bars until
  * stopFocus(). A shell older than 1.17 ignores it and keeps its bars.
  */
-export async function startFocus({ title, text, endsAt, chip = true, pin = false, immersive = false }) {
+export async function startFocus({ title, text, endsAt, chip = true, pin = false, immersive = false, actions = null }) {
   if (!isNative()) return { chip: false, pinned: false };
   try {
     return await FocusMode.start({
@@ -65,6 +65,9 @@ export async function startFocus({ title, text, endsAt, chip = true, pin = false
       chip: !!chip,
       pin: !!pin,
       immersive: !!immersive,
+      // StudyDesk#289 — the chip's buttons, [{id, title}]. A shell older than
+      // v1.22 ignores them and shows the chip without buttons.
+      ...(Array.isArray(actions) && actions.length ? { actions } : {}),
     });
   } catch {
     return { chip: false, pinned: false };
@@ -132,6 +135,24 @@ export async function ensureNotificationPermission() {
 /** End a focus block. Safe to call when nothing was started — the native side
  *  clears every half unconditionally (chip, pin, hidden bars), which is what
  *  recovers a session that was interrupted by a crash rather than by the user. */
+/** StudyDesk#289 — chip buttons tapped while no JS was listening (the app was
+ *  killed), oldest first, then every later tap as it happens. Returns the
+ *  unsubscribe. A shell older than v1.22 has neither method: nothing happens. */
+export function onFocusAction(handler) {
+  if (!isNative()) return () => {};
+  let handle = null;
+  let stopped = false;
+  (async () => {
+    try {
+      handle = await FocusMode.addListener('focusAction', ({ action }) => handler(action));
+      if (stopped) { handle.remove(); return; }
+      const { actions } = await FocusMode.consumeFocusActions();
+      for (const a of actions || []) handler(a);
+    } catch { /* older shell */ }
+  })();
+  return () => { stopped = true; handle?.remove(); };
+}
+
 export async function stopFocus() {
   if (!isNative()) return { chipCleared: false, pinned: false };
   try {

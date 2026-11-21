@@ -17,6 +17,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { readTimerSnapshot, subscribeTimer } from '../../lib/timerSnapshot.js';
+import '../../styles/timerPill.css';
 
 export default function TimerPill({ onOpen, hidden = false }) {
   const { t } = useTranslation();

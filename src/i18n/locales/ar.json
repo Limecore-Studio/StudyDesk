@@ -1116,6 +1116,9 @@
     "focusChipPaused": "موقفة مؤقتاً",
     "chipFocusTitle": "فترة تركيز",
     "chipStopwatchTitle": "ساعة الإيقاف",
+    "chipResume": "استئناف",
+    "chipPlus5": "+5 دقائق",
+    "chipEnd": "إنهاء",
     "nextBlock": "التالي: {{time}} · {{title}}",
     "startNow": "ابدأ الآن"
   },
@@ -1367,7 +1370,8 @@
       "exam": "اختبار"
     },
     "markedDone": "تم: {{title}}",
-    "undo": "تراجع"
+    "undo": "تراجع",
+    "deleted": "تم الحذف: {{title}}"
   },
   "reportPrompt": {
     "title": "هل تريد إرسال تقارير الأخطاء؟",

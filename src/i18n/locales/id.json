@@ -1072,6 +1072,9 @@
     "focusChipPaused": "Dijeda",
     "chipFocusTitle": "Blok fokus",
     "chipStopwatchTitle": "Stopwatch",
+    "chipResume": "Lanjutkan",
+    "chipPlus5": "+5 mnt",
+    "chipEnd": "Selesai",
     "nextBlock": "Berikutnya: {{time}} · {{title}}",
     "startNow": "Mulai sekarang"
   },
@@ -1306,7 +1309,8 @@
       "exam": "Ujian"
     },
     "markedDone": "Selesai: {{title}}",
-    "undo": "Urungkan"
+    "undo": "Urungkan",
+    "deleted": "Dihapus: {{title}}"
   },
   "reportPrompt": {
     "title": "Kirim laporan galat?",

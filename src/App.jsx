@@ -21,6 +21,7 @@ import * as outbox from "./lib/outbox.js";
 import { hold, release, replayHeld } from "./lib/autoSaveHold.js";
 import { stampsFromPull, mergeStamps, shouldPull } from "./lib/syncStamps.js";
 import { withoutQueuedDeletes } from "./lib/pushDiff.js";
+import { setHeldDeleteUser, onHeldDelete, heldDeleteOffer, undoHeldDelete, heldDeleteItems, replayHeldDelete } from "./lib/heldDelete.js";
 import { pastSessionDraft } from "./lib/pastSession.js";
 import { isOpenPlan, nextPlanStartAt, nextPlanSoon, planSaveSteps, planToOffer } from "./lib/planRun.js";
 import { timerPlanId } from "./lib/timerSnapshot.js";
@@ -54,7 +55,7 @@ import { AccountAvatar } from "./lib/avatar.jsx";
 import { useShellTier, useSidebarRail } from "./lib/useShell.js";
 import { enterSubmit } from "./lib/imeSubmit.js";
 import { rehydrateState } from "./app/rehydrate.js";
-import { useFocusChip } from "./app/useFocusChip.js";
+import { useFocusChip, useFocusActions } from "./app/useFocusChip.js";
 import { usePersistState } from "./app/usePersistState.js";
 import { useGradeScaleSync } from "./app/useGradeScaleSync.js";
 import { useReminders } from "./app/useReminders.js";
@@ -261,6 +262,9 @@ export default function App() {
   // misclick never needs the Done list. See lib/doneList.js.
   const [undoOffer, setUndoOffer] = useState(null);
   useEffect(() => onUndoOffer(setUndoOffer), []);
+  // StudyDesk#267 — "Deleted · Undo" while a one-tap delete waits to be pushed.
+  const [heldDel, setHeldDel] = useState(null);
+  useEffect(() => onHeldDelete(() => setHeldDel(heldDeleteOffer())), []);
   useEffect(() => {
     if (!undoOffer) return undefined;
     const id = setTimeout(() => setUndoOffer(null), UNDO_MS);
@@ -491,6 +495,8 @@ export default function App() {
   useEffect(() => {
     // No session: the previous user's effect cleanup has already stopped live
     // sync, and loading the engine just to stop it would be wasted bytes.
+    // StudyDesk#267: whose outbox a held delete may be queued into.
+    setHeldDeleteUser(session?.user?.id ?? null);
     if (!session) {
       pulledOnceRef.current = false;
       setPulledOnce(false);
@@ -508,6 +514,8 @@ export default function App() {
     remoteStampsRef.current = null;
     // StudyDesk#254: queue an automatic save a run that died left held.
     replayHeld(session.user.id, outbox.enqueue);
+    // StudyDesk#267: a one-tap delete a run that died left held.
+    replayHeldDelete(session.user.id, outbox.enqueue);
     let cancelled = false;
     let lastPullAt = NaN;
     // v1.20 (#202) — Focus Sync, loaded with the live-sync engine below.
@@ -532,7 +540,7 @@ export default function App() {
       try {
         // StudyDesk#232: a row deleted here whose delete is still queued must
         // not come back with the server's live copy.
-        const remote = withoutQueuedDeletes(await sync.pullAllStudyData(), outbox.queuedItems());
+        const remote = withoutQueuedDeletes(await sync.pullAllStudyData(), [...outbox.queuedItems(), ...heldDeleteItems()]);
         const reconcile = await reconcileLoad;
         // StudyDesk#72 — stamps first, merge second. The merge re-runs the
         // push effects, and they must already know which rows are just the
@@ -595,7 +603,7 @@ export default function App() {
       const tables = named.filter((t) => t !== "focus_timers" && t !== "progress_counters" && t !== "progress_counter_days");
       if (tables.length === 0 || !pulledOnceRef.current) return;
       try {
-        const remote = withoutQueuedDeletes(await sync.pullStudyTables(tables), outbox.queuedItems());
+        const remote = withoutQueuedDeletes(await sync.pullStudyTables(tables), [...outbox.queuedItems(), ...heldDeleteItems()]);
         if (cancelled) return;
         remoteStampsRef.current = mergeStamps(remoteStampsRef.current, remote);
         dispatch({ type: "MERGE_REMOTE", remote });
@@ -689,6 +697,9 @@ export default function App() {
     hold(restore.sessionId, planId, session?.user?.id, steps.outbox);
     setAutoSaved({ key: Date.now(), pending: payload, steps, restore, next });
   };
+  // StudyDesk#289 — Pause / +5 min / End from the focus chip. End raises the
+  // save sheet with the block it finished, as the Timer screen's Stop does.
+  useFocusActions((session) => onTimerComplete(session));
   // Push when the window closes, or at once if the app is hidden first. Each
   // save is pushed (or undone) exactly once, however often this re-runs.
   useEffect(() => {
@@ -1381,13 +1392,19 @@ export default function App() {
         launch; never to a guest or over onboarding. It decides for itself. */}
     {onboarded && session?.user && !guest && <Suspense fallback={null}><ReportPromptCard/></Suspense>}
     {flash&&<div className="flash">{flash}</div>}
-    {undoOffer&&(
+    {heldDel&&(
+      <div className="undo-bar" role="status" key={heldDel.key}>
+        <span className="undo-bar-text">{heldDel.title}</span>
+        <button type="button" onClick={()=>{ const r = undoHeldDelete(); if (r) dispatch(r); }}>{t('done.undo')}</button>
+      </div>
+    )}
+    {undoOffer&&!heldDel&&(
       <div className="undo-bar" role="status" key={undoOffer.key}>
         <span className="undo-bar-text">{t('done.markedDone', { title: undoOffer.title })}</span>
         <button type="button" onClick={()=>{ dispatch(undoOffer.undo); setUndoOffer(null); }}>{t('done.undo')}</button>
       </div>
     )}
-    {autoSaved&&!undoOffer&&(
+    {autoSaved&&!undoOffer&&!heldDel&&(
       <div className={"undo-bar"+(autoSaved.next?" undo-bar--next":"")} role="status" key={autoSaved.key}>
         <span className="undo-bar-text">{t('av.flash.logged', { n: autoSaved.pending.durationMinutes })}</span>
         <button type="button" onClick={()=>undoAutoSave(true)}>{t('common.edit')}</button>

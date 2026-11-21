@@ -32,6 +32,8 @@ public class MainActivity extends BridgeActivity {
         // cold start there is no JS listener yet, so it has to queue — and it
         // only queues while the instance is still null.
         WidgetBridgePlugin.stashLaunchView(getIntent());
+        // StudyDesk#289: a focus chip button that started the app.
+        FocusModePlugin.stashFocusAction(getIntent());
 
         super.onCreate(savedInstanceState);
     }
@@ -44,5 +46,6 @@ public class MainActivity extends BridgeActivity {
         // what actually brought the activity forward.
         setIntent(intent);
         WidgetBridgePlugin.stashLaunchView(intent);
+        FocusModePlugin.stashFocusAction(intent);
     }
 }

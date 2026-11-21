@@ -1080,6 +1080,9 @@
     "focusChipPaused": "रोका गया",
     "chipFocusTitle": "फ़ोकस ब्लॉक",
     "chipStopwatchTitle": "स्टॉपवॉच",
+    "chipResume": "फिर शुरू करें",
+    "chipPlus5": "+5 मिनट",
+    "chipEnd": "समाप्त करें",
     "nextBlock": "अगला: {{time}} · {{title}}",
     "startNow": "अभी शुरू करें"
   },
@@ -1315,7 +1318,8 @@
       "exam": "परीक्षा"
     },
     "markedDone": "पूरा: {{title}}",
-    "undo": "पूर्ववत करें"
+    "undo": "पूर्ववत करें",
+    "deleted": "हटाया गया: {{title}}"
   },
   "reportPrompt": {
     "title": "त्रुटि रिपोर्ट भेजें?",
