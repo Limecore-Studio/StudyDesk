@@ -20,6 +20,7 @@ import { isPageStale } from '../../lib/deviceOwner.js';
 import { pastSessionDraft } from '../../lib/pastSession.js';
 import { preferredDayStart, studyDayKey, todayStudyDayKey, dayKeyToDate } from '../../lib/studyDay.js';
 import '../../styles/timer.css';
+import { haptic } from '../../lib/haptic.js';
 
 function fmtMMSS(sec){ return String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0"); }
 
@@ -204,7 +205,10 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
 
   // Vibration + beep on phase end
   const fireCompletionAlert = useCallback(() => {
-    if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+    // limecore#130: the native haptic. navigator.vibrate did nothing on
+    // Android (the app never held VIBRATE). Only the timer running out gets
+    // here; a block finished while away completes quietly (quiet below).
+    haptic.success();
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const beep = (freq, start, dur) => {
@@ -453,7 +457,8 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
   }, [customFocus, phase, secsLeft, running, session, focusDone, task, lockedIn, mode, courseId, planId, origin]);
 
 
-  const toggle = () => setRunning(r=>!r);
+  // limecore#130: light feedback for starting or pausing the timer.
+  const toggle = () => { haptic.light(); setRunning(r=>!r); };
   const reset = () => {
     setRunning(false);
     harvestFocus();

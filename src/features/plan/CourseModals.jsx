@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import CoursePicker from '../../lib/CoursePicker.jsx';
 import { ASSIGN_TYPES, OTHER_ASSIGN_TYPE } from '../../lib/assignTypes.js';
 import { enterSubmit } from '../../lib/imeSubmit.js';
+import { haptic } from '../../lib/haptic.js';
 import DateInput from '../../lib/DateInput.jsx';
 import { fmtDateFull, toLocalISO, addDays } from '../../lib/dates.js';
 import { REPEAT_WEEK_CHOICES, MAX_OCCURRENCES, repeatHorizon, occurrenceDates } from '../../lib/planRepeat.js';
@@ -131,7 +132,8 @@ export function EditCourseModal({ course, courses, onSave, onDelete, onClose }) 
             .btn-outline 10px/7x14 — compounded by "Yes, delete" being five
             times the length of "No". */}
         <div className="confirm-delete-actions">
-          <button className="btn-red" onClick={onDelete}>{t('course.yesDelete')}</button>
+          {/* limecore#130: warning feedback on confirming a destructive action. */}
+          <button className="btn-red" onClick={()=>{ haptic.warning(); onDelete(); }}>{t('course.yesDelete')}</button>
           <button className="btn-outline" onClick={()=>setConfirmDelete(false)}>{t('course.no')}</button>
         </div>
       </div>

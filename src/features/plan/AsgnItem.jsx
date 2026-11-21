@@ -8,6 +8,7 @@ import { useAttachmentDrop } from "./useAttachmentDrop.js";
 import DateInput from "../../lib/DateInput.jsx";
 import { offerUndo } from "../../lib/doneList.js";
 import { holdDelete } from "../../lib/heldDelete.js";
+import { haptic } from "../../lib/haptic.js";
 
 export default function AsgnItem({ asgn, courses, dispatch, attachments = [], session, showFlash }) {
   const { t } = useTranslation();
@@ -39,7 +40,7 @@ export default function AsgnItem({ asgn, courses, dispatch, attachments = [], se
     {...drop.dropProps}
     onDrop={(e)=>{ drop.dropProps.onDrop(e); setShowAt(true); }}
   >
-    <div className={"asgn-check"+(asgn.done?" checked":"")} onClick={()=>{ const toggle={type:"TOGGLE_ASSIGNMENT",id:asgn.id}; dispatch(toggle); if(!asgn.done) offerUndo(asgn.title,toggle); }}/>
+    <div className={"asgn-check"+(asgn.done?" checked":"")} onClick={()=>{ const toggle={type:"TOGGLE_ASSIGNMENT",id:asgn.id}; dispatch(toggle); if(!asgn.done){ haptic.light(); offerUndo(asgn.title,toggle); } }}/>
     <div className="asgn-body">
       <div className={"asgn-title"+(asgn.done?" done":"")}>{asgn.title}</div>
       <div className="asgn-meta">

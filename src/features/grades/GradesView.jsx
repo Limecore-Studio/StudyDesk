@@ -7,6 +7,7 @@ import * as outbox from '../../lib/outbox.js';
 import { holdDelete } from '../../lib/heldDelete.js';
 import { stampNow } from '../../lib/serverClock.js';
 import { enterSubmit } from '../../lib/imeSubmit.js';
+import { haptic } from '../../lib/haptic.js';
 import WeightBlocks from '../../lib/WeightBlocks.jsx';
 import {
   WEIGHT_MODES, DEFAULT_POINTS_TOTAL, preferredWeightMode, setPreferredWeightMode,
@@ -175,6 +176,8 @@ export default function GradesView({ state, dispatch, showFlash, session }) {
     }
     setShowAdd(false);
     setEditing(null);
+    // limecore#130: success feedback for a saved grade.
+    haptic.success();
     showFlash(editing ? t('gv.gradeUpdated') : t('gv.gradeAdded'));
     if (session) {
       outbox.enqueue('upsert_grade', {
