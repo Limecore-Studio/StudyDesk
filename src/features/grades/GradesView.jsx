@@ -4,6 +4,7 @@ import { calculateGPA, overallAverage, subjectEffectiveGrade, subjectsWithEffect
 import { scaleFor, describeScale } from '../../lib/gradeScale.js';
 import { activeReport, reportText, stepLabel, subjectReport } from '../../lib/reportGrade.js';
 import * as outbox from '../../lib/outbox.js';
+import { holdDelete } from '../../lib/heldDelete.js';
 import { stampNow } from '../../lib/serverClock.js';
 import { enterSubmit } from '../../lib/imeSubmit.js';
 import { haptic } from '../../lib/haptic.js';
@@ -185,10 +186,12 @@ export default function GradesView({ state, dispatch, showFlash, session }) {
     }
   }
 
+  // StudyDesk#267: deleted here at once, pushed after the undo window.
   function delGrade(id) {
+    const row = (state.grades || []).find((g) => g.id === id);
     dispatch({ type: 'DELETE_GRADE', id });
-    showFlash(t('gv.gradeDeleted'));
-    if (session) outbox.enqueue('delete_grade', { id });
+    if (!row) return;
+    holdDelete({ title: t('gv.gradeDeleted'), ops: [['delete_grade', { id }]], restore: { type: 'RESTORE_DELETED', list: 'grades', row } });
   }
 
   // v1.2 — semester archive/restore. Dispatch first for instant UI feedback,

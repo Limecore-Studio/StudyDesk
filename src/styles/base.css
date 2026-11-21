@@ -216,9 +216,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .topbar-avatar.active{background:var(--text);color:var(--bg);border-color:var(--text);}
 /* v1.12 Item 9 - the shared AccountAvatar renders into both the 36px topbar
    button and the 64px Settings preview, so its two inner elements are styled
-   once, here, rather than per-surface. overflow:hidden on the button is what
-   keeps a square photo inside the circle. */
-.topbar-avatar{overflow:hidden;}
+   once, here, rather than per-surface. A square photo is kept inside the
+   circle by rounding the image itself: overflow:hidden on the button also
+   clipped its 48 dp hit area (StudyDesk#270, forms.css). */
+.topbar-avatar .avatar-img{border-radius:50%;}
 .avatar-img{width:100%;height:100%;object-fit:cover;display:block;}
 /* Vertically centred at RUNTIME by AccountAvatar, not by a constant here.
    Two attempts with CSS alone failed and the second made it worse: flex centres
@@ -252,6 +253,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   .topbar{padding:max(14px,var(--safe-area-inset-top, env(safe-area-inset-top))) 0 12px;position:sticky;top:0;z-index:10;}
   .topbar-inner{max-width:100%;padding:0 16px;}
   .topbar-title{font-size:18px;}
+  /* StudyDesk#274: title, timer pill, date and avatar do not fit one line at
+     360 px, so while a timer runs the date steps aside (it is back when the
+     timer stops) and the title stays on one line. */
+  .topbar:has(.timer-pill) .topbar-date{display:none;}
+  .topbar-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
   .content{padding:16px 14px;max-width:100%;}
   /* Fixed bottom tab bar — always at the bottom, never overlaps status bar */
   .mobile-tabbar{
@@ -375,4 +381,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   color: var(--muted);
   font-size: 0.85em;
   margin-top: 2px;
+}
+
+/* StudyDesk#275 — the OS "reduce motion" setting, everywhere. It was honoured
+   in five places while modals, sheets and overlays still slid and faded. Same
+   guard as NCC. The timer ring is driven by state, not an animation, so it
+   still moves. */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
 }

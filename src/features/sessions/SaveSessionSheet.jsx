@@ -71,7 +71,8 @@ export default function SaveSessionSheet({ pending, courses, onSave, onClose, ca
   //
   // Same shape as the OTP field in AuthGate: let the press land and name the
   // problem rather than swallowing the tap.
-  function submit() {
+  // `startNext` (StudyDesk#273): save, then open the next block's start sheet.
+  function submit(startNext = false) {
     const d = parseInt(duration, 10);
     if (!Number.isFinite(d) || d < 1 || d > 1440) { setInvalid('duration'); return; }
     let startedAt = pending.startedAt;
@@ -97,7 +98,7 @@ export default function SaveSessionSheet({ pending, courses, onSave, onClose, ca
             aiSessionSummary: debrief.sessionSummary || null,
           }
         : {}),
-    });
+    }, startNext);
   }
 
   return (
@@ -155,7 +156,7 @@ export default function SaveSessionSheet({ pending, courses, onSave, onClose, ca
 
         <div className="input-group">
           <div className="input-label">{t('ss.fNotes')}</div>
-          <input type="text" placeholder={t('ss.phNotes')} value={notes} onChange={(e) => setNotes(e.target.value)} {...enterSubmit(submit)} autoFocus />
+          <input type="text" placeholder={t('ss.phNotes')} value={notes} onChange={(e) => setNotes(e.target.value)} {...enterSubmit(() => submit())} autoFocus />
         </div>
 
         <div className="input-group">
@@ -273,8 +274,14 @@ export default function SaveSessionSheet({ pending, courses, onSave, onClose, ca
           </div>
         )}
 
+        {pending.next && (
+          <div className="ss-next">
+            <span>{t('timer.nextBlock', { title: pending.next.title, time: pending.next.time })}</span>
+            <button type="button" className="btn-outline btn-sm" onClick={() => submit(true)}>{t('timer.startNow')}</button>
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-          <button className="btn" onClick={submit}>{t('ss.saveBtn')}</button>
+          <button className="btn" onClick={() => submit()}>{t('ss.saveBtn')}</button>
           <button className="btn-outline" onClick={onClose}>{t('ss.discard')}</button>
         </div>
       </div>

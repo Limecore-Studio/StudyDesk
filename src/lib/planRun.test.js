@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { INITIAL, reducer } from './appReducer.js';
 import { buildEvents } from './calendar.js';
-import { isOpenPlan, nextPlanStartAt, openPlansBetween, planSaveSteps, planToOffer } from './planRun.js';
+import { isOpenPlan, nextPlanStartAt, nextPlanSoon, openPlansBetween, planSaveSteps, planToOffer } from './planRun.js';
 import { timerPlanId } from './timerSnapshot.js';
 
 const MIN = 60 * 1000;
@@ -109,5 +109,17 @@ describe('guard: no path makes a second session for a kept block', () => {
     const editor = src.slice(src.indexOf('function PlanEditor'));
     expect(editor).toMatch(/\{onStart && draft\.status !== 'kept'[^(]*\(\s*<button[^>]*onClick=\{onStart\}/);
     expect(editor).toMatch(/\{draft\.status !== 'kept' && \(\s*<button[^>]*onClick=\{onLog\}/);
+  });
+});
+
+describe('nextPlanSoon (StudyDesk#273)', () => {
+  it('the soonest open block within the hour, not the one just run', () => {
+    const plans = [block('later', 90), block('soon', 40), block('sooner', 20), block('ran', 10)];
+    expect(nextPlanSoon(plans, NOW, { excludeId: 'ran' })?.id).toBe('sooner');
+  });
+  it('none past the hour, none already started, none resolved', () => {
+    expect(nextPlanSoon([block('a', 61)], NOW)).toBeNull();
+    expect(nextPlanSoon([block('b', -5)], NOW)).toBeNull();
+    expect(nextPlanSoon([block('c', 20, { fulfilledBy: 's1' }), block('d', 30, { dismissedAt: at(0) })], NOW)).toBeNull();
   });
 });

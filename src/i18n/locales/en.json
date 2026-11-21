@@ -1079,7 +1079,12 @@
     "focusChipRunning": "Focus block running",
     "focusChipPaused": "Paused",
     "chipFocusTitle": "Focus block",
-    "chipStopwatchTitle": "Stopwatch"
+    "chipStopwatchTitle": "Stopwatch",
+    "chipResume": "Resume",
+    "chipPlus5": "+5 min",
+    "chipEnd": "End",
+    "nextBlock": "Next: {{time}} · {{title}}",
+    "startNow": "Start now"
   },
   "notif": {
     "planLeadTitle": "Study block at {{time}}",
@@ -1313,7 +1318,8 @@
       "exam": "Exam"
     },
     "markedDone": "Done: {{title}}",
-    "undo": "Undo"
+    "undo": "Undo",
+    "deleted": "Deleted: {{title}}"
   },
   "reportPrompt": {
     "title": "Send error reports?",

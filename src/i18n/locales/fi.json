@@ -1079,7 +1079,12 @@
     "focusChipRunning": "Keskittymisjakso käynnissä",
     "focusChipPaused": "Tauolla",
     "chipFocusTitle": "Keskittymisjakso",
-    "chipStopwatchTitle": "Sekuntikello"
+    "chipStopwatchTitle": "Sekuntikello",
+    "chipResume": "Jatka",
+    "chipPlus5": "+5 min",
+    "chipEnd": "Lopeta",
+    "nextBlock": "Seuraavaksi: {{time}} · {{title}}",
+    "startNow": "Aloita nyt"
   },
   "notif": {
     "planLeadTitle": "Opiskelujakso alkaa klo {{time}}",
@@ -1313,7 +1318,8 @@
       "exam": "Koe"
     },
     "markedDone": "Tehty: {{title}}",
-    "undo": "Kumoa"
+    "undo": "Kumoa",
+    "deleted": "Poistettu: {{title}}"
   },
   "reportPrompt": {
     "title": "Lähetetäänkö virheraportteja?",

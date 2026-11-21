@@ -7,6 +7,7 @@ import AttachmentList from "./Attachments.jsx";
 import { useAttachmentDrop } from "./useAttachmentDrop.js";
 import DateInput from "../../lib/DateInput.jsx";
 import { offerUndo } from "../../lib/doneList.js";
+import { holdDelete } from "../../lib/heldDelete.js";
 import { haptic } from "../../lib/haptic.js";
 
 export default function AsgnItem({ asgn, courses, dispatch, attachments = [], session, showFlash }) {
@@ -59,7 +60,7 @@ export default function AsgnItem({ asgn, courses, dispatch, attachments = [], se
       {mine.length>0&&<span className="asgn-clip-n">{mine.length}</span>}
     </button>
     <button className="btn-danger-text" style={{fontSize:13,color:"var(--muted2)"}} onClick={()=>setEditing(true)} title={t('av.pl.edit')} aria-label={t('av.pl.edit')}>✎</button>
-    <button className="btn-danger-text" onClick={()=>dispatch({type:"DELETE_ASSIGNMENT",id:asgn.id})} aria-label={t('common.delete')} title={t('common.delete')}>×</button>
+    <button className="btn-danger-text" onClick={()=>{dispatch({type:"DELETE_ASSIGNMENT",id:asgn.id});holdDelete({title:t('done.deleted',{title:asgn.title}),ops:[["delete_assignment",{id:asgn.id}]],restore:{type:"RESTORE_DELETED",list:"assignments",row:asgn}});}} aria-label={t('common.delete')} title={t('common.delete')}>×</button>
     {showAt&&<AttachmentList
       attachments={mine}
       dispatch={dispatch}
