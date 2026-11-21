@@ -1322,7 +1322,8 @@
       "exam": "Examen"
     },
     "markedDone": "Hecho: {{title}}",
-    "undo": "Deshacer"
+    "undo": "Deshacer",
+    "deleted": "Eliminado: {{title}}"
   },
   "reportPrompt": {
     "title": "¿Enviar informes de errores?",

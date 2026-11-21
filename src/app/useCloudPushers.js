@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import * as outbox from "../lib/outbox.js";
 import { snapshotPushState, diffPushes } from "../lib/pushDiff.js";
 import { runLegacyPush } from "../lib/legacyPush.js";
+import { isDeleteHeld } from "../lib/heldDelete.js";
 
 export function useCloudPushers({ session, state, pulledOnce, remoteStampsRef, showFlash, t }) {
   // ── v1.0.4 one-shot post-migration push ─────────────────────────────────────
@@ -75,6 +76,9 @@ export function useCloudPushers({ session, state, pulledOnce, remoteStampsRef, s
 
     // StudyDesk#72 — `stamps` is what the last pull returned (see pushDiff.js).
     for (const { kind, payload } of diffPushes(pushBaseline.current, next, state, remoteStampsRef.current)) {
+      // StudyDesk#267: a one-tap delete in its undo window is queued by
+      // heldDelete.js when the window closes, never here.
+      if (kind.startsWith("delete_") && isDeleteHeld(payload.id)) continue;
       outbox.enqueue(kind, payload);
     }
     pushBaseline.current = next;

@@ -1313,7 +1313,8 @@
       "exam": "Koe"
     },
     "markedDone": "Tehty: {{title}}",
-    "undo": "Kumoa"
+    "undo": "Kumoa",
+    "deleted": "Poistettu: {{title}}"
   },
   "reportPrompt": {
     "title": "Lähetetäänkö virheraportteja?",

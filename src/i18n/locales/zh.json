@@ -1309,7 +1309,8 @@
       "exam": "考试"
     },
     "markedDone": "已完成：{{title}}",
-    "undo": "撤销"
+    "undo": "撤销",
+    "deleted": "已删除：{{title}}"
   },
   "reportPrompt": {
     "title": "发送错误报告吗？",

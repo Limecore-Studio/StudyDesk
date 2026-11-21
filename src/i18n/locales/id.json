@@ -1304,7 +1304,8 @@
       "exam": "Ujian"
     },
     "markedDone": "Selesai: {{title}}",
-    "undo": "Urungkan"
+    "undo": "Urungkan",
+    "deleted": "Dihapus: {{title}}"
   },
   "reportPrompt": {
     "title": "Kirim laporan galat?",

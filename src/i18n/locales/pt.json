@@ -1322,7 +1322,8 @@
       "exam": "Prova"
     },
     "markedDone": "Concluído: {{title}}",
-    "undo": "Desfazer"
+    "undo": "Desfazer",
+    "deleted": "Excluído: {{title}}"
   },
   "reportPrompt": {
     "title": "Enviar relatórios de erros?",
