@@ -56,6 +56,20 @@ export function nextPlanStartAt(plans, now) {
   return next;
 }
 
+/** StudyDesk#273 — the next open block starting within `withinMs` of `now`
+ *  (not the one just run), offered when a focus block ends. Null when none. */
+export const NEXT_BLOCK_WINDOW_MS = 60 * 60 * 1000;
+export function nextPlanSoon(plans, now, { withinMs = NEXT_BLOCK_WINDOW_MS, excludeId = null } = {}) {
+  let best = null;
+  for (const p of plans || []) {
+    if (!isOpenPlan(p) || p.id === excludeId) continue;
+    const at = startMs(p);
+    if (!Number.isFinite(at) || at <= now || at - now > withinMs) continue;
+    if (!best || at < startMs(best)) best = p;
+  }
+  return best;
+}
+
 /** Open blocks starting in [dayStart, dayEnd), earliest first — the Today list. */
 export function openPlansBetween(plans, dayStart, dayEnd) {
   return (plans || [])

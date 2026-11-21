@@ -1082,7 +1082,9 @@
     "chipStopwatchTitle": "Stopwatch",
     "chipResume": "Resume",
     "chipPlus5": "+5 min",
-    "chipEnd": "End"
+    "chipEnd": "End",
+    "nextBlock": "Next: {{time}} · {{title}}",
+    "startNow": "Start now"
   },
   "notif": {
     "planLeadTitle": "Study block at {{time}}",

@@ -1082,7 +1082,9 @@
     "chipStopwatchTitle": "स्टॉपवॉच",
     "chipResume": "फिर शुरू करें",
     "chipPlus5": "+5 मिनट",
-    "chipEnd": "समाप्त करें"
+    "chipEnd": "समाप्त करें",
+    "nextBlock": "अगला: {{time}} · {{title}}",
+    "startNow": "अभी शुरू करें"
   },
   "notif": {
     "planLeadTitle": "अध्ययन ब्लॉक {{time}} बजे शुरू",

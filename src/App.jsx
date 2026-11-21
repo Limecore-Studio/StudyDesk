@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useReducer, useRef, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import { fmtToday } from "./lib/dates.js";
+import { fmtToday, fmtTime } from "./lib/dates.js";
 import { App as CapApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { supabase, readStoredSession } from "./lib/supabase.js";
@@ -23,7 +23,7 @@ import { stampsFromPull, mergeStamps, shouldPull } from "./lib/syncStamps.js";
 import { withoutQueuedDeletes } from "./lib/pushDiff.js";
 import { setHeldDeleteUser, onHeldDelete, heldDeleteOffer, undoHeldDelete, heldDeleteItems, replayHeldDelete } from "./lib/heldDelete.js";
 import { pastSessionDraft } from "./lib/pastSession.js";
-import { isOpenPlan, nextPlanStartAt, planSaveSteps, planToOffer } from "./lib/planRun.js";
+import { isOpenPlan, nextPlanStartAt, nextPlanSoon, planSaveSteps, planToOffer } from "./lib/planRun.js";
 import { timerPlanId } from "./lib/timerSnapshot.js";
 import { onUndoOffer, UNDO_MS } from "./lib/doneList.js";
 import "./styles/notebook.css";
@@ -653,11 +653,22 @@ export default function App() {
   const [autoSaved, setAutoSaved] = useState(null); // { key, pending, steps, restore } | null
   const autoSaveSettled = useRef(new WeakSet());
   const lastAutoRound = useRef(null);
+  // StudyDesk#273 — at the end of a timer round, the next block starting within
+  // the hour (not the one just run), as one quiet line on the save sheet or the
+  // auto-save bar: "Next: Physics · 16:00 · Start now".
+  const nextBlockAfter = (payload) => {
+    if (!payload.runId && !payload.completed) return null;
+    const p = nextPlanSoon(state.plannedSessions, Date.now(), { excludeId: payload.planId || null });
+    if (!p) return null;
+    const c = p.subjectId ? state.courses[p.subjectId] : null;
+    return { id: p.id, title: p.title || (c && !c.deletedAt ? c.name : null) || t('notif.planFallback'), time: fmtTime(p.startsAt) };
+  };
   const onTimerComplete = (payload) => {
+    const next = nextBlockAfter(payload);
     // Only a round the timer finished. Stop, Skip and Log a past session still
     // raise the sheet: someone is there and acting, and a cut-short length is
     // worth a look before it counts.
-    if (!state.autoSaveSessions || !payload.completed) { setPendingSession(payload); return; }
+    if (!state.autoSaveSessions || !payload.completed) { setPendingSession(next ? { ...payload, next } : payload); return; }
     // One save per round. A completion can be reported twice (the tick's
     // state updater calls it, and React may run an updater twice), and the
     // second report differs (the first clears the run's start and id), so
@@ -684,7 +695,7 @@ export default function App() {
     // StudyDesk#253 / #254: reconcile skips these ids, and the ops survive the
     // app dying inside the window (lib/autoSaveHold.js).
     hold(restore.sessionId, planId, session?.user?.id, steps.outbox);
-    setAutoSaved({ key: Date.now(), pending: payload, steps, restore });
+    setAutoSaved({ key: Date.now(), pending: payload, steps, restore, next });
   };
   // StudyDesk#289 — Pause / +5 min / End from the focus chip. End raises the
   // save sheet with the block it finished, as the Timer screen's Stop does.
@@ -1365,12 +1376,15 @@ export default function App() {
         courses={courses}
         canDebrief={!!session && state.aiEnabled}
         onClose={()=>setPendingSession(null)}
-        onSave={async (save) => {
+        onSave={async (save, startNext) => {
           const steps = sessionSteps(pendingSession, save);
           for (const a of steps.actions) dispatch(a);
+          const next = pendingSession.next;
           setPendingSession(null);
           showFlash(t('av.flash.logged', { n: save.durationMinutes }));
           if (session) for (const [op, payload] of steps.outbox) outbox.enqueue(op, payload);
+          // StudyDesk#273: saved first, then the next block's start sheet.
+          if (startNext && next) openPlanStart(next.id);
         }}
       /></Suspense>
     )}
@@ -1391,10 +1405,15 @@ export default function App() {
       </div>
     )}
     {autoSaved&&!undoOffer&&!heldDel&&(
-      <div className="undo-bar" role="status" key={autoSaved.key}>
+      <div className={"undo-bar"+(autoSaved.next?" undo-bar--next":"")} role="status" key={autoSaved.key}>
         <span className="undo-bar-text">{t('av.flash.logged', { n: autoSaved.pending.durationMinutes })}</span>
         <button type="button" onClick={()=>undoAutoSave(true)}>{t('common.edit')}</button>
         <button type="button" onClick={()=>undoAutoSave(false)}>{t('done.undo')}</button>
+        {/* StudyDesk#273 — the next block, one tap away. The save stands. */}
+        {autoSaved.next&&<div className="undo-bar-next">
+          <span className="undo-bar-text">{t('timer.nextBlock', { title: autoSaved.next.title, time: autoSaved.next.time })}</span>
+          <button type="button" onClick={()=>openPlanStart(autoSaved.next.id)}>{t('timer.startNow')}</button>
+        </div>}
       </div>
     )}
     {accountNotice&&(

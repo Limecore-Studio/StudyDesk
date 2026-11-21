@@ -1079,7 +1079,9 @@
     "chipStopwatchTitle": "秒表",
     "chipResume": "继续",
     "chipPlus5": "+5 分钟",
-    "chipEnd": "结束"
+    "chipEnd": "结束",
+    "nextBlock": "下一个：{{time}} · {{title}}",
+    "startNow": "立即开始"
   },
   "notif": {
     "planLeadTitle": "学习时段将于 {{time}} 开始",

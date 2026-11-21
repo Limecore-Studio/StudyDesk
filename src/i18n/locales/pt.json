@@ -1090,7 +1090,9 @@
     "chipStopwatchTitle": "Cronômetro",
     "chipResume": "Retomar",
     "chipPlus5": "+5 min",
-    "chipEnd": "Encerrar"
+    "chipEnd": "Encerrar",
+    "nextBlock": "A seguir: {{time}} · {{title}}",
+    "startNow": "Começar agora"
   },
   "notif": {
     "planLeadTitle": "Bloco de estudo às {{time}}",

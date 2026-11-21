@@ -1074,7 +1074,9 @@
     "chipStopwatchTitle": "Stopwatch",
     "chipResume": "Lanjutkan",
     "chipPlus5": "+5 mnt",
-    "chipEnd": "Selesai"
+    "chipEnd": "Selesai",
+    "nextBlock": "Berikutnya: {{time}} · {{title}}",
+    "startNow": "Mulai sekarang"
   },
   "notif": {
     "planLeadTitle": "Blok belajar pukul {{time}}",

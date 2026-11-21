@@ -1090,7 +1090,9 @@
     "chipStopwatchTitle": "Chronomètre",
     "chipResume": "Reprendre",
     "chipPlus5": "+5 min",
-    "chipEnd": "Terminer"
+    "chipEnd": "Terminer",
+    "nextBlock": "Ensuite : {{time}} · {{title}}",
+    "startNow": "Commencer"
   },
   "notif": {
     "planLeadTitle": "Bloc de révision à {{time}}",

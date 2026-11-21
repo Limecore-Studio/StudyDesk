@@ -1082,7 +1082,9 @@
     "chipStopwatchTitle": "Sekuntikello",
     "chipResume": "Jatka",
     "chipPlus5": "+5 min",
-    "chipEnd": "Lopeta"
+    "chipEnd": "Lopeta",
+    "nextBlock": "Seuraavaksi: {{time}} · {{title}}",
+    "startNow": "Aloita nyt"
   },
   "notif": {
     "planLeadTitle": "Opiskelujakso alkaa klo {{time}}",

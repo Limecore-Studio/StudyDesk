@@ -1118,7 +1118,9 @@
     "chipStopwatchTitle": "ساعة الإيقاف",
     "chipResume": "استئناف",
     "chipPlus5": "+5 دقائق",
-    "chipEnd": "إنهاء"
+    "chipEnd": "إنهاء",
+    "nextBlock": "التالي: {{time}} · {{title}}",
+    "startNow": "ابدأ الآن"
   },
   "notif": {
     "planLeadTitle": "فترة الدراسة تبدأ الساعة {{time}}",
