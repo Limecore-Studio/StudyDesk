@@ -25,6 +25,7 @@
 
 import { readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 
 // ── Patterns ──────────────────────────────────────────────────────────────
 
@@ -46,13 +47,28 @@ const PROVIDER_PATTERNS = [
   { name: 'GitLab PAT', re: /glpat-[A-Za-z0-9_.-]{20,}/g },
   { name: 'GitLab deploy/runner token', re: /gl(?:dt|rt|cbt|ptt)-[A-Za-z0-9_.-]{20,}/g },
   { name: 'Google API key', re: /AIza[0-9A-Za-z_-]{35}/g },
-  // Supabase service-role JWT (NOT the anon/publishable key). Both start with
-  // eyJ, so we can't reliably distinguish — but service_role keys generally
-  // exceed 200 chars and are very long. Treat any 250+ char eyJ-prefixed
-  // string as suspicious. The supabase.js whitelist below will exempt the
-  // legitimate client config.
-  { name: 'JWT-shaped credential (verify it is the anon/publishable key, not service_role)', re: /eyJ[A-Za-z0-9_=-]{200,}\.eyJ[A-Za-z0-9_=-]{200,}\.[A-Za-z0-9_=+/-]+/g },
+  // v1.22 (limecore#109): Supabase's new-style secret key. Full access,
+  // bypasses RLS, never belongs in a repo.
+  { name: 'Supabase secret key', re: /sb_secret_[A-Za-z0-9_-]{20,}/g },
 ];
+
+// v1.22 (limecore#109) — JWTs. The old rule wanted a 200+ character header,
+// and a real Supabase JWT header ({"alg":"HS256","typ":"JWT"}) is 36, so it
+// could never match a service_role key. Now any JWT-shaped string is decoded
+// and flagged unless its payload says role "anon" (the publishable key, which
+// ships in every client on purpose). Undecodable counts as suspicious.
+const JWT_RE = /eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}/g;
+
+export function jwtRole(token) {
+  try {
+    const part = token.split('.')[1];
+    const json = Buffer.from(part.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
+    const role = JSON.parse(json).role;
+    return typeof role === 'string' ? role : null;
+  } catch {
+    return null;
+  }
+}
 
 // Generic "looks like an API key assigned to a key-shaped variable" detector.
 // Matches: `FINNHUB_KEY = "..."`, `apiToken: "..."`, `password='...'`, etc.
@@ -119,12 +135,15 @@ function getStagedContent(file) {
 // Skip files that aren't worth scanning (binaries, generated bundles, lock
 // files which often contain incidental hex). Keep this conservative — a
 // false negative here is a missed leak.
-function shouldScan(file) {
+export function shouldScan(file) {
   if (FILE_ALLOWLIST.includes(file)) return false;
-  if (file.startsWith('android/') || file.startsWith('ios/')) return false;
+  // v1.22 (limecore#109): android/ is scanned (the Java plugins, the gradle
+  // files, resources); only its build outputs are skipped.
+  if (/^android\/(?:app\/)?build\//.test(file) || file.startsWith('android/.gradle/')) return false;
+  if (file.startsWith('ios/')) return false;
   if (file.startsWith('dist/') || file.startsWith('build/')) return false;
   if (file.startsWith('node_modules/')) return false;
-  if (/\.(png|jpg|jpeg|gif|webp|ico|svg|woff2?|ttf|otf|eot|pdf|zip|gz|tgz|7z|rar|mp3|mp4|mov|webm|avi|wasm)$/i.test(file)) {
+  if (/\.(png|jpg|jpeg|gif|webp|ico|svg|woff2?|ttf|otf|eot|pdf|zip|gz|tgz|7z|rar|mp3|mp4|mov|webm|avi|wasm|jar|aar|apk|keystore|jks)$/i.test(file)) {
     return false;
   }
   if (file === 'package-lock.json' || file === 'pnpm-lock.yaml' || file === 'yarn.lock') {
@@ -138,6 +157,11 @@ function shouldScan(file) {
 function scanFile(file) {
   const content = getStagedContent(file);
   if (!content) return [];
+  return findSecrets(content, file);
+}
+
+/** Every finding in one file's text. Exported for the tests. */
+export function findSecrets(content, file = '<text>') {
   const findings = [];
   const lines = content.split('\n');
 
@@ -156,6 +180,20 @@ function scanFile(file) {
           excerpt: line.trim().slice(0, 120),
         });
       }
+    }
+
+    // 1b. JWTs whose role is not "anon".
+    JWT_RE.lastIndex = 0;
+    let j;
+    while ((j = JWT_RE.exec(line)) !== null) {
+      const role = jwtRole(j[0]);
+      if (role === 'anon') continue;
+      findings.push({
+        file,
+        line: idx + 1,
+        kind: `JWT with role ${role ?? 'unknown'} (only the anon key may be committed)`,
+        excerpt: line.trim().slice(0, 120),
+      });
     }
 
     // 2. Heuristic key-shaped assignments. Skip if the value is an obvious
@@ -210,6 +248,11 @@ function isObviousPlaceholder(val) {
 
 // ── Entry ─────────────────────────────────────────────────────────────────
 
+// Run only as a script; the tests import the functions above.
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) main();
+
+function main() {
 const files = getStagedFiles().filter(shouldScan);
 const findings = files.flatMap(scanFile);
 
@@ -232,3 +275,4 @@ console.error('If it is a real secret, unstage the file and move the value to');
 console.error('Capacitor Preferences / Supabase / an env var that is .gitignored.');
 console.error('');
 process.exit(1);
+}
