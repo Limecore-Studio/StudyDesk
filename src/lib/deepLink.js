@@ -19,7 +19,14 @@ export function parseRoute(url) {
   if (typeof url !== 'string' || !url.toLowerCase().startsWith(PREFIX)) return null;
   const rest = url.slice(PREFIX.length);
   const [path, query = ''] = rest.split('?');
-  const parts = path.split('/').filter(Boolean).map((p) => decodeURIComponent(p));
+  // A malformed escape (a lone %) makes decodeURIComponent throw. A link is
+  // anyone's to craft, so a bad one is simply not one of ours.
+  let parts;
+  try {
+    parts = path.split('/').filter(Boolean).map((p) => decodeURIComponent(p));
+  } catch {
+    return null;
+  }
   const params = new URLSearchParams(query);
   switch ((parts[0] || '').toLowerCase()) {
     case 'today': return { view: 'today' };

@@ -25,4 +25,10 @@ describe('parseRoute', () => {
     expect(parseRoute('com.studydesk.app://open/settings')).toBeNull();
     expect(parseRoute(undefined)).toBeNull();
   });
+
+  it('a malformed escape returns null instead of throwing', () => {
+    expect(() => parseRoute('com.studydesk.app://open/course/%E0%A4%A')).not.toThrow();
+    expect(parseRoute('com.studydesk.app://open/course/%E0%A4%A')).toBeNull();
+    expect(parseRoute('com.studydesk.app://open/%')).toBeNull();
+  });
 });
