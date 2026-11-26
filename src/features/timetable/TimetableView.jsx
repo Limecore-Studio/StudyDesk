@@ -29,6 +29,7 @@ import * as outbox from '../../lib/outbox.js';
 import '../../styles/timetable.css';
 import { enterSubmit } from '../../lib/imeSubmit.js';
 import DateInput from '../../lib/DateInput.jsx';
+import { attendanceOps } from '../../lib/childDeletes.js';
 
 const DEFAULT_LESSON_MIN = 75;
 // Default hour window for the week grid. Referenced by name from desktop.css,
@@ -534,8 +535,13 @@ export default function TimetableView({ state, dispatch, session, showFlash }) {
 
   const removeTerm = (term) => {
     const descendantIds = descendantTermIds(terms, term.id);
+    // StudyDesk#245: the marks on this term's lessons go with them.
+    const doomed = new Set([term.id, ...descendantIds]);
+    const entryIds = (state.timetableEntries || []).filter((e) => doomed.has(e.termId)).map((e) => e.id);
+    const markOps = attendanceOps(state.attendance, entryIds);
     dispatch({ type: 'DELETE_TERM', id: term.id, descendantIds });
     if (session) outbox.enqueue('delete_term', { id: term.id, descendantIds });
+    if (session) for (const [kind, payload] of markOps) outbox.enqueue(kind, payload);
     if (selectedId === term.id || descendantIds.includes(selectedId)) setSelectedId(null);
     showFlash?.(descendantIds.length
       ? t('tt.termDeletedTree', { n: descendantIds.length })
@@ -596,8 +602,11 @@ export default function TimetableView({ state, dispatch, session, showFlash }) {
     // single delete uses, so nothing new can go wrong here that would not
     // already be wrong there.
     for (const id of deleteIds) {
+      const markOps = attendanceOps(state.attendance, [id]);
       dispatch({ type: 'DELETE_TT_ENTRY', id });
       if (session) outbox.enqueue('delete_timetable', { id });
+      // StudyDesk#245: an unticked weekday's marks go with it.
+      if (session) for (const [kind, payload] of markOps) outbox.enqueue(kind, payload);
     }
 
     setLessonDraft(null);
@@ -617,8 +626,11 @@ export default function TimetableView({ state, dispatch, session, showFlash }) {
       lessonDraft.id,
       ...entriesInSeries(state.timetableEntries, lessonDraft.seriesId).map((e) => e.id),
     ])];
+    const markOps = attendanceOps(state.attendance, ids);
     dispatch({ type: 'DELETE_TT_ENTRIES', ids });
     if (session) for (const id of ids) outbox.enqueue('delete_timetable', { id });
+    // StudyDesk#245: the lesson's marks go with it.
+    if (session) for (const [kind, payload] of markOps) outbox.enqueue(kind, payload);
     setLessonDraft(null);
     showFlash?.(ids.length > 1 ? t('tt.lessonDeletedDays', { count: ids.length }) : t('tt.lessonDeleted'));
   };

@@ -314,10 +314,13 @@ export function reducer(state, action) {
       // longer resolves, and resolveTermRange would then inherit dates from
       // further up the tree and draw those lessons across the wrong months.
       const doomed = new Set([action.id, ...(action.descendantIds || [])]);
+      // StudyDesk#245: and the attendance marks on those lessons.
+      const gone = new Set((state.timetableEntries || []).filter(e => doomed.has(e.termId)).map(e => e.id));
       return {
         ...state,
         academicTerms: (state.academicTerms || []).filter(x => !doomed.has(x.id)),
         timetableEntries: (state.timetableEntries || []).filter(e => !doomed.has(e.termId)),
+        attendance: (state.attendance || []).filter(a => !gone.has(a.timetableEntryId)),
       };
     }
     case "ADD_TT_ENTRY": {
@@ -364,8 +367,9 @@ export function reducer(state, action) {
           : (e.weekParity ?? null),
         updatedAt: stampNow(),
       })};
+    // StudyDesk#245: a lesson's attendance marks go with it.
     case "DELETE_TT_ENTRY":
-      return { ...state, timetableEntries: (state.timetableEntries || []).filter(e => e.id !== action.id) };
+      return { ...state, timetableEntries: (state.timetableEntries || []).filter(e => e.id !== action.id), attendance: (state.attendance || []).filter(a => a.timetableEntryId !== action.id) };
     // v1.14 Item 6a — dropping every day of a multi-weekday lesson at once.
     // Takes explicit ids rather than a seriesId so the reducer deletes exactly
     // what the caller counted and showed in the confirmation, with no chance of
@@ -373,7 +377,7 @@ export function reducer(state, action) {
     case "DELETE_TT_ENTRIES": {
       const ids = new Set(action.ids || []);
       if (!ids.size) return state;
-      return { ...state, timetableEntries: (state.timetableEntries || []).filter(e => !ids.has(e.id)) };
+      return { ...state, timetableEntries: (state.timetableEntries || []).filter(e => !ids.has(e.id)), attendance: (state.attendance || []).filter(a => !ids.has(a.timetableEntryId)) };
     }
 
     // ── Assignment attachments (v1.10) ──

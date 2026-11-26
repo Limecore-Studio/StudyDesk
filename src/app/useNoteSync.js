@@ -4,8 +4,12 @@ import { useEffect, useCallback, useRef } from "react";
 import { FLUSH_NOTE_EDITS_EVENT } from "../lib/noteFlush.js";
 import * as outbox from "../lib/outbox.js";
 import { isInSync } from "../lib/syncStamps.js";
+import { noteAttachmentOps } from "../lib/childDeletes.js";
 
 export function useNoteSync({ state, session, pulledOnce, remoteStampsRef, dispatch }) {
+  // StudyDesk#244: the attachments a page delete takes with it.
+  const noteAttRef = useRef(state.noteAttachments);
+  useEffect(() => { noteAttRef.current = state.noteAttachments; });
   // ── v1.13 Item 1b — pushing note edits ──────────────────────────────────
   //
   // A note changes on every keystroke, so it CANNOT be enqueued the way an
@@ -144,6 +148,8 @@ export function useNoteSync({ state, session, pulledOnce, remoteStampsRef, dispa
     noteTimers.current.delete(id);
     dispatch({ type: "DELETE_NOTE", id });
     if (session) outbox.enqueue("delete_note", { id });
+    // StudyDesk#244: the page's attachments (rows and files) go with it.
+    if (session) for (const [kind, payload] of noteAttachmentOps(noteAttRef.current, id)) outbox.enqueue(kind, payload);
   }, [session, dispatch]);
   return { onDeleteNote };
 }
