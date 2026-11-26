@@ -142,6 +142,12 @@ export function refreshCounters() {
   const run = (async () => {
     try {
       if (!(await signedIn())) return;
+      // limecore#89: whether this account synced here BEFORE this pull. Read
+      // now: the main pull's reconcile marks a full pull as it finishes, and
+      // a guest's first sign-in must still rescue everything.
+      const { hasSyncedBefore, mayBePurged } = await import('./reconcile.js');
+      const { data } = await supabase.auth.getSession();
+      const syncedBefore = hasSyncedBefore(data?.session?.user?.id, outbox);
       const { pullCounters } = await import('./counterSync.js');
       const pulled = await pullCounters();
       // limecore#104: a pull that started for the previous account is
@@ -151,7 +157,8 @@ export function refreshCounters() {
       // holds. A guest's counters were never queued, and a lost push has no
       // other way back.
       const queuedIds = new Set(outbox.queuedItems().map((it) => it?.payload?.id).filter(Boolean));
-      const missing = findUnsyncedCounters(current(), pulled, queuedIds);
+      // limecore#89: the same purge guard as every other reconciled table.
+      const missing = findUnsyncedCounters(current(), pulled, queuedIds, { mayBePurged: (row) => mayBePurged(row, { syncedBefore }) });
       commit(mergePulled(current(), pulled));
       if (missing.length) outbox.enqueueMany(missing);
     } catch (e) {

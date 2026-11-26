@@ -58,7 +58,21 @@ import { heldIds } from './autoSaveHold.js';
 // never reached the server. A delete always comes after the last edit of the
 // row it removed, so a row edited in the last 90 days cannot be one of those;
 // the 10-day margin covers clock skew.
-const PURGE_SAFE_MS = 80 * 24 * 60 * 60 * 1000;
+//
+// limecore#89: the purge is about to cover every StudyDesk table (assignments,
+// exams, notes, terms, timetable, planned blocks, commitments, attendance,
+// counters). The guard applies to every table this module rescues, BEFORE that
+// purge runs, so no install ever re-uploads a row whose tombstone it removed.
+export const PURGE_SAFE_MS = 80 * 24 * 60 * 60 * 1000;
+
+/** True when a row absent from the server may be a purged deletion rather
+ *  than an unsynced row (see above). Only on a device that has synced this
+ *  account before; a guest signing in or a fresh install rescues everything. */
+export function mayBePurged(row, { syncedBefore, now = Date.now() } = {}) {
+  if (!syncedBefore) return false;
+  const at = new Date(row?.updatedAt || 0).getTime();
+  return !(now - at < PURGE_SAFE_MS);
+}
 
 export function findUnsynced(state, remote, opts = {}) {
   const { syncedBefore = false, queuedIds = null, now = Date.now() } = opts;
@@ -69,11 +83,7 @@ export function findUnsynced(state, remote, opts = {}) {
   // Re-pushing it would bring the deletion back on every device and in NCC.
   // A device with no earlier sync (a guest signing in, a fresh install)
   // rescues everything, as before.
-  const maybePurged = (row) => {
-    if (!syncedBefore) return false;
-    const at = new Date(row?.updatedAt || 0).getTime();
-    return !(now - at < PURGE_SAFE_MS);
-  };
+  const maybePurged = (row) => mayBePurged(row, { syncedBefore, now });
   // StudyDesk#234: a row already in the outbox is on its way with its real
   // snapshot. A reconcile payload coalesced onto it (or appended behind the
   // in-flight copy) replaced that snapshot with this one.
@@ -145,7 +155,7 @@ export function findUnsynced(state, remote, opts = {}) {
   const parentWillExist = (id) => !!id && (remoteSubjects.has(id) || pushedSubjects.has(id));
 
   for (const e of state?.exams || []) {
-    if (!e?.id || e.deletedAt || remoteExams.has(e.id) || queued(e)) continue;
+    if (!e?.id || e.deletedAt || remoteExams.has(e.id) || queued(e) || maybePurged(e)) continue;
     if (!parentWillExist(e.courseId)) continue;
     out.push({
       kind: 'upsert_exam',
@@ -164,7 +174,7 @@ export function findUnsynced(state, remote, opts = {}) {
   }
 
   for (const a of state?.assignments || []) {
-    if (!a?.id || a.deletedAt || remoteAssignments.has(a.id) || queued(a)) continue;
+    if (!a?.id || a.deletedAt || remoteAssignments.has(a.id) || queued(a) || maybePurged(a)) continue;
     if (!parentWillExist(a.courseId)) continue;
     out.push({
       kind: 'upsert_assignment',
@@ -260,7 +270,7 @@ export function findUnsynced(state, remote, opts = {}) {
   // guarantees, since a child cannot be created before its parent exists.
   const pushedTerms = new Set();
   for (const tm of state?.academicTerms || []) {
-    if (!tm?.id || tm.deletedAt || remoteTerms.has(tm.id) || queued(tm)) continue;
+    if (!tm?.id || tm.deletedAt || remoteTerms.has(tm.id) || queued(tm) || maybePurged(tm)) continue;
     pushedTerms.add(tm.id);
     out.push({
       kind: 'upsert_term',
@@ -279,7 +289,7 @@ export function findUnsynced(state, remote, opts = {}) {
   const termWillExist = (id) => !id || remoteTerms.has(id) || pushedTerms.has(id);
 
   for (const te of state?.timetableEntries || []) {
-    if (!te?.id || te.deletedAt || remoteTimetable.has(te.id) || queued(te)) continue;
+    if (!te?.id || te.deletedAt || remoteTimetable.has(te.id) || queued(te) || maybePurged(te)) continue;
     // Two parents, and both have to hold.
     if (!termWillExist(te.termId)) continue;
     if (te.subjectId && !parentWillExist(te.subjectId)) continue;
@@ -307,7 +317,7 @@ export function findUnsynced(state, remote, opts = {}) {
   // their own kind keeps that separation: `upsert_planned` writes
   // planned_sessions and touches nothing else.
   for (const ps of state?.plannedSessions || []) {
-    if (!ps?.id || ps.deletedAt || remotePlanned.has(ps.id) || heldIds.has(ps.id) || queued(ps)) continue;
+    if (!ps?.id || ps.deletedAt || remotePlanned.has(ps.id) || heldIds.has(ps.id) || queued(ps) || maybePurged(ps)) continue;
     if (ps.subjectId && !parentWillExist(ps.subjectId)) continue;
     out.push({
       kind: 'upsert_planned',
@@ -329,7 +339,7 @@ export function findUnsynced(state, remote, opts = {}) {
   // Commitments have no parent at all — training, clubs, shifts are not
   // attached to a course — so there is no guard to apply.
   for (const cm of state?.commitments || []) {
-    if (!cm?.id || cm.deletedAt || remoteCommitments.has(cm.id) || queued(cm)) continue;
+    if (!cm?.id || cm.deletedAt || remoteCommitments.has(cm.id) || queued(cm) || maybePurged(cm)) continue;
     out.push({
       kind: 'upsert_commitment',
       payload: {
@@ -361,7 +371,7 @@ export function findUnsynced(state, remote, opts = {}) {
   // a note whose course was deleted are both legitimate and neither is a
   // reason to hold it back. Only a course that is about to exist nowhere is.
   for (const n of state?.notes || []) {
-    if (!n?.id || n.deletedAt || remoteNotes.has(n.id) || queued(n)) continue;
+    if (!n?.id || n.deletedAt || remoteNotes.has(n.id) || queued(n) || maybePurged(n)) continue;
     if (n.courseId && !parentWillExist(n.courseId)) continue;
     out.push({
       kind: 'upsert_note',
@@ -406,7 +416,7 @@ export function findUnsynced(state, remote, opts = {}) {
   // The parent is the timetable entry, and it must exist — an attendance row
   // is meaningless without the lesson it records, and its FK cascades.
   for (const a of state?.attendance || []) {
-    if (!a?.id || a.deletedAt || remoteAttendance.has(a.id) || queued(a)) continue;
+    if (!a?.id || a.deletedAt || remoteAttendance.has(a.id) || queued(a) || maybePurged(a)) continue;
     if (remoteAttendanceKeys.has(`${a.timetableEntryId}::${a.date}`)) continue;
     if (!a.timetableEntryId) continue;
     const parentPushed = out.some((o) => o.kind === 'upsert_timetable' && o.payload.id === a.timetableEntryId);
@@ -469,7 +479,7 @@ export function reconcileUnsynced(state, remote, outbox, { userId } = {}) {
 // meta is cleared on every account change, see accountWipe.js).
 const FULL_PULL_KEY = 'sd-full-pull-user';
 
-function hasSyncedBefore(userId, outbox) {
+export function hasSyncedBefore(userId, outbox) {
   if (!userId) return false;
   try {
     if (localStorage.getItem(FULL_PULL_KEY) === userId) return true;

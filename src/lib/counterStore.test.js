@@ -22,6 +22,7 @@ vi.mock('./outbox.js', () => ({
   enqueue: (kind, payload) => H.queue.push({ kind, payload }),
   enqueueMany: (items) => { H.queue.push(...items); return true; },
   queuedItems: () => H.queue,
+  getStatus: () => ({ lastSuccessAt: null }),
 }));
 
 const { markLocalDataReplaced } = await import('./deviceOwner.js');
