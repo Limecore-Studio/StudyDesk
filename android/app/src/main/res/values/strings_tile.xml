@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- limecore#127: the focus Quick Settings tile's name (the tile editor and the shade). -->
+<resources>
+    <string name="tile_focus_label">Focus</string>
+</resources>

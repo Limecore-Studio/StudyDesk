@@ -1084,7 +1084,10 @@
     "chipPlus5": "+5 Min.",
     "chipEnd": "Beenden",
     "nextBlock": "Als Nächstes: {{time}} · {{title}}",
-    "startNow": "Jetzt starten"
+    "startNow": "Jetzt starten",
+    "tileLeft": "Noch {{n}} Min.",
+    "tileRunning": "Läuft",
+    "tileStart": "Zum Starten tippen"
   },
   "notif": {
     "planLeadTitle": "Lernblock um {{time}}",

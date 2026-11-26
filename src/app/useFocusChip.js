@@ -54,9 +54,10 @@ export function chipActions(want, t) {
 
 /** StudyDesk#289 — apply chip button taps (a killed app's included) to the
  *  timer. End hands its session to `onSession` (App's onTimerComplete). */
-export function useFocusActions(onSession) {
+export function useFocusActions(onSession, onStart) {
   const ref = useRef(onSession);
-  useEffect(() => { ref.current = onSession; });
+  const startRef = useRef(onStart);
+  useEffect(() => { ref.current = onSession; startRef.current = onStart; });
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined;
     let off = () => {};
@@ -64,6 +65,9 @@ export function useFocusActions(onSession) {
     void import("../lib/focusMode.js").then((m) => {
       if (gone) return;
       off = m.onFocusAction((action) => {
+        // limecore#127: the Quick Settings tile on an idle timer starts a new
+        // focus block, the same way the Timer screen's Start does.
+        if (action === "start") { startRef.current?.(); return; }
         void import("../lib/focusActions.js").then((f) => f.runFocusAction(action, (s) => ref.current?.(s)));
       });
     }).catch(() => {});
@@ -125,4 +129,52 @@ export function useFocusChip(enabled, t) {
       window.removeEventListener(TIMER_CHANGE_EVENT, sync);
     };
   }, [enabled]);
+}
+
+/** limecore#127 — what the focus Quick Settings tile shows for the `sd-timer`
+ *  record: running (with the end of a countdown, 0 for a stopwatch), paused
+ *  part-way, or idle (a tap starts a focus block). Pure, for the tests. */
+export function tileFor(rec, now = Date.now()) {
+  if (!rec || typeof rec !== "object") return { state: "idle", endsAt: 0 };
+  const stopwatch = rec.mode === "stopwatch";
+  if (rec.running) {
+    if (stopwatch) return { state: "running", endsAt: 0 };
+    if (Number.isFinite(rec.startedAt) && Number.isFinite(rec.secsAtStart)) {
+      const endsAt = rec.startedAt + rec.secsAtStart * 1000;
+      if (endsAt > now) return { state: "running", endsAt };
+    }
+    return { state: "idle", endsAt: 0 };
+  }
+  const left = rec.secsLeft;
+  const full = rec.phase && rec.phase !== "focus" ? Infinity : (rec.customFocus || 25) * 60;
+  const midBlock = stopwatch ? left > 0 : Number.isFinite(left) && left > 0 && left < full;
+  return midBlock ? { state: "paused", endsAt: 0 } : { state: "idle", endsAt: 0 };
+}
+
+/** limecore#127 — keep the Quick Settings tile in step with the timer.
+ *  Independent of the chip setting: the tile is something the user added. */
+export function useFocusTile(t) {
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; }, [t]);
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    let lastKey = null;
+    const sync = () => {
+      const tile = tileFor(readTimer());
+      const tr = tRef.current;
+      const key = `${tile.state}|${Math.round(tile.endsAt / 2000)}`;
+      if (key === lastKey) return;
+      lastKey = key;
+      void import("../lib/focusMode.js").then((m) => m.setTile({
+        ...tile,
+        leftText: tr("timer.tileLeft", { n: "{n}" }),
+        runningText: tr("timer.tileRunning"),
+        pausedText: tr("timer.focusChipPaused"),
+        idleText: tr("timer.tileStart"),
+      })).catch(() => {});
+    };
+    sync();
+    window.addEventListener(TIMER_CHANGE_EVENT, sync);
+    return () => window.removeEventListener(TIMER_CHANGE_EVENT, sync);
+  }, []);
 }

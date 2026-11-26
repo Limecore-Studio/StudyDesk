@@ -44,6 +44,20 @@
 
         </activity>
 
+        <!-- limecore#127: the focus Quick Settings tile (FocusTileService). No
+             permission of the app's own; BIND_QUICK_SETTINGS_TILE is held by
+             the system, which is the only caller. -->
+        <service
+            android:name=".FocusTileService"
+            android:exported="true"
+            android:label="@string/tile_focus_label"
+            android:icon="@drawable/ic_shortcut_tile"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

@@ -55,7 +55,7 @@ import { AccountAvatar } from "./lib/avatar.jsx";
 import { useShellTier, useSidebarRail } from "./lib/useShell.js";
 import { enterSubmit } from "./lib/imeSubmit.js";
 import { rehydrateState } from "./app/rehydrate.js";
-import { useFocusChip, useFocusActions } from "./app/useFocusChip.js";
+import { useFocusChip, useFocusActions, useFocusTile } from "./app/useFocusChip.js";
 import { usePersistState } from "./app/usePersistState.js";
 import { useGradeScaleSync } from "./app/useGradeScaleSync.js";
 import { useReminders } from "./app/useReminders.js";
@@ -699,7 +699,9 @@ export default function App() {
   };
   // StudyDesk#289 — Pause / +5 min / End from the focus chip. End raises the
   // save sheet with the block it finished, as the Timer screen's Stop does.
-  useFocusActions((session) => onTimerComplete(session));
+  useFocusActions((session) => onTimerComplete(session), () => startFocusFor({}));
+  // limecore#127 — the focus Quick Settings tile follows the timer.
+  useFocusTile(t);
   // Push when the window closes, or at once if the app is hidden first. Each
   // save is pushed (or undone) exactly once, however often this re-runs.
   useEffect(() => {

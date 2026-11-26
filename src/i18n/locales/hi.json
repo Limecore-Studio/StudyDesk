@@ -1084,7 +1084,10 @@
     "chipPlus5": "+5 मिनट",
     "chipEnd": "समाप्त करें",
     "nextBlock": "अगला: {{time}} · {{title}}",
-    "startNow": "अभी शुरू करें"
+    "startNow": "अभी शुरू करें",
+    "tileLeft": "{{n}} मिनट बाकी",
+    "tileRunning": "चल रहा है",
+    "tileStart": "शुरू करने के लिए टैप करें"
   },
   "notif": {
     "planLeadTitle": "अध्ययन ब्लॉक {{time}} बजे शुरू",
