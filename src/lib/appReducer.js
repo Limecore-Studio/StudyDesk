@@ -155,6 +155,14 @@ export function reducer(state, action) {
     // `type` field into an action would silently overwrite the action name —
     // so this one takes an explicit `row` instead of being spread, which
     // makes that class of mistake impossible rather than merely documented.
+    // limecore#96 — a calendar-feed row moves to its account-scoped id. The
+    // row keeps everything the user did to it; only its id changes, and the
+    // new stamp makes the pusher upload it (and tombstone the old id).
+    case "REKEY_ASSIGNMENT": {
+      if (!action.from || !action.to || action.from === action.to) return state;
+      if (state.assignments.some(a => a.id === action.to)) return state;
+      return {...state,assignments:state.assignments.map(a=>a.id===action.from?{...a,id:action.to,updatedAt:stampNow()}:a)};
+    }
     case "UPSERT_ASSIGNMENT": {
       const row = action.row || {};
       if (!row.id) return state;
