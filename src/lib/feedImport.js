@@ -184,6 +184,9 @@ export async function toAssignments(items, courseId, scope = null) {
   for (const item of items || []) {
     if (!item.uid || !item.dueDate) continue;
     out.push({
+      // StudyDesk#235: which event this row is, for applyFeedChanges. Never
+      // stored: the reducer and the push read named fields only.
+      uid: item.uid,
       // limecore#96: scoped to the account and the feed (see idForEvent).
       id: scope ? await idForEvent(item.uid, scope) : await idForUid(item.uid),
       courseId: (typeof courseId === 'function' ? courseId(item) : courseId) || null,
@@ -204,6 +207,42 @@ export async function toAssignments(items, courseId, scope = null) {
       notes: buildNotes(item),
       done: false,
     });
+  }
+  return out;
+}
+
+/**
+ * StudyDesk#235 — the rows a refresh should write, and nothing else.
+ *
+ * Every refresh used to rewrite every imported row from the feed (title,
+ * date, notes) and re-add any the user had deleted, so a student's own notes
+ * or a corrected date lasted until the next poll, and a deleted one kept
+ * coming back. Now:
+ *   - an event new to this feed is added, unless its row already exists here
+ *     (then the user's copy stands);
+ *   - an event the feed changed updates ONLY the changed fields of the user's
+ *     row; their other edits, their course choice and `done` stay;
+ *   - an unchanged event writes nothing;
+ *   - a row the user deleted is never brought back by a refresh.
+ * `localFor(id)` is the row as this device holds it (by its current id).
+ */
+export function applyFeedChanges(rows, changes, localFor) {
+  const out = [];
+  for (const { uid, ...row } of rows) {
+    const ch = changes?.get(uid);
+    const local = localFor(row.id);
+    if (!ch) continue;
+    if (!local) {
+      if (ch === 'added') out.push(row);
+      continue;
+    }
+    if (ch === 'added') continue;
+    const patch = { ...local, id: row.id };
+    if (ch.has('title')) patch.title = row.title;
+    if (ch.has('dueDate')) patch.dueDate = row.dueDate;
+    if (ch.has('time') || ch.has('allDay')) patch.dueTime = row.dueTime;
+    if (ch.has('notes') || ch.has('location')) patch.notes = row.notes;
+    out.push(patch);
   }
   return out;
 }
