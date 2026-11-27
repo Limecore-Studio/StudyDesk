@@ -29,34 +29,172 @@ const EXPORT_SCHEMA_VERSION = 1;
  * database, so omitting them would make the export a misleading account of what
  * we hold.
  */
-/**
- * v1.16 (limecore#16) — the two things we hold that exist ONLY on the server:
- * feedback the user sent, and error reports (kept 90 days). Neither is in
- * local state, so an export built from it alone would omit them, and the
- * privacy policy (NCC#50) promises the export includes both. Signed-in only;
- * a guest has sent neither. A failed read is recorded in the export rather
- * than dropped, so an incomplete export says so.
- */
+// ── limecore#88 — everything the account holds on the server ──────────────
+//
+// One account spans StudyDesk, NCC and LimeLog, and the privacy policy says
+// "Export my data" from any of them covers all of them. The list matches NCC's
+// (NCC#317) so the three exports agree. Each table is read as the signed-in
+// user, filtered to rows the user OWNS (a task merely shared with them is the
+// owner's), so RLS and the filter together decide what comes back. A table
+// that cannot be read records its error, so an incomplete export says so.
+
+// v1.18.1 (StudyDesk#153): only these `feedback` columns are granted; RLS
+// limits the rows to the user's own.
+const FEEDBACK_EXPORT_COLUMNS = 'id, app, app_version, category, rating, message, status, shipped_in, created_at';
+
+// owner: which column names the user ('user_id' default, 'id' for profiles,
+// 'none' when RLS alone decides). orderBy: tables without an `id` column are
+// read in ranges ordered by these, since the id-keyed pager cannot page them.
+export const SERVER_TABLES = [
+  // Account
+  { table: 'profiles', owner: 'id' },
+  { table: 'user_preferences', orderBy: ['user_id'] },
+  { table: 'supporter_entitlements', orderBy: ['user_id'] },
+  // Only these columns are granted; the verification code itself is not.
+  { table: 'kofi_alt_emails', columns: 'email, verified_at, code_expires_at, last_sent_at, user_id', orderBy: ['email'] },
+  { table: 'app_opens', orderBy: ['opened_on', 'app'] },
+  { table: 'audit_log', owner: 'none' },
+  { table: 'feedback', columns: FEEDBACK_EXPORT_COLUMNS, owner: 'none' },
+  { table: 'client_errors' },
+  // StudyDesk
+  { table: 'subjects' },
+  { table: 'grades' },
+  { table: 'study_sessions' },
+  { table: 'assignments' },
+  { table: 'assignment_attachments' },
+  { table: 'exams' },
+  { table: 'study_actions' },
+  { table: 'notebook_entries' },
+  { table: 'notebook_attachments' },
+  { table: 'academic_terms' },
+  { table: 'timetable_entries' },
+  { table: 'lesson_attendance' },
+  { table: 'planned_sessions' },
+  { table: 'readings' },
+  { table: 'progress_counters' },
+  { table: 'progress_counter_days' },
+  { table: 'commitments' },
+  { table: 'focus_timers', orderBy: ['user_id'] },
+  // Nexus Command Center
+  { table: 'transactions' },
+  { table: 'budget_categories' },
+  { table: 'budget_category_shares', orderBy: ['user_id'] },
+  { table: 'manual_assets' },
+  { table: 'portfolio_holdings' },
+  { table: 'portfolio_lots' },
+  { table: 'stock_sales' },
+  { table: 'portfolio_cash_entries' },
+  { table: 'watchlist_items' },
+  { table: 'recurring_rules' },
+  { table: 'goals' },
+  { table: 'tasks' },
+  { table: 'task_shares', orderBy: ['user_id'] },
+  { table: 'habits' },
+  { table: 'habit_completions' },
+  { table: 'braindump_entries' },
+  { table: 'work_quality_logs' },
+  // LimeLog
+  { table: 'workout_sessions' },
+  { table: 'workout_sets' },
+  { table: 'exercise_prs' },
+  { table: 'body_metrics' },
+];
+
+/** Kept for callers of the v1.16 name: the two server-only tables. */
 export const SERVER_ONLY_TABLES = ['feedback', 'client_errors'];
 
-// v1.18.1 (StudyDesk#153): the columns a signed-in user may read. `feedback`
-// lost its table-wide SELECT in the v1.17 status-columns migration; only
-// these are granted, so `select('*')` (and a filter on user_id) failed as a
-// whole and the export held "permission denied" instead of the user's
-// feedback. RLS already limits the rows to the user's own. `client_errors`
-// still has every column granted, user_id included.
-const FEEDBACK_EXPORT_COLUMNS = 'id, app, app_version, category, rating, message, status, shipped_in, created_at';
+const RANGE = 1000;
+
+async function readRanged(t, userId) {
+  const rows = [];
+  for (let from = 0; ; from += RANGE) {
+    let q = supabase.from(t.table).select(t.columns ?? '*').eq('user_id', userId);
+    for (const col of t.orderBy ?? []) q = q.order(col, { ascending: true });
+    const { data, error } = await q.range(from, from + RANGE - 1);
+    if (error) throw error;
+    rows.push(...(data ?? []));
+    if (!data || data.length < RANGE) return rows;
+  }
+}
+
+async function readTable(t, userId) {
+  if (t.orderBy) return readRanged(t, userId);
+  const owner = t.owner ?? 'user_id';
+  const { data, error } = await selectAll(supabase, t.table, {
+    ...(t.columns ? { columns: t.columns } : {}),
+    ...(owner === 'none' ? {} : { filter: (q) => q.eq(owner, userId) }),
+  });
+  if (error) throw error;
+  return data ?? [];
+}
 
 export async function serverOnlyData(userId) {
   const out = {};
-  for (const table of SERVER_ONLY_TABLES) {
+  for (const t of SERVER_TABLES) {
     try {
-      const { data, error } = table === 'feedback'
-        ? await selectAll(supabase, table, { columns: FEEDBACK_EXPORT_COLUMNS })
-        : await selectAll(supabase, table, { filter: (q) => q.eq('user_id', userId) });
-      out[table] = error ? { error: error.message } : (data ?? []);
+      out[t.table] = await readTable(t, userId);
     } catch (e) {
-      out[table] = { error: e.message };
+      out[t.table] = { error: e?.message ?? String(e) };
+    }
+  }
+  return out;
+}
+
+// ── limecore#88 — the uploaded files themselves ──────────────────────────
+//
+// StudyDesk owns all three buckets, so its export carries the FILES, not only
+// a listing: path, size, date, type, and the bytes as base64. Capped so the
+// export still saves on a phone: a file over FILE_CAP, or one that would take
+// the total past TOTAL_CAP, is listed with `skipped` and why, and can still be
+// downloaded in the app. Every storage policy scopes a user to `<user_id>/`.
+export const STORAGE_BUCKETS = ['avatars', 'notebook', 'assignment-attachments'];
+export const FILE_CAP = 10 * 1024 * 1024;
+export const TOTAL_CAP = 25 * 1024 * 1024;
+
+async function listFolder(bucket, prefix, out, depth = 0) {
+  if (depth > 4) return;
+  for (let offset = 0; ; offset += RANGE) {
+    const { data, error } = await supabase.storage.from(bucket).list(prefix, { limit: RANGE, offset });
+    if (error) throw error;
+    for (const o of data ?? []) {
+      const path = `${prefix}/${o.name}`;
+      // A folder has no id and no metadata; recurse into it.
+      if (!o.id) await listFolder(bucket, path, out, depth + 1);
+      else out.push({ path, size: o.metadata?.size ?? null, createdAt: o.created_at ?? null, contentType: o.metadata?.mimetype ?? null });
+    }
+    if (!data || data.length < RANGE) return;
+  }
+}
+
+async function toBase64(blob) {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+
+export async function serverFiles(userId) {
+  const out = {};
+  let total = 0;
+  for (const bucket of STORAGE_BUCKETS) {
+    try {
+      const entries = [];
+      await listFolder(bucket, userId, entries);
+      for (const e of entries) {
+        if (e.size != null && e.size > FILE_CAP) { e.skipped = 'larger than the export limit; download it in the app'; continue; }
+        if (e.size != null && total + e.size > TOTAL_CAP) { e.skipped = 'export size limit reached; download it in the app'; continue; }
+        try {
+          const { data, error } = await supabase.storage.from(bucket).download(e.path);
+          if (error) throw error;
+          e.dataBase64 = await toBase64(data);
+          total += data.size ?? 0;
+        } catch (err) {
+          e.error = err?.message ?? String(err);
+        }
+      }
+      out[bucket] = entries;
+    } catch (e) {
+      out[bucket] = { error: e?.message ?? String(e) };
     }
   }
   return out;
@@ -66,6 +204,10 @@ async function buildExport(state, session) {
   const courses = Object.values(state.courses || {});
   const userId = session?.user?.id;
   const server = userId ? await serverOnlyData(userId) : null;
+  const files = userId ? await serverFiles(userId) : null;
+  // limecore#88: the device's own copy of every list, synced or not yet.
+  let counters = null;
+  try { counters = JSON.parse(localStorage.getItem('sd-counters') || 'null'); } catch { counters = null; }
   return {
     schemaVersion: EXPORT_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
@@ -90,7 +232,19 @@ async function buildExport(state, session) {
     studySessions: state.studySessions || [],
     assignments: state.assignments || [],
     exams: state.exams || [],
+    // limecore#88: everything else StudyDesk keeps on the device.
+    actions: state.actions || [],
+    notes: state.notes || [],
+    noteAttachments: state.noteAttachments || [],
+    attachments: state.attachments || [],
+    academicTerms: state.academicTerms || [],
+    timetableEntries: state.timetableEntries || [],
+    attendance: state.attendance || [],
+    plannedSessions: state.plannedSessions || [],
+    commitments: state.commitments || [],
+    counters,
     ...(server ? { server } : {}),
+    ...(files ? { files } : {}),
     settings: {
       gradeMode: state.gradeMode ?? null,
       customScale: state.customScale ?? null,
