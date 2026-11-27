@@ -4,6 +4,7 @@ import { overallAverage } from '../../lib/gpa.js';
 import { scaleFor } from '../../lib/gradeScale.js';
 import { trendScaleInfo } from '../../lib/gradeTrend.js';
 import { preferredDayStart, studyDayKey, todayStudyDayKey, shiftDayKey } from '../../lib/studyDay.js';
+import { studyWeekKey, userWeekStart } from '../../lib/studyWeek.js';
 
 // ── BUG-21: Study Statistics Dashboard ───────────────────────────────────────
 //
@@ -54,14 +55,6 @@ const css = `
 .st-empty{padding:14px 2px;font-size:13px;color:var(--muted);}
 `;
 
-// Monday-anchored start of the ISO week containing `d`.
-function weekStart(d) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  const day = (x.getDay() + 6) % 7; // 0 = Monday
-  x.setDate(x.getDate() - day);
-  return x;
-}
 // `dayKey` used to live here, local and correct, while SessionsView and
 // TimerView each had their own UTC version. One module now answers the
 // question for all three — and answers it with the user's day boundary
@@ -82,27 +75,23 @@ export default function StatsView({ state }) {
 
   // ── Weekly study load: current week + the prior 4 ─────────────────────────
   const weekly = useMemo(() => {
-    const thisWeek = weekStart(new Date());
+    // StudyDesk#246: weeks start on the user's week start (as the calendar
+    // and the timer do) and are made of study days, not Monday midnights.
+    const ws = userWeekStart();
+    const thisWeek = studyWeekKey(new Date(), dayStart, ws);
     const weeks = [];
-    for (let i = 4; i >= 0; i--) {
-      const start = new Date(thisWeek);
-      start.setDate(start.getDate() - i * 7);
-      const end = new Date(start);
-      end.setDate(end.getDate() + 7);
-      weeks.push({ start, end, minutes: 0 });
-    }
+    for (let i = 4; i >= 0; i--) weeks.push({ key: shiftDayKey(thisWeek, -7 * i), minutes: 0 });
+    const byKey = new Map(weeks.map((w) => [w.key, w]));
     for (const s of sessions) {
-      const t = new Date(s.startedAt);
-      for (const w of weeks) {
-        if (t >= w.start && t < w.end) { w.minutes += Number(s.durationMinutes) || 0; break; }
-      }
+      const w = byKey.get(studyWeekKey(s.startedAt, dayStart, ws));
+      if (w) w.minutes += Number(s.durationMinutes) || 0;
     }
     const current = weeks[weeks.length - 1].minutes;
     const priors = weeks.slice(0, 4);
     const priorAvg = priors.reduce((a, w) => a + w.minutes, 0) / 4;
     const max = Math.max(1, ...weeks.map((w) => w.minutes));
     return { weeks, current, priorAvg, max };
-  }, [sessions]);
+  }, [sessions, dayStart]);
 
   // ── Subject split (last 30 days) ──────────────────────────────────────────
   const split = useMemo(() => {

@@ -18,7 +18,8 @@ import { TIMER_CHANGE_EVENT, finishedWhileAway } from '../../lib/timerSnapshot.j
 import { FOCUS_REMOTE_EVENT, focusDeviceId, savesCompletion, blockOnClock } from '../../lib/focusTimer.js';
 import { isPageStale } from '../../lib/deviceOwner.js';
 import { pastSessionDraft } from '../../lib/pastSession.js';
-import { preferredDayStart, studyDayKey, todayStudyDayKey, dayKeyToDate } from '../../lib/studyDay.js';
+import { preferredDayStart, studyDayKey, todayStudyDayKey } from '../../lib/studyDay.js';
+import { studyWeekKey, userWeekStart } from '../../lib/studyWeek.js';
 import '../../styles/timer.css';
 import { haptic } from '../../lib/haptic.js';
 
@@ -103,7 +104,9 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
   // handlePhaseEnd). Read once, from the state this mount restored.
   const [endedAway] = useState(() => (finishedWhileAway(_saved, _now) ? _saved.startedAt : null));
   const [session, setSession] = useState(_saved.session||0); // 0-3, cycles every 4
-  const [focusDone, setFocusDone] = useState(_saved.focusDone||0); // total focus sessions today
+  // StudyDesk#246: "today" means today. The count is stored with the study
+  // day it counts, and a different day starts it again from zero.
+  const [focusDone, setFocusDone] = useState(() => (_saved.focusDay === todayStudyDayKey(preferredDayStart()) ? (_saved.focusDone||0) : 0)); // focus sessions today
   const [task, setTask] = useState(_saved.task||"");
   // 2a — the free-form minutes box holds its own text while being typed and
   // commits on blur or Enter. Binding it straight to customFocus would clamp
@@ -439,6 +442,7 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
     try {
       localStorage.setItem('sd-timer', JSON.stringify({
         customFocus, phase, secsLeft, running, session, focusDone, task, lockedIn, mode,
+        focusDay: todayStudyDayKey(preferredDayStart()),
         // v1.13 — read by timerSnapshot for the notebook's session scoping.
         courseId: courseId || null,
         startedAt: startedAtRef.current,
@@ -508,6 +512,9 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
       return;
     }
     const m = clampFocus(Number(raw));
+    // StudyDesk#246: a paused, part-done block is offered for saving first,
+    // as Stop, Skip and a mode switch do; resetting the clock used to drop it.
+    if (phase === "focus" && m !== customFocus && secsLeft < customFocus*60) harvestFocus();
     setCustomFocus(m);
     setCustomText(String(m));
     if (phase === "focus") setSecsLeft(m*60);
@@ -781,7 +788,7 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
       </div>
     </div>
     {!isStopwatch&&<div className="pomo-segments">
-      {[0,1,2,3].map(i=><div key={i} className={"pomo-seg"+(i<focusDone%4?"done":i===session&&phase==="focus"?"current":"")}/>)}
+      {[0,1,2,3].map(i=><div key={i} className={"pomo-seg"+(i<focusDone%4?" done":i===session&&phase==="focus"?" current":"")}/>)}
     </div>}
     <div className="pomo-controls">
       <button className="pomo-btn-sec" onClick={reset} title={t('av.tm.reset')}>
@@ -867,14 +874,9 @@ export default function TimerView({ state, onTimerComplete, startRequest, onStar
       // LOCAL date arithmetic and then read back with toISOString() — the same
       // UTC slice, so the bar a session landed in could be a week out for a
       // Sunday-evening or Monday-morning block. Both halves are local now.
-      const getWeekKey = (iso) => {
-        const key = studyDayKey(iso, dayStart);
-        if (!key) return null;
-        const d = dayKeyToDate(key);
-        const day = d.getDay(); const diff = d.getDate() - day + (day===0?-6:1);
-        const mon = new Date(d); mon.setDate(diff);
-        return studyDayKey(mon, 0);
-      };
+      // StudyDesk#246: from the user's week start, as the calendar does.
+      const ws = userWeekStart();
+      const getWeekKey = (iso) => studyWeekKey(iso, dayStart, ws);
       const weekMap = {};
       sessions.forEach(s => {
         const wk = getWeekKey(s.startedAt); if(!wk) return;
