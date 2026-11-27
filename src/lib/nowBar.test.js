@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 // StudyDesk#321 — the focus block must request promotion the way Android 16
 // actually reads it, or it never reaches the One UI 8 Now Bar.
 describe('focus notification promotion', () => {
-  const java = readFileSync(new URL('../../android/app/src/main/java/com/studydesk/app/FocusModePlugin.java', import.meta.url), 'utf8');
+  const java = readFileSync(new URL('../../android/app/src/main/java/com/StudyDesk/app/FocusModePlugin.java', import.meta.url), 'utf8');
   const manifest = readFileSync(new URL('../../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8');
   it('sets the real promotion extra, not a reflected method that does not exist', () => {
     expect(java).toContain('"android.requestPromotedOngoing", true');
