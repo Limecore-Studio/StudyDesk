@@ -58,17 +58,32 @@ public class SaveFilePlugin extends Plugin {
             return;
         }
         String data = call.getString("data", "");
-        // Off the main thread: an export can be a few MB, and a cloud
-        // provider's stream may block on the network.
         new Thread(() -> {
-            try (OutputStream out = getContext().getContentResolver().openOutputStream(uri, "w")) {
-                if (out == null) throw new java.io.IOException("No output stream.");
-                out.write(data.getBytes(StandardCharsets.UTF_8));
+            // StudyDesk#319: the picker has already created an EMPTY file. The
+            // write is streamed in chunks (no second full copy via getBytes),
+            // and ANY failure, including OutOfMemoryError (an Error, which the
+            // old catch (Exception) let kill the thread silently), removes that
+            // empty file and rejects, so the app says it failed instead of
+            // leaving a blank export behind.
+            boolean ok = false;
+            try (OutputStream raw = getContext().getContentResolver().openOutputStream(uri, "wt")) {
+                if (raw == null) throw new java.io.IOException("No output stream.");
+                java.io.Writer out = new java.io.BufferedWriter(new java.io.OutputStreamWriter(raw, StandardCharsets.UTF_8), 64 * 1024);
+                int step = 64 * 1024;
+                for (int i = 0; i < data.length(); i += step) {
+                    out.write(data, i, Math.min(step, data.length() - i));
+                }
                 out.flush();
+                ok = true;
+            } catch (Throwable e) {
+                ok = false;
+            }
+            if (ok) {
                 JSObject saved = new JSObject();
                 saved.put("saved", true);
                 call.resolve(saved);
-            } catch (Exception e) {
+            } else {
+                try { android.provider.DocumentsContract.deleteDocument(getContext().getContentResolver(), uri); } catch (Throwable ignored) { }
                 call.reject("Could not write the file.");
             }
         }).start();
