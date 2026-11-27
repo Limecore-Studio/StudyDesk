@@ -117,7 +117,15 @@
              app's own alarm reaches it. -->
         <receiver
             android:name=".WidgetMidnight"
-            android:exported="false" />
+            android:exported="false">
+            <!-- StudyDesk#317: a clock or time-zone change redraws at once and
+                 moves the midnight alarm to the new zone's midnight. Both are
+                 system broadcasts a manifest receiver may still get on 8+. -->
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
     </application>
 
     <!-- Permissions -->
