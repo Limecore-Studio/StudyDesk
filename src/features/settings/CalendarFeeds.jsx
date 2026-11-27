@@ -27,7 +27,7 @@ import {
   loadFeeds, addFeed, removeFeed, updateFeed, refreshFeed,
   describeFeedUrl, isDue, mergeFeedItems,
 } from '../../lib/calendarFeed.js';
-import { courseForItem, sourceCourses, toAssignments, rekeyPlan, allIdsForEvent } from '../../lib/feedImport.js';
+import { courseForItem, sourceCourses, toAssignments, rekeyPlan, allIdsForEvent, applyFeedChanges } from '../../lib/feedImport.js';
 import { readJson, writeJson } from '../../lib/localStore.js';
 import * as outbox from '../../lib/outbox.js';
 
@@ -88,7 +88,7 @@ export default function CalendarFeeds({ state, dispatch, session, showFlash }) {
   const applyItems = useCallback(async (feed, items) => {
     const store = loadItems();
     const previous = store[feed.id] || [];
-    const { items: merged, added, updated, removed } = mergeFeedItems(previous, items);
+    const { items: merged, added, updated, removed, changes } = mergeFeedItems(previous, items);
     const scope = scopeFor(feed);
 
     // limecore#96: rows imported under an older id move to the scoped one
@@ -109,8 +109,12 @@ export default function CalendarFeeds({ state, dispatch, session, showFlash }) {
       const old = older.find((id) => had.has(id));
       if (old) stays.set(scoped, old);
     }
-    const rows = (await toAssignments(merged, resolverFor(feed), scope))
+    const candidates = (await toAssignments(merged, resolverFor(feed), scope))
       .map((row) => (stays.has(row.id) ? { ...row, id: stays.get(row.id) } : row));
+    // StudyDesk#235: only what the feed changed, onto the user's own row.
+    const byId = new Map(before.assignments.map((a) => [a.id, a]));
+    const fromOf = new Map(moves.map((m) => [m.to, m.from]));
+    const rows = applyFeedChanges(candidates, changes, (id) => byId.get(id) || byId.get(fromOf.get(id)));
     for (const row of rows) {
       // `row` is passed as a field, NOT spread: it carries a `type` of its
       // own and spreading it would overwrite the action's discriminator.
@@ -202,7 +206,7 @@ export default function CalendarFeeds({ state, dispatch, session, showFlash }) {
     setMapping(null);
     const rows = await toAssignments(loadItems()[feed.id] || [], resolverFor(next), scopeFor(feed));
     let moved = 0;
-    for (const row of rows) {
+    for (const { uid: _uid, ...row } of rows) {
       const cur = stateRef.current.assignments.find((a) => a.id === row.id);
       if (!cur || (cur.courseId || null) === (row.courseId || null)) continue;
       dispatch({ type: 'UPSERT_ASSIGNMENT', row });

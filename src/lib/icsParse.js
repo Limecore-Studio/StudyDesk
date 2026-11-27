@@ -297,17 +297,22 @@ export function mergeFeedItems(existing, incoming) {
   const next = new Map();
   let added = 0;
   let updated = 0;
+  // StudyDesk#235: what changed upstream, per event: 'added', or the set of
+  // fields the feed changed. A refresh applies only these, so it never
+  // rewrites what the user edited.
+  const changes = new Map();
 
   for (const item of incoming || []) {
     if (!item.uid) continue;
     const before = prev.get(item.uid);
-    if (!before) added++;
-    else if (
-      before.title !== item.title ||
-      before.dueDate !== item.dueDate ||
-      before.time !== item.time ||
-      before.notes !== item.notes
-    ) updated++;
+    if (!before) { added++; changes.set(item.uid, 'added'); }
+    else {
+      const fields = new Set();
+      for (const f of ['title', 'dueDate', 'time', 'notes', 'location', 'allDay']) {
+        if ((before[f] ?? null) !== (item[f] ?? null)) fields.add(f);
+      }
+      if (fields.size) { updated++; changes.set(item.uid, fields); }
+    }
     // The incoming row wins outright: the feed is the source of truth for its
     // own events, and a local edit to an imported item is not a thing this
     // feature offers.
@@ -317,5 +322,5 @@ export function mergeFeedItems(existing, incoming) {
   let removed = 0;
   for (const uid of prev.keys()) if (!next.has(uid)) removed++;
 
-  return { items: Array.from(next.values()), added, updated, removed };
+  return { items: Array.from(next.values()), added, updated, removed, changes };
 }
