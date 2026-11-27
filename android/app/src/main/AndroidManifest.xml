@@ -131,6 +131,10 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Required for scheduled local notifications on Android 13+ (API 33+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- StudyDesk#321: lets the focus block be promoted to an Android 16 Live
+         Update (the One UI 8 Now Bar). A normal permission: granted at install,
+         no prompt; the user can still turn promotion off per app. -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS"/>
     <!-- Required for exact-time alarms (study reminders, deadline warnings) -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />

@@ -406,19 +406,25 @@ public class FocusModePlugin extends Plugin {
             }
         }
 
-        // Android 16+: ask to be promoted to a Live Update. This is the single
-        // line that puts the chip in front of the user on a modern shell — the
-        // Now Bar on One UI 8, a status-bar chip on stock. Reflection rather
-        // than a direct call so the source still compiles against an older
-        // platform jar, and so an OEM that has removed the method degrades to
-        // an ordinary ongoing notification instead of crashing the session.
+        // Android 16+: ask to be promoted to a Live Update, which is what puts
+        // the chip in the Now Bar on One UI 8 and a status-bar chip on stock.
+        // StudyDesk#321: this used to reflect on "requestPromotedOngoing",
+        // a method that does not exist (the API is setRequestPromotedOngoing),
+        // and the empty catch hid the failure, so the block was never promoted.
+        // The request is the EXTRA_REQUEST_PROMOTED_ONGOING extra, which is all
+        // setRequestPromotedOngoing writes; setting it directly needs no
+        // reflection and no newer compile SDK. Promotion also needs the
+        // POST_PROMOTED_NOTIFICATIONS permission (manifest) and the shape this
+        // builder already has: ongoing, a title, no custom view, not colorized.
         if (Build.VERSION.SDK_INT >= 36) {
-            try {
-                Notification.Builder.class
-                        .getMethod("requestPromotedOngoing", boolean.class)
-                        .invoke(b, true);
-            } catch (Throwable ignored) {
-                // Not promoted. Still a correct ongoing notification.
+            android.os.Bundle promote = new android.os.Bundle();
+            promote.putBoolean("android.requestPromotedOngoing", true);
+            b.addExtras(promote);
+            b.setColorized(false);
+            // The few characters the status-bar chip shows ("12:04").
+            if (endsAt > 0) {
+                long mins = Math.max(0, (endsAt - System.currentTimeMillis() + 59_999) / 60_000);
+                try { b.setShortCriticalText(mins + " min"); } catch (Throwable ignored) { }
             }
         }
 
