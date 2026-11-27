@@ -169,3 +169,5 @@ StudyDesk is free, open source and ad-free. If it's useful to you, you can suppo
 ## License
 
 MIT — see [`LICENSE`](LICENSE). Forks, redistributions, and F-Droid packaging are all welcome.
+
+The bundled fonts in `public/fonts/` are under the SIL Open Font License 1.1, not MIT; their copyright notices and licence are in [`public/fonts/OFL.txt`](public/fonts/OFL.txt).

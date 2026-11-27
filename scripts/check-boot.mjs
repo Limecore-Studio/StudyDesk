@@ -48,7 +48,7 @@
 
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, statSync, readFileSync } from 'node:fs';
 import { join, extname, normalize } from 'node:path';
 
 const ROOT = process.cwd();
@@ -81,6 +81,12 @@ const TYPES = {
 
 // A tiny static server rather than `vite preview`, so this check does not
 // depend on a dev server's own behaviour or leave a child process behind.
+const DEPLOY_HEADERS = Object.fromEntries(
+  (JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')).headers || [])
+    .filter((h) => h.source === '/(.*)')
+    .flatMap((h) => h.headers.map(({ key, value }) => [key, value])),
+);
+
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');
@@ -90,7 +96,10 @@ const server = createServer(async (req, res) => {
     if (!path.startsWith(DIST)) { res.writeHead(403).end(); return; }
     if (!existsSync(path) || statSync(path).isDirectory()) path = join(DIST, 'index.html');
     const body = await readFile(path);
-    res.writeHead(200, { 'content-type': TYPES[extname(path)] || 'application/octet-stream' });
+    // v1.22 (limecore#99): served with vercel.json's headers, so the web
+    // build's Content-Security-Policy is enforced here: a violation is a
+    // console error, and a console error fails this check.
+    res.writeHead(200, { ...DEPLOY_HEADERS, 'content-type': TYPES[extname(path)] || 'application/octet-stream' });
     res.end(body);
   } catch {
     res.writeHead(404).end();
