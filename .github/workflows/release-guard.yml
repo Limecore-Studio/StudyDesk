@@ -152,6 +152,35 @@ jobs:
               }
             }
 
+            // v1.22 (limecore#108): the desktop trio on the NEWEST Release.
+            // electron-updater reads latest.yml only from the newest Release,
+            // so an APK-only release (an Android hotfix, or a build where
+            // electron:build failed) becomes Latest and stalls every desktop
+            // install with no signal. Only the newest one matters: older
+            // Releases are no longer read by the updater.
+            const newest = releases
+              .filter((r) => !r.draft && !r.prerelease && /^v\d/.test(r.tag_name))
+              .sort((a, b) => Date.parse(b.published_at || b.created_at) - Date.parse(a.published_at || a.created_at))[0];
+            if (newest && !ACCEPTED_GAPS.has(newest.tag_name)) {
+              const published = Date.parse(newest.published_at || newest.created_at);
+              const version = newest.tag_name.replace(/^v/, '');
+              const names = new Set((newest.assets || []).map((a) => a.name));
+              // package.json build.nsis.artifactName.
+              const setup = `StudyDesk-Desktop-Setup-${version}.exe`;
+              const wanted = ['latest.yml', setup, `${setup}.blockmap`];
+              const missing = wanted.filter((n) => !names.has(n));
+              if (!(published >= ASSET_CHECK_FROM)) {
+                skipped.push(`${newest.tag_name} desktop — Release pre-dates the asset check`);
+              } else if (now - published < graceMs) {
+                skipped.push(`${newest.tag_name} desktop — inside the ${graceHours}h grace period`);
+              } else if (missing.length > 0) {
+                problems.push(
+                  `${newest.tag_name}: the newest Release lacks ${missing.join(', ')}; ` +
+                  'desktop auto-update reads latest.yml from the newest Release only, so every desktop install is stuck.',
+                );
+              }
+            }
+
             core.startGroup(`Not flagged (${skipped.length})`);
             for (const line of skipped) core.info(line);
             core.endGroup();
