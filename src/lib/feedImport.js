@@ -48,8 +48,73 @@ const NAMESPACE = 'studydesk.calendar-feed.v1:';
  */
 
 export async function idForUid(feedUid) {
-  const input = `${NAMESPACE}${String(feedUid ?? '')}`;
+  return uuidFromName(`${NAMESPACE}${String(feedUid ?? '')}`);
+}
 
+// ── limecore#96 — ids scoped to the account and the feed ──────────────────
+//
+// The v1 id hashed the event UID alone. An LMS gives an assignment the same
+// UID for every student, so two classmates importing the same course minted
+// the SAME row id: the second one's upsert hit the first one's row, RLS
+// refused it, and their deadlines never synced. Worse, anyone could work out
+// those ids and claim them first.
+//
+// v2 hashes the account and the feed's URL in too. Two devices on one account
+// subscribed to the same feed still agree (point 3 above); two accounts never
+// collide; and an id cannot be guessed without the account's own feed URL,
+// which never leaves the device. A guest has no account yet: "guest" stands
+// in, and the rows move to the account's ids on the first refresh after
+// sign-in, like every older id (rekeyPlan below).
+const NAMESPACE_V2 = 'studydesk.calendar-feed.v2:';
+
+/** The id for one feed event, for this account and feed. */
+export async function idForEvent(feedUid, { userId, feedUrl } = {}) {
+  return uuidFromName(`${NAMESPACE_V2}${userId || 'guest'}
+${feedUrl || ''}
+${String(feedUid ?? '')}`);
+}
+
+/** Ids this event may still sit under locally, from before: v1 (UID only)
+ *  and, for an account, the guest-scoped v2 id of a feed added as a guest. */
+export async function legacyIdsForEvent(feedUid, scope = {}) {
+  const ids = [await idForUid(feedUid)];
+  if (scope.userId) ids.push(await idForEvent(feedUid, { ...scope, userId: null }));
+  return ids;
+}
+
+/**
+ * limecore#96 — the moves that bring this feed's existing rows onto their
+ * scoped ids, as [{from, to}]. A row moves when it sits under an older id and
+ * nothing sits under the new one yet. It does NOT move when assignment
+ * attachments hang off its id (their storage paths carry it, so a move would
+ * orphan them); that row keeps its old id, which still works for its owner.
+ * The caller re-keys locally; the pusher then uploads the new id and
+ * tombstones the old one, so other devices drop it, and an older app version
+ * cannot bring it back (a content upsert never clears deleted_at).
+ */
+export async function rekeyPlan(items, scope, assignments, attachments = []) {
+  const have = new Set((assignments || []).map((a) => a.id));
+  const pinned = new Set((attachments || []).filter((x) => !x.deletedAt).map((x) => x.assignmentId));
+  const out = [];
+  for (const item of items || []) {
+    if (!item?.uid) continue;
+    const to = await idForEvent(item.uid, scope);
+    if (have.has(to)) continue;
+    for (const from of await legacyIdsForEvent(item.uid, scope)) {
+      if (from === to || !have.has(from)) continue;
+      if (!pinned.has(from)) out.push({ from, to });
+      break;
+    }
+  }
+  return out;
+}
+
+/** Every id this event's row may have locally: scoped, then older ones. */
+export async function allIdsForEvent(feedUid, scope = {}) {
+  return [await idForEvent(feedUid, scope), ...(await legacyIdsForEvent(feedUid, scope))];
+}
+
+async function uuidFromName(input) {
   const bytes = await sha256(input);
   const hex = Array.from(bytes.slice(0, 16), (b) => b.toString(16).padStart(2, '0')).join('');
 
@@ -114,12 +179,13 @@ async function sha256(text) {
  * enough to be worse than blank. `type` is free text (see assignTypes.js), so
  * a marker is a legal value the user can change.
  */
-export async function toAssignments(items, courseId) {
+export async function toAssignments(items, courseId, scope = null) {
   const out = [];
   for (const item of items || []) {
     if (!item.uid || !item.dueDate) continue;
     out.push({
-      id: await idForUid(item.uid),
+      // limecore#96: scoped to the account and the feed (see idForEvent).
+      id: scope ? await idForEvent(item.uid, scope) : await idForUid(item.uid),
       courseId: (typeof courseId === 'function' ? courseId(item) : courseId) || null,
       title: item.title || item.uid,
       type: 'imported',

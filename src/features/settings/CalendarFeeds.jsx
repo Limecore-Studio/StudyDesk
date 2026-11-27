@@ -27,7 +27,7 @@ import {
   loadFeeds, addFeed, removeFeed, updateFeed, refreshFeed,
   describeFeedUrl, isDue, mergeFeedItems,
 } from '../../lib/calendarFeed.js';
-import { courseForItem, sourceCourses, toAssignments } from '../../lib/feedImport.js';
+import { courseForItem, sourceCourses, toAssignments, rekeyPlan, allIdsForEvent } from '../../lib/feedImport.js';
 import { readJson, writeJson } from '../../lib/localStore.js';
 import * as outbox from '../../lib/outbox.js';
 
@@ -74,12 +74,43 @@ export default function CalendarFeeds({ state, dispatch, session, showFlash }) {
     return cur ? { ...row, done: !!cur.done } : row;
   }, []);
 
+  // limecore#96 — feed rows are keyed to this account and this feed.
+  const userId = session?.user?.id || null;
+  const scopeFor = useCallback((feed) => ({ userId, feedUrl: feed.url }), [userId]);
+  // The ids of these items' rows as they are now, scoped or from before.
+  const existingIds = useCallback(async (items, scope) => {
+    const have = new Set(stateRef.current.assignments.map((a) => a.id));
+    const out = [];
+    for (const it of items) for (const id of await allIdsForEvent(it.uid, scope)) if (have.has(id)) out.push(id);
+    return out;
+  }, []);
+
   const applyItems = useCallback(async (feed, items) => {
     const store = loadItems();
     const previous = store[feed.id] || [];
     const { items: merged, added, updated, removed } = mergeFeedItems(previous, items);
+    const scope = scopeFor(feed);
 
-    const rows = await toAssignments(merged, resolverFor(feed));
+    // limecore#96: rows imported under an older id move to the scoped one
+    // first, keeping the user's edits; the pusher swaps them on the server.
+    // Read from one snapshot: dispatches below apply in order, after it.
+    const before = stateRef.current;
+    const moves = await rekeyPlan(merged, scope, before.assignments, before.attachments);
+    for (const move of moves) dispatch({ type: 'REKEY_ASSIGNMENT', ...move });
+    // A row that could not move (it has attachments) keeps being updated under
+    // its older id, rather than gaining a duplicate under the new one.
+    const stays = new Map();
+    const moved = new Set(moves.map((m) => m.to));
+    const had = new Set(before.assignments.map((a) => a.id));
+    for (const item of merged) {
+      if (!item?.uid) continue;
+      const [scoped, ...older] = await allIdsForEvent(item.uid, scope);
+      if (had.has(scoped) || moved.has(scoped)) continue;
+      const old = older.find((id) => had.has(id));
+      if (old) stays.set(scoped, old);
+    }
+    const rows = (await toAssignments(merged, resolverFor(feed), scope))
+      .map((row) => (stays.has(row.id) ? { ...row, id: stays.get(row.id) } : row));
     for (const row of rows) {
       // `row` is passed as a field, NOT spread: it carries a `type` of its
       // own and spreading it would overwrite the action's discriminator.
@@ -91,16 +122,15 @@ export default function CalendarFeeds({ state, dispatch, session, showFlash }) {
     // too. Only reachable on a SUCCESSFUL fetch — see refreshFeed's contract.
     if (removed > 0) {
       const goneUids = previous.filter((p) => !merged.some((m) => m.uid === p.uid));
-      const goneRows = await toAssignments(goneUids, feed.courseId || null);
-      for (const row of goneRows) {
-        dispatch({ type: 'DELETE_ASSIGNMENT', id: row.id });
-        if (session) outbox.enqueue('delete_assignment', { id: row.id });
+      for (const id of await existingIds(goneUids, scope)) {
+        dispatch({ type: 'DELETE_ASSIGNMENT', id });
+        if (session) outbox.enqueue('delete_assignment', { id });
       }
     }
 
     writeJson(ITEMS_KEY, { ...store, [feed.id]: merged });
     return { added, updated, removed, total: merged.length };
-  }, [dispatch, session, resolverFor, withDone]);
+  }, [dispatch, session, resolverFor, withDone, scopeFor, existingIds]);
 
   const doRefresh = useCallback(async (feed, { quiet = false } = {}) => {
     setBusy(feed.id);
@@ -170,7 +200,7 @@ export default function CalendarFeeds({ state, dispatch, session, showFlash }) {
     const next = { ...feed, courseMap };
     setFeeds(loadFeeds());
     setMapping(null);
-    const rows = await toAssignments(loadItems()[feed.id] || [], resolverFor(next));
+    const rows = await toAssignments(loadItems()[feed.id] || [], resolverFor(next), scopeFor(feed));
     let moved = 0;
     for (const row of rows) {
       const cur = stateRef.current.assignments.find((a) => a.id === row.id);
@@ -188,17 +218,18 @@ export default function CalendarFeeds({ state, dispatch, session, showFlash }) {
     // deadlines they cannot trace back to anything is not a kindness.
     const store = loadItems();
     const mine = store[feed.id] || [];
-    const rows = await toAssignments(mine, feed.courseId || null);
-    for (const row of rows) {
-      dispatch({ type: 'DELETE_ASSIGNMENT', id: row.id });
-      if (session) outbox.enqueue('delete_assignment', { id: row.id });
+    // limecore#96: whichever id each row has, scoped or older.
+    const ids = await existingIds(mine, scopeFor(feed));
+    for (const id of ids) {
+      dispatch({ type: 'DELETE_ASSIGNMENT', id });
+      if (session) outbox.enqueue('delete_assignment', { id });
     }
     const next = { ...store };
     delete next[feed.id];
     writeJson(ITEMS_KEY, next);
     removeFeed(feed.id);
     setFeeds(loadFeeds());
-    showFlash(t('feed.removed', { count: rows.length, n: rows.length }));
+    showFlash(t('feed.removed', { count: ids.length, n: ids.length }));
   };
 
   return (
