@@ -1076,7 +1076,10 @@
     "chipPlus5": "+5 mnt",
     "chipEnd": "Selesai",
     "nextBlock": "Berikutnya: {{time}} · {{title}}",
-    "startNow": "Mulai sekarang"
+    "startNow": "Mulai sekarang",
+    "tileLeft": "Sisa {{n}} mnt",
+    "tileRunning": "Berjalan",
+    "tileStart": "Ketuk untuk mulai"
   },
   "notif": {
     "planLeadTitle": "Blok belajar pukul {{time}}",

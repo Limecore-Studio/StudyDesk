@@ -153,6 +153,13 @@ export function onFocusAction(handler) {
   return () => { stopped = true; handle?.remove(); };
 }
 
+/** limecore#127 — what the focus Quick Settings tile shows (FocusTileService).
+ *  A shell older than v1.22 has no tile and no method: nothing happens. */
+export async function setTile(tile) {
+  if (!isNative()) return;
+  try { await FocusMode.setTile(tile); } catch { /* older shell */ }
+}
+
 export async function stopFocus() {
   if (!isNative()) return { chipCleared: false, pinned: false };
   try {

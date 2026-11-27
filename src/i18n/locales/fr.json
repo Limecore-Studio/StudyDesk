@@ -1092,7 +1092,10 @@
     "chipPlus5": "+5 min",
     "chipEnd": "Terminer",
     "nextBlock": "Ensuite : {{time}} · {{title}}",
-    "startNow": "Commencer"
+    "startNow": "Commencer",
+    "tileLeft": "{{n}} min restantes",
+    "tileRunning": "En cours",
+    "tileStart": "Touchez pour démarrer"
   },
   "notif": {
     "planLeadTitle": "Bloc de révision à {{time}}",

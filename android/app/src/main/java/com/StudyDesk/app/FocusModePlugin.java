@@ -101,6 +101,32 @@ public class FocusModePlugin extends Plugin {
         }
     }
 
+    /**
+     * limecore#127 — what the focus Quick Settings tile shows. The web layer
+     * sends the state on every timer change; the tile re-reads it each time
+     * the shade opens (FocusTileService).
+     */
+    @PluginMethod
+    public void setTile(PluginCall call) {
+        Context ctx = getContext();
+        Long endsAt = call.getLong("endsAt", 0L);
+        ctx.getSharedPreferences(FocusTileService.PREFS, Context.MODE_PRIVATE).edit()
+                .putString("state", call.getString("state", "idle"))
+                .putLong("endsAt", endsAt == null ? 0L : endsAt)
+                .putString("leftText", call.getString("leftText", ""))
+                .putString("runningText", call.getString("runningText", ""))
+                .putString("pausedText", call.getString("pausedText", ""))
+                .putString("idleText", call.getString("idleText", ""))
+                .apply();
+        try {
+            android.service.quicksettings.TileService.requestListeningState(
+                    ctx, new android.content.ComponentName(ctx, FocusTileService.class));
+        } catch (Throwable ignored) {
+            // Tile not added, or an OEM that refuses: it reads the prefs when shown.
+        }
+        call.resolve();
+    }
+
     /** Actions tapped while no JS was listening (a cold start), oldest first. */
     @PluginMethod
     public void consumeFocusActions(PluginCall call) {

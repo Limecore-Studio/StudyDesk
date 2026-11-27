@@ -1081,7 +1081,10 @@
     "chipPlus5": "+5 分钟",
     "chipEnd": "结束",
     "nextBlock": "下一个：{{time}} · {{title}}",
-    "startNow": "立即开始"
+    "startNow": "立即开始",
+    "tileLeft": "剩余 {{n}} 分钟",
+    "tileRunning": "进行中",
+    "tileStart": "点按开始"
   },
   "notif": {
     "planLeadTitle": "学习时段将于 {{time}} 开始",

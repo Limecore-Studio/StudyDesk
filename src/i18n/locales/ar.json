@@ -1120,7 +1120,10 @@
     "chipPlus5": "+5 دقائق",
     "chipEnd": "إنهاء",
     "nextBlock": "التالي: {{time}} · {{title}}",
-    "startNow": "ابدأ الآن"
+    "startNow": "ابدأ الآن",
+    "tileLeft": "متبقٍ {{n}} دقيقة",
+    "tileRunning": "قيد التشغيل",
+    "tileStart": "انقر للبدء"
   },
   "notif": {
     "planLeadTitle": "فترة الدراسة تبدأ الساعة {{time}}",

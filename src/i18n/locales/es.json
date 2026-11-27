@@ -1092,7 +1092,10 @@
     "chipPlus5": "+5 min",
     "chipEnd": "Terminar",
     "nextBlock": "Siguiente: {{time}} · {{title}}",
-    "startNow": "Empezar ya"
+    "startNow": "Empezar ya",
+    "tileLeft": "Quedan {{n}} min",
+    "tileRunning": "En marcha",
+    "tileStart": "Toca para empezar"
   },
   "notif": {
     "planLeadTitle": "Bloque de estudio a las {{time}}",

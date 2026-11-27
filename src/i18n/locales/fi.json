@@ -1084,7 +1084,10 @@
     "chipPlus5": "+5 min",
     "chipEnd": "Lopeta",
     "nextBlock": "Seuraavaksi: {{time}} · {{title}}",
-    "startNow": "Aloita nyt"
+    "startNow": "Aloita nyt",
+    "tileLeft": "{{n}} min jäljellä",
+    "tileRunning": "Käynnissä",
+    "tileStart": "Aloita napauttamalla"
   },
   "notif": {
     "planLeadTitle": "Opiskelujakso alkaa klo {{time}}",

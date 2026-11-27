@@ -1084,7 +1084,10 @@
     "chipPlus5": "+5 min",
     "chipEnd": "End",
     "nextBlock": "Next: {{time}} · {{title}}",
-    "startNow": "Start now"
+    "startNow": "Start now",
+    "tileLeft": "{{n}} min left",
+    "tileRunning": "Running",
+    "tileStart": "Tap to start"
   },
   "notif": {
     "planLeadTitle": "Study block at {{time}}",

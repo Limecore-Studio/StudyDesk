@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { chipFor } from './useFocusChip.js';
+import { chipFor, tileFor } from './useFocusChip.js';
 
 // StudyDesk#259 — which timer states get the live chip outside Lock In.
 const NOW = 1_800_000_000_000;
@@ -20,5 +20,21 @@ describe('chipFor', () => {
     expect(chipFor(rec({ phase: 'short' }), NOW)).toBeNull();
     expect(chipFor(rec({ startedAt: NOW - 2_000_000 }), NOW)).toBeNull();
     expect(chipFor(null, NOW)).toBeNull();
+  });
+});
+
+describe('tileFor (limecore#127, the Quick Settings tile)', () => {
+  it('running countdown shows its end; a stopwatch runs with no end', () => {
+    expect(tileFor(rec(), NOW)).toEqual({ state: 'running', endsAt: NOW + 1_500_000 });
+    expect(tileFor(rec({ mode: 'stopwatch' }), NOW)).toEqual({ state: 'running', endsAt: 0 });
+  });
+  it('a block paused part-way is paused; a break paused part-way too', () => {
+    expect(tileFor(rec({ running: false, secsLeft: 600 }), NOW).state).toBe('paused');
+    expect(tileFor(rec({ running: false, phase: 'short', secsLeft: 120 }), NOW).state).toBe('paused');
+  });
+  it('idle at a full block, after the end, or with no timer: a tap starts one', () => {
+    expect(tileFor(rec({ running: false, secsLeft: 1500 }), NOW).state).toBe('idle');
+    expect(tileFor(rec({ startedAt: NOW - 2_000_000 }), NOW).state).toBe('idle');
+    expect(tileFor(null, NOW).state).toBe('idle');
   });
 });
