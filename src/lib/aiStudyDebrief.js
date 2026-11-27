@@ -1,12 +1,12 @@
-// AI study-session debrief — v1.4.
+// AI study-session debrief — v1.4; on the user's own key since v1.22.
 //
-// Mirrors LimeLog's post-workout debrief: the user types a free-text note about
-// what they studied, and the shared `ai-generate` Supabase Edge Function (cloud
-// Gemini) extracts structured fields. StudyDesk and LimeLog share the same
-// Supabase project, so this is auth-gated by the user's existing session — the
-// debrief only works signed in. Always degrades to null on any failure.
+// The user types a free-text note about what they studied and Gemini pulls
+// out structured fields. v1.22 (limecore#122, Design H): the note goes from
+// this device straight to Google on the user's own key (aiProvider.js), not
+// through the shared `ai-generate` function on the owner's key. No account
+// is needed, so guests can use it too.
 
-import { supabase } from './supabase.js';
+import { generate } from './aiProvider.js';
 
 function buildPrompt(userText) {
   return `Extract study session data from this note. Return ONLY valid JSON matching this exact schema — no prose, no markdown fences:
@@ -20,31 +20,24 @@ function buildPrompt(userText) {
 Note: "${userText.slice(0, 400).replace(/"/g, "'")}"`;
 }
 
-/** Analyse a free-text study note. Returns structured fields, or null on any
- *  failure (not signed in, offline, blocked, unparseable). */
-export async function analyseStudySession(userText) {
+/** Analyse a free-text study note. Resolves `{ ok: true, debrief }`, or
+ *  `{ ok: false, error }` with one of aiProvider's AI_ERRORS (or 'off'), so the
+ *  sheet can say what the user can fix. Never throws. */
+export async function analyseStudySession(userText, { fetchImpl } = {}) {
   const text = (userText || '').trim();
-  if (!text) return null;
+  if (!text) return { ok: false, error: 'other' };
   // The opt-in gate. `canDebrief` already hides the UI, but this is the one
   // place the note actually leaves the device, so the check belongs here too —
   // a future caller cannot route around the user's choice by forgetting it.
   try {
-    if (localStorage.getItem('studydesk-ai-enabled') !== '1') return null;
+    if (localStorage.getItem('studydesk-ai-enabled') !== '1') return { ok: false, error: 'off' };
   } catch {
-    return null;
+    return { ok: false, error: 'off' };
   }
-  // Gate on a live session — the Edge Function requires the user's JWT.
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  try {
-    const { data, error } = await supabase.functions.invoke('ai-generate', {
-      body: { prompt: buildPrompt(text), json: true, maxTokens: 200, temperature: 0.2 },
-    });
-    if (error || !data?.text) return null;
-    return parse(data.text);
-  } catch {
-    return null;
-  }
+  const res = await generate({ prompt: buildPrompt(text), json: true, maxTokens: 200, temperature: 0.2, fetchImpl });
+  if (!res.ok) return res;
+  const debrief = parse(res.text);
+  return debrief ? { ok: true, debrief } : { ok: false, error: 'other' };
 }
 
 function parse(raw) {

@@ -11,6 +11,7 @@ import { isRecoveryPending, subscribeRecovery } from "./lib/passwordRecovery.js"
 import { isGuestMode, setGuestMode } from "./lib/guestMode.js";
 import { refreshEntitlement } from "./lib/entitlement.js";
 import { wipeAccountLocalData } from "./lib/accountWipe.js";
+import { getAiKey } from "./lib/aiKey.js";
 import StorageAlert from "./features/settings/StorageAlert.jsx";
 import TimerPill from "./features/timer/TimerPill.jsx";
 import { useAccountAvatar } from "./lib/useAccountAvatar.js";
@@ -203,6 +204,15 @@ export default function App() {
   // its useState had run.
   const [onboardChecked, setOnboardChecked] = useState(false);
   usePersistState(state);
+  // v1.22 (limecore#122): AI runs only on the user's own key. An install that
+  // was switched on for the old server path, or whose key is gone, is off.
+  const aiOn = state.aiEnabled;
+  useEffect(() => {
+    if (!aiOn) return;
+    let live = true;
+    void getAiKey().then((k) => { if (live && !k) dispatch({ type: "SET_AI_ENABLED", on: false }); });
+    return () => { live = false; };
+  }, [aiOn]);
 
   useReminders({ onboarded, state, t });
 
@@ -1409,7 +1419,7 @@ export default function App() {
       <Suspense fallback={null}><SaveSessionSheet
         pending={pendingSession}
         courses={courses}
-        canDebrief={!!session && state.aiEnabled}
+        canDebrief={state.aiEnabled}
         onClose={()=>setPendingSession(null)}
         onSave={async (save, startNext) => {
           const steps = sessionSteps(pendingSession, save);

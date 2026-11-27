@@ -1337,5 +1337,27 @@
     "web": "Avaa verkkosovellus",
     "windows": "Lataa Windows-sovellus",
     "dismiss": "Selvä"
+  },
+  "ai": {
+    "keyLabel": "Gemini API -avain",
+    "model": "Malli",
+    "modelHint": "Oletus: {{model}}. Vaihda, jos Google poistaa mallin käytöstä.",
+    "test": "Testaa",
+    "testing": "Testataan…",
+    "testOk": "Avain toimii.",
+    "needKey": "Lisää oma Gemini-avaimesi ottaaksesi tekoälyn käyttöön.",
+    "keyHelp": "Saat ilmaisen avaimen osoitteesta aistudio.google.com. Se tallennetaan vain tälle laitteelle ja lähetetään vain Googlelle.",
+    "terms": "Pyynnöt menevät tältä laitteelta suoraan Googlelle oman Google-tilisi ehdoilla. Googlen ilmaisversio voi käyttää lähettämääsi malliensa parantamiseen, eikä sitä tarjota EU:ssa, Isossa-Britanniassa tai Sveitsissä.",
+    "err": {
+      "no-key": "Lisää Gemini-avaimesi asetuksissa saadaksesi tämän yhteenvedon.",
+      "invalid-key": "Google hylkäsi avaimen. Tarkista se asetuksissa.",
+      "quota": "Avaimesi kiintiö on käytetty. Yritä myöhemmin uudelleen.",
+      "model": "Google ei tunne mallia. Tarkista mallin nimi asetuksissa.",
+      "network": "Googleen ei saatu yhteyttä. Tarkista yhteys.",
+      "other": "Tekoälypyyntö epäonnistui. Yritä myöhemmin uudelleen."
+    },
+    "notSet": "Ei asetettu",
+    "set": "Aseta",
+    "clear": "Tyhjennä"
   }
 }

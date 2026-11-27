@@ -14,6 +14,7 @@ import * as sync from '../../lib/sync.js';
 import * as outbox from '../../lib/outbox.js';
 import { reconcileUnsynced } from '../../lib/reconcile.js';
 import { wipeAccountLocalData } from '../../lib/accountWipe.js';
+import AiKeySection from './AiKeySection.jsx';
 import ProfileSection from './ProfileSection.jsx';
 import ChangeEmail from './ChangeEmail.jsx';
 import SupporterBlock from './SupporterBlock.jsx';
@@ -1485,33 +1486,8 @@ export default function SettingsView({ state, dispatch, showFlash, session }) {
         <div className="sv2-section">
           <div className="sv2-section-title">{t('settings.yourData')}</div>
           <div className="sv2-note">{t('settings.yourDataNote')}</div>
-          {/* AI debrief opt-in. Off by default — flipping it on is the consent,
-              and the note you type is exactly what gets sent. */}
-          <div className="sv2-row">
-            <span className="sv2-row-label">{t('settings.aiDebrief')}</span>
-            <span className="sv2-row-value">
-              <span className="sv2-mode">
-                <button
-                  className={!state.aiEnabled ? 'active' : ''}
-                  onClick={() => dispatch({ type: 'SET_AI_ENABLED', on: false })}
-                >
-                  {t('settings.aiOff')}
-                </button>
-                <button
-                  className={state.aiEnabled ? 'active' : ''}
-                  onClick={() => dispatch({ type: 'SET_AI_ENABLED', on: true })}
-                >
-                  {t('settings.aiOn')}
-                </button>
-              </span>
-            </span>
-          </div>
-          <div className="sv2-note">
-            {state.aiEnabled ? t('settings.aiDebriefOnNote') : t('settings.aiDebriefOffNote')}
-          </div>
-          {/* Free-tier disclosure — informed consent belongs at the switch,
-              not only in PRIVACY.md. */}
-          <div className="sv2-note">{t('settings.aiTrainingNote')}</div>
+          {/* v1.22 (limecore#122): on the user's own Gemini key. */}
+          <AiKeySection enabled={state.aiEnabled} dispatch={dispatch} />
           {/* v1.16 (limecore#16) — off by default, accounts only; the note is
               the consent text the privacy policy (NCC#50) relies on. */}
           <ErrorReportsRow />
