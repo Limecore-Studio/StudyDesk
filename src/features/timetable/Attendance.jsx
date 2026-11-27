@@ -64,7 +64,14 @@ export default function Attendance({ state, dispatch, session, term }) {
     [weekFrom],
   );
 
-  const rows = useMemo(() => (state.attendance || []).filter((r) => !r.deletedAt), [state.attendance]);
+  // StudyDesk#245: only marks on lessons that still exist. A deleted lesson's
+  // marks go with it; ones left by a delete made before that rule (or still
+  // waiting for the other device's tombstones) no longer count or show under
+  // "No course".
+  const rows = useMemo(() => {
+    const live = new Set((state.timetableEntries || []).filter((e) => !e.deletedAt).map((e) => e.id));
+    return (state.attendance || []).filter((r) => !r.deletedAt && live.has(r.timetableEntryId));
+  }, [state.attendance, state.timetableEntries]);
   const index = useMemo(() => indexAttendance(rows), [rows]);
   const byId = useMemo(() => termIndex(state.academicTerms || []), [state.academicTerms]);
 

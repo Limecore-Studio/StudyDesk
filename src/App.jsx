@@ -21,6 +21,7 @@ import * as outbox from "./lib/outbox.js";
 import { hold, release, replayHeld } from "./lib/autoSaveHold.js";
 import { stampsFromPull, mergeStamps, shouldPull } from "./lib/syncStamps.js";
 import { withoutQueuedDeletes } from "./lib/pushDiff.js";
+import { assignmentAttachmentOps } from "./lib/childDeletes.js";
 import { setHeldDeleteUser, onHeldDelete, heldDeleteOffer, undoHeldDelete, heldDeleteItems, replayHeldDelete } from "./lib/heldDelete.js";
 import { pastSessionDraft } from "./lib/pastSession.js";
 import { isOpenPlan, nextPlanStartAt, nextPlanSoon, planSaveSteps, planToOffer } from "./lib/planRun.js";
@@ -1386,9 +1387,12 @@ export default function App() {
       }}
       onDelete={()=>{
         const id=editingCourse.id;
+        // StudyDesk#244: the course's assignments go, and their attachments with them.
+        const fileOps = assignmentAttachmentOps(state.attachments, state.assignments.filter((a)=>a.courseId===id).map((a)=>a.id));
         dispatch({type:"DELETE_COURSE",id});
         setEditingCourse(null); showFlash(t('av.flash.courseDeleted'));
         if (session) outbox.enqueue("delete_subject", { id });
+        if (session) for (const [kind, payload] of fileOps) outbox.enqueue(kind, payload);
       }}
       onClose={()=>setEditingCourse(null)}/></Suspense>}
     {offerPlan && isOpenPlan(offerPlan) && (
