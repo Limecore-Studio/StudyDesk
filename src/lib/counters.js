@@ -126,19 +126,23 @@ export function liveCounters(counters) {
  * outbox item (`queuedIds`) are on their way and are left alone. A day is
  * pushed only when its counter is live here and is, or will be, on the server.
  */
-export function findUnsyncedCounters(local, pulled, queuedIds = new Set()) {
+export function findUnsyncedCounters(local, pulled, queuedIds = new Set(), { mayBePurged = () => false } = {}) {
   const remoteCounters = new Set((pulled?.counters || []).map((c) => c.id));
   const remoteDays = new Set((pulled?.days || []).map((d) => d.id));
   const out = [];
+  // Counters that are, or will be, on the server: a day is pushed only then.
   const live = new Set();
   for (const c of local?.counters || []) {
     if (!c?.id || c.deletedAt) continue;
+    if (remoteCounters.has(c.id) || queuedIds.has(c.id)) { live.add(c.id); continue; }
+    // limecore#89: a counter whose tombstone may have been purged is not
+    // re-uploaded, and its days stay back with it.
+    if (mayBePurged(c)) continue;
     live.add(c.id);
-    if (remoteCounters.has(c.id) || queuedIds.has(c.id)) continue;
     out.push({ kind: 'upsert_counter', payload: c });
   }
   for (const d of local?.days || []) {
-    if (!d?.id || remoteDays.has(d.id) || queuedIds.has(d.id) || !live.has(d.counterId)) continue;
+    if (!d?.id || remoteDays.has(d.id) || queuedIds.has(d.id) || !live.has(d.counterId) || mayBePurged(d)) continue;
     out.push({ kind: 'upsert_counter_day', payload: { id: d.id, counterId: d.counterId, day: d.day, value: d.value, updatedAt: d.updatedAt } });
   }
   return out;

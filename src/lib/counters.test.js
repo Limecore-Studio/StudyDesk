@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { counterValue, counterProgress, counterDayId, weekStartKey, stepFor, mergePulled, liveCounters, findUnsyncedCounters } from './counters.js';
+import { mayBePurged } from './reconcile.js';
 
 // v1.20 (StudyDesk#156) — progress counters: what the card shows, and how a
 // pull folds in.
@@ -87,5 +88,19 @@ describe('findUnsyncedCounters (StudyDesk#236)', () => {
     const local = { counters: [C(), C({ id: 'c3' })], days: [D('2026-10-30', 3)] };
     const pulled = { counters: [C({ id: 'c3', deletedAt: '2026-10-05T00:00:00Z' })], days: [] };
     expect(findUnsyncedCounters(local, pulled, new Set(['c1', '2026-10-30']))).toEqual([]);
+  });
+});
+
+describe('findUnsyncedCounters purge guard (limecore#89)', () => {
+  const NOW = Date.parse('2026-11-26T12:00:00Z');
+  const guard = { mayBePurged: (row) => mayBePurged(row, { syncedBefore: true, now: NOW }) };
+  it('an old counter absent from the server stays back, with its days', () => {
+    const local = { counters: [C({ updatedAt: '2026-06-01T00:00:00Z' })], days: [D('2026-11-25', 2, { updatedAt: '2026-11-25T00:00:00Z' })] };
+    expect(findUnsyncedCounters(local, { counters: [], days: [] }, new Set(), guard)).toEqual([]);
+  });
+  it('a recent counter and its days are rescued; an old day of a counter the server has is not', () => {
+    const local = { counters: [C({ updatedAt: '2026-11-20T00:00:00Z' }), C({ id: 'c2' })], days: [D('2026-11-25', 2, { updatedAt: '2026-11-25T00:00:00Z' }), D('2026-06-01', 1, { id: 'old', counterId: 'c2', updatedAt: '2026-06-01T00:00:00Z' })] };
+    const pulled = { counters: [C({ id: 'c2' })], days: [] };
+    expect(findUnsyncedCounters(local, pulled, new Set(), guard).map((i) => `${i.kind}:${i.payload.id}`)).toEqual(['upsert_counter:c1', 'upsert_counter_day:2026-11-25']);
   });
 });

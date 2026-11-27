@@ -73,7 +73,7 @@ describe('purged tombstones are not re-uploaded (StudyDesk#243)', () => {
       { id: 's-new', subjectId: null, durationMinutes: 30, updatedAt: ago(10) },
       { id: 's-nostamp', subjectId: null, durationMinutes: 30 },
     ],
-    // Not purged server-side: always rescued.
+    // limecore#89: guarded like every other table, ahead of the wider purge.
     assignments: [{ id: 'a-old', courseId: 'fresh', title: 'x', updatedAt: ago(300) }],
   });
 
@@ -82,7 +82,7 @@ describe('purged tombstones are not re-uploaded (StudyDesk#243)', () => {
     expect(byKind(items, 'upsert_subject').map((i) => i.payload.id)).toEqual(['fresh']);
     expect(byKind(items, 'upsert_grade').map((i) => i.payload.id)).toEqual(['g-new']);
     expect(byKind(items, 'log_session').map((i) => i.payload.id)).toEqual(['s-new']);
-    expect(byKind(items, 'upsert_assignment').map((i) => i.payload.id)).toEqual(['a-old']);
+    expect(byKind(items, 'upsert_assignment')).toEqual([]);
   });
 
   it('children of a skipped course are held back with it', () => {
@@ -131,5 +131,36 @@ describe('reconcileUnsynced remembers a full pull per account', () => {
   it('skips rows the outbox already holds', () => {
     const ob = fakeOutbox({ queuedItems: () => [{ kind: 'upsert_grade', payload: { id: 'g' } }] });
     expect(reconcileUnsynced(oldGrade, remote, ob, { userId: 'u1' })).toBe(0);
+  });
+});
+
+describe('the purge guard covers every reconciled table (limecore#89)', () => {
+  const old = ago(120);
+  const fresh = ago(5);
+  const state = (at) => ({
+    courses: { c: { id: 'c', name: 'Maths', updatedAt: fresh } },
+    exams: [{ id: 'e', courseId: 'c', title: 'Final', updatedAt: at }],
+    assignments: [{ id: 'a', courseId: 'c', title: 'Essay', updatedAt: at }],
+    academicTerms: [{ id: 't', level: 'year', name: '2026', updatedAt: at }],
+    timetableEntries: [{ id: 'te', termId: null, subjectId: 'c', updatedAt: at }],
+    plannedSessions: [{ id: 'p', subjectId: 'c', updatedAt: at }],
+    commitments: [{ id: 'cm', title: 'Football', updatedAt: at }],
+    notes: [{ id: 'n', courseId: 'c', content: '', updatedAt: at }],
+    attendance: [{ id: 'at', timetableEntryId: 'te-remote', date: '2026-07-01', status: 'present', updatedAt: at }],
+  });
+  const remote = { ...empty(), timetableEntries: [{ id: 'te-remote' }] };
+  const kinds = (items) => items.map((i) => i.kind).sort();
+
+  it('on a device that synced before, purge-old rows of every table stay back', () => {
+    expect(kinds(findUnsynced(state(old), remote, { syncedBefore: true, now: NOW }))).toEqual(['upsert_subject']);
+  });
+  it('recent rows of every table are still rescued', () => {
+    expect(kinds(findUnsynced(state(fresh), remote, { syncedBefore: true, now: NOW }))).toEqual([
+      'upsert_assignment', 'upsert_attendance', 'upsert_commitment', 'upsert_exam', 'upsert_note',
+      'upsert_planned', 'upsert_subject', 'upsert_term', 'upsert_timetable',
+    ]);
+  });
+  it('a device with no earlier sync rescues everything, however old', () => {
+    expect(findUnsynced(state(old), remote, { syncedBefore: false, now: NOW })).toHaveLength(9);
   });
 });
