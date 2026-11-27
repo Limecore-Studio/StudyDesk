@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 
 // StudyDesk#319 — a real account's export saved a blank file on the phone.
 describe('export save', () => {
-  const java = readFileSync(new URL('../../android/app/src/main/java/com/studydesk/app/SaveFilePlugin.java', import.meta.url), 'utf8');
+  const java = readFileSync(new URL('../../android/app/src/main/java/com/StudyDesk/app/SaveFilePlugin.java', import.meta.url), 'utf8');
   it('streams the write and treats any Throwable as a failure', () => {
     expect(java).toMatch(/catch \(Throwable e\)/);
     expect(java).not.toMatch(/data\.getBytes\(/);
