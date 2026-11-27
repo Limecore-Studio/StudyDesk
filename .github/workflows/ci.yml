@@ -14,7 +14,9 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 20
+          # v1.22 (limecore#113): the F-Droid build's Node, the reproducible-build
+          # reference, so CI tests on the runtime that builds the shipped APK.
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install
