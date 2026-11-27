@@ -50,3 +50,21 @@ describe('wipeAccountLocalData', () => {
     expect(isPageStale()).toBe(false);
   });
 });
+
+// v1.22 (limecore#113, limecore#99, StudyDesk#246)
+describe('per-person settings go with the account', () => {
+  it("clears the app-open guard and the error-report consent", async () => {
+    const { wipeAccountLocalData } = await import('./accountWipe.js');
+    store.set('studydesk.lastAppOpen', '2026-11-27');
+    store.set('sd-error-reports', 'on');
+    wipeAccountLocalData();
+    expect(store.has('studydesk.lastAppOpen')).toBe(false);
+    expect(store.has('sd-error-reports')).toBe(false);
+  });
+  it('abandoning a password reset signs out this device only', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync(new URL('../features/auth/SetPasswordScreen.jsx', import.meta.url), 'utf8');
+    expect(src).toContain("signOut({ scope: 'local' })");
+    expect(src).not.toMatch(/signOut\(\)/);
+  });
+});

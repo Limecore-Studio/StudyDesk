@@ -16,6 +16,11 @@ export const ACCOUNT_LOCAL_KEYS = [
   'sd-timer',
   // v1.20 (StudyDesk#156): progress counters (lib/counterStore.js).
   'sd-counters',
+  // v1.22 (limecore#113): the once-a-day app_opens guard is this account's;
+  // left behind, the next account's first open that day was never recorded.
+  'studydesk.lastAppOpen',
+  // v1.22 (limecore#99): error-report consent is a person's, not a device's.
+  'sd-error-reports',
 ];
 
 export function wipeAccountLocalData() {
