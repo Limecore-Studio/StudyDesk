@@ -421,11 +421,9 @@ public class FocusModePlugin extends Plugin {
             promote.putBoolean("android.requestPromotedOngoing", true);
             b.addExtras(promote);
             b.setColorized(false);
-            // The few characters the status-bar chip shows ("12:04").
-            if (endsAt > 0) {
-                long mins = Math.max(0, (endsAt - System.currentTimeMillis() + 59_999) / 60_000);
-                try { b.setShortCriticalText(mins + " min"); } catch (Throwable ignored) { }
-            }
+            // No setShortCriticalText: a fixed "N min" would go stale while the
+            // block runs. The countdown chronometer (setWhen + countdown) is what
+            // the chip and the Now Bar show, and it is always right.
         }
 
         nm.notify(NOTIFICATION_ID, b.build());
