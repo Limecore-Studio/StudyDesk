@@ -23,6 +23,8 @@ import android.content.SharedPreferences;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.Calendar;
+
 final class WidgetSnapshot {
 
     static final String PREFS = "studydesk_widget";
@@ -128,6 +130,49 @@ final class WidgetSnapshot {
      * "nothing due" state — which is also exactly what a fresh install shows
      * before the app has ever run.
      */
+    // v1.22 (StudyDesk#246): the label and dot are worked out when the widget
+    // draws, from the item's due date, so they move on with the calendar even
+    // when the app is not opened. Mirrors whenLabel / urgencyOf in
+    // src/lib/widgetBridge.js. A snapshot from an older app has no dueDate and
+    // keeps the words it was given.
+
+    /** Whole local days from today to "YYYY-MM-DD", or null if unreadable. */
+    static Integer daysUntil(String iso) {
+        if (iso == null || iso.length() < 10) return null;
+        try {
+            int y = Integer.parseInt(iso.substring(0, 4));
+            int m = Integer.parseInt(iso.substring(5, 7));
+            int d = Integer.parseInt(iso.substring(8, 10));
+            Calendar due = Calendar.getInstance();
+            due.clear();
+            due.set(y, m - 1, d);
+            Calendar now = Calendar.getInstance();
+            Calendar today = Calendar.getInstance();
+            today.clear();
+            today.set(now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
+            return (int) Math.round((due.getTimeInMillis() - today.getTimeInMillis()) / 86400000.0);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    static String urgencyFor(int days) {
+        if (days <= 0) return "urgent";
+        if (days <= 3) return "soon";
+        return "later";
+    }
+
+    /** { when, urgency } for an item, or the stored pair when it has no date. */
+    private static String[] relabel(JSONObject o, JSONObject words, String when, String urgency) {
+        Integer days = o == null ? null : daysUntil(o.optString("dueDate", null));
+        if (days == null) return new String[] { when, urgency };
+        String w;
+        if (days == 0 && words != null) w = words.optString("today", when);
+        else if (days == 1 && words != null) w = words.optString("tomorrow", when);
+        else w = o.optString("dateText", when);
+        return new String[] { w, urgencyFor(days) };
+    }
+
     static WidgetSnapshot load(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         String raw = prefs.getString(KEY_JSON, null);
@@ -138,17 +183,27 @@ final class WidgetSnapshot {
             String title = next == null ? "" : next.optString("title", "");
             String subtitle = next == null ? "" : next.optString("subtitle", "");
             String urgency = next == null ? "later" : next.optString("urgency", "later");
+            JSONObject words = root.optJSONObject("words");
+            if (next != null && next.has("dueDate")) {
+                String[] r = relabel(next, words, "", urgency);
+                urgency = r[1];
+                String course = next.optString("course", "");
+                subtitle = course.length() > 0 ? course + " · " + r[0] : r[0];
+            }
 
             JSONArray arr = root.optJSONArray("upcoming");
             int n = arr == null ? 0 : arr.length();
             Item[] items = new Item[n];
             for (int i = 0; i < n; i++) {
                 JSONObject o = arr.optJSONObject(i);
+                String[] r = relabel(o, words,
+                    o == null ? "" : o.optString("when", ""),
+                    o == null ? "later" : o.optString("urgency", "later"));
                 items[i] = new Item(
                     o == null ? "" : o.optString("title", ""),
-                    o == null ? "" : o.optString("when", ""),
+                    r[0],
                     o == null ? "assignment" : o.optString("kind", "assignment"),
-                    o == null ? "later" : o.optString("urgency", "later")
+                    r[1]
                 );
             }
             // optString turns a JSON null into "null"; isNull keeps it empty.

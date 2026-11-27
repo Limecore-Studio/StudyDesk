@@ -38,12 +38,15 @@ public class UpcomingWidget extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager manager, int[] ids) {
+        WidgetMidnight.schedule(context);
         for (int id : ids) {
             manager.updateAppWidget(id, build(context));
         }
     }
 
     static void refreshAll(Context context) {
+        // v1.22 (StudyDesk#246): and again just after midnight.
+        WidgetMidnight.schedule(context);
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
         int[] ids = manager.getAppWidgetIds(new ComponentName(context, UpcomingWidget.class));
         for (int id : ids) {
