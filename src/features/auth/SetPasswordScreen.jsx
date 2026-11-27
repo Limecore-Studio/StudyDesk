@@ -59,7 +59,10 @@ export default function SetPasswordScreen() {
   async function onSignOut() {
     setLoading(true);
     try {
-      await supabase.auth.signOut();
+      // StudyDesk#246: this device only. A global sign-out here revoked every
+      // session in all three apps on every device, for someone who just chose
+      // not to change their password.
+      await supabase.auth.signOut({ scope: 'local' });
     } catch {
       /* the flag below is the real exit; a failed network sign-out must not
          be able to strand someone on this screen */

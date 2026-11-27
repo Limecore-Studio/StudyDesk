@@ -102,6 +102,32 @@ describe('grade scale follows the account (v1.18.2)', () => {
     expect(fromCloud(server.rows.get('u1').grade_scale)).toEqual({ mode: 'custom', custom: GERMAN });
   });
 
+  // v1.22 (StudyDesk#246)
+  it('an unsent local edit loses to a newer scale saved on another device', async () => {
+    server.rows.set('u1', { user_id: 'u1', grade_scale: toCloud('ib', null) });
+    await syncGradeScaleOnSignIn('u1', { mode: 'ib', custom: FINNISH }, vi.fn());
+    onLocalScaleChange('custom', GERMAN, 'u1');   // offline: never pushed
+    _resetForTests();
+    vi.setSystemTime(Date.now() + 86_400_000);    // days later, the desktop saves
+    server.rows.set('u1', { user_id: 'u1', grade_scale: toCloud('us', null) });
+    const apply = vi.fn();
+    expect(await syncGradeScaleOnSignIn('u1', { mode: 'custom', custom: GERMAN }, apply)).toBe('applied');
+    expect(apply).toHaveBeenCalledWith('us', null);
+    expect(fromCloud(server.rows.get('u1').grade_scale)).toEqual({ mode: 'us', custom: null });
+  });
+
+  it("never back-fills another account's scale into the next account", async () => {
+    await syncGradeScaleOnSignIn('a', { mode: 'ib', custom: FINNISH }, vi.fn());
+    onLocalScaleChange('custom', GERMAN, 'a');
+    await vi.runAllTimersAsync();
+    _resetForTests();
+    server.upserts = [];
+    const apply = vi.fn();
+    expect(await syncGradeScaleOnSignIn('b', { mode: 'custom', custom: GERMAN }, apply)).toBe('reset-other-account');
+    expect(apply).toHaveBeenCalledWith('ib', null);
+    expect(server.upserts).toEqual([]);
+  });
+
   it('a guest change stays on the device', async () => {
     await syncGradeScaleOnSignIn(null, { mode: 'ib', custom: FINNISH }, vi.fn());
     onLocalScaleChange('custom', GERMAN, null);
@@ -114,7 +140,7 @@ describe('grade scale follows the account (v1.18.2)', () => {
     server.failReads = true;
     expect(await syncGradeScaleOnSignIn('u1', { mode: 'ib', custom: FINNISH }, vi.fn())).toBe('error');
     onLocalScaleChange('us', FINNISH, 'u1');
-    expect(localStorage.getItem('studydesk-grade-scale-dirty')).toBe('u1');
+    expect(JSON.parse(localStorage.getItem('studydesk-grade-scale-dirty')).userId).toBe('u1');
   });
 
   it('ignores unusable server values', () => {
