@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- limecore#127: launcher shortcut labels. Other strings fall back to values/. -->
+<resources>
+    <string name="shortcut_focus_short">专注</string>
+    <string name="shortcut_focus_long">开始一个专注时段</string>
+    <string name="shortcut_add_short">添加作业</string>
+    <string name="shortcut_add_long">添加一项作业</string>
+    <string name="shortcut_today_short">今天</string>
+    <string name="shortcut_today_long">打开“接下来”</string>
+</resources>

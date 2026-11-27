@@ -14,4 +14,12 @@
     <string name="widget_nothing_due">Nothing due. Enjoy it.</string>
     <string name="widget_next_up_description">The one thing to study next.</string>
     <string name="widget_upcoming_description">Assignments and exams, in order.</string>
+    <!-- limecore#127: launcher shortcuts (res/xml/shortcuts.xml), translated
+         in values-<lang>/. -->
+    <string name="shortcut_focus_short">Focus</string>
+    <string name="shortcut_focus_long">Start a focus block</string>
+    <string name="shortcut_add_short">Add assignment</string>
+    <string name="shortcut_add_long">Add an assignment</string>
+    <string name="shortcut_today_short">Today</string>
+    <string name="shortcut_today_long">Open Next Up</string>
 </resources>

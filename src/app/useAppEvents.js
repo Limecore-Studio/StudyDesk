@@ -120,3 +120,27 @@ export function useFocusEndAlarm() {
     };
   }, []);
 }
+
+// limecore#127 — router deep links (com.studydesk.app://open/...), from a
+// launcher shortcut or another suite app. A cold start's link comes from
+// getLaunchUrl, a warm one from appUrlOpen. Native only; the login callback on
+// the same scheme is AuthGate's, and parseRoute ignores it.
+export function useDeepLinks(onRoute) {
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    let gone = false;
+    let sub = null;
+    void import("../lib/deepLink.js").then(async ({ parseRoute }) => {
+      if (gone) return;
+      const { App: CapApp } = await import("@capacitor/app");
+      const take = (url) => { const r = parseRoute(url); if (r && !gone) onRoute(r); };
+      sub = await CapApp.addListener("appUrlOpen", (e) => take(e?.url));
+      if (gone) { sub.remove(); return; }
+      try { take((await CapApp.getLaunchUrl())?.url); } catch { /* none */ }
+    }).catch(() => {});
+    return () => { gone = true; sub?.remove(); };
+  // onRoute is stable in intent; re-subscribing on every render would replay
+  // the launch URL.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+}
