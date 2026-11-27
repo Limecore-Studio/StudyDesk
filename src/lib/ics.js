@@ -1,3 +1,4 @@
+import { firstOccurrence, intervalWeeks } from './commitments.js';
 // v1.9 Item 14a — iCalendar export for exams and assignments.
 //
 // Flagged in the build plan as disproportionately high-value for its cost: it
@@ -167,12 +168,18 @@ export function buildIcs(state, opts = {}) {
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:${uid('commitment', c.id)}`);
     lines.push(`DTSTAMP:${dtstamp}`);
-    lines.push(`DTSTART:${dateValue(c.startsOn)}T${hhmmss(c.startTime)}`);
-    lines.push(`DTEND:${dateValue(c.startsOn)}T${hhmmss(c.endTime)}`);
+    // StudyDesk#246: DTSTART is the first real occurrence (RFC 5545 counts
+    // DTSTART as one even when it misses BYDAY, so startsOn added a day that
+    // never happens), and the interval goes in the rule.
+    const first = firstOccurrence(c) || c.startsOn;
+    lines.push(`DTSTART:${dateValue(first)}T${hhmmss(c.startTime)}`);
+    lines.push(`DTEND:${dateValue(first)}T${hhmmss(c.endTime)}`);
     if (weekly) {
       // UNTIL must share DTSTART's value type, so it stays floating too.
       const until = c.endsOn ? `;UNTIL=${dateValue(c.endsOn)}T235959` : '';
-      lines.push(`RRULE:FREQ=WEEKLY;BYDAY=${BYDAY[Number(c.weekday)]}${until}`);
+      const every = intervalWeeks(c);
+      const interval = every > 1 ? `;INTERVAL=${every}` : '';
+      lines.push(`RRULE:FREQ=WEEKLY${interval};BYDAY=${BYDAY[Number(c.weekday)]}${until}`);
     }
     lines.push(`SUMMARY:${esc(c.title)}`);
     if (c.notes) lines.push(`DESCRIPTION:${esc(c.notes)}`);
