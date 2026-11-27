@@ -29,8 +29,17 @@ export function useWidgets({ state, t, dispatch }) {
   const [widgetPaletteTick, setWidgetPaletteTick] = useState(0);
   useEffect(() => {
     const bump = () => setWidgetPaletteTick((n) => n + 1);
+    // StudyDesk#316: and every time the app comes back to the foreground. The
+    // push is skipped while no widget is placed, so a widget placed after the
+    // last data change had nothing to draw ("Nothing due") until the next edit.
+    // Opening the app now fills it, and also catches a new day's labels.
+    const onVisible = () => { if (document.visibilityState === "visible") bump(); };
     window.addEventListener(WIDGET_PALETTE_EVENT, bump);
-    return () => window.removeEventListener(WIDGET_PALETTE_EVENT, bump);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener(WIDGET_PALETTE_EVENT, bump);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
   useEffect(() => {
     const snapshot = {
