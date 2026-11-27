@@ -74,3 +74,20 @@ describe('undated assignments on the widgets (StudyDesk#258)', () => {
     expect(none.upcomingEmpty).toBeNull();
   });
 });
+
+// v1.22 (StudyDesk#246): the widget relabels from the raw date when it draws.
+describe('the snapshot carries what the widget needs to relabel', async () => {
+  const { buildWidgetSnapshot } = await import('./widgetBridge.js');
+  it('dueDate, a formatted date and the Today / Tomorrow words', () => {
+    const t = (k) => ({ 'widget.today': 'TODAY', 'widget.tomorrow': 'TOMORROW' }[k] ?? k);
+    const snap = buildWidgetSnapshot({
+      assignments: [{ id: 'a', title: 'Essay', courseId: 'c', dueDate: '2099-03-04' }],
+      exams: [], courses: { c: { name: 'History' } }, t, locale: 'en-GB',
+    });
+    expect(snap.words).toEqual({ today: 'TODAY', tomorrow: 'TOMORROW' });
+    expect(snap.nextUp).toMatchObject({ dueDate: '2099-03-04', course: 'History' });
+    expect(snap.nextUp.dateText).toMatch(/4/);
+    expect(snap.upcoming[0]).toMatchObject({ dueDate: '2099-03-04' });
+    expect(snap.upcoming[0].dateText).toBe(snap.nextUp.dateText);
+  });
+});

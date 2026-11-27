@@ -81,6 +81,13 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_upcoming_info" />
         </receiver>
+
+        <!-- v1.22 (StudyDesk#246): redraws the widgets just after midnight, so
+             "Today" / "Tomorrow" and the dots follow the calendar. Only this
+             app's own alarm reaches it. -->
+        <receiver
+            android:name=".WidgetMidnight"
+            android:exported="false" />
     </application>
 
     <!-- Permissions -->

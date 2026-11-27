@@ -121,7 +121,8 @@ export function buildWidgetSnapshot({ assignments, exams, courses, t, locale, pa
   const describe = (item) => {
     const w = whenLabel(item.dueDate, locale);
     const when = w.today ? t('widget.today') : w.tomorrow ? t('widget.tomorrow') : w.text;
-    return { when, urgency: urgencyOf(w.days) };
+    const dateText = w.text ?? parseLocalDate(item.dueDate).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+    return { when, urgency: urgencyOf(w.days), dueDate: item.dueDate, dateText };
   };
 
   const top = ordered[0] || undated[0] || null;
@@ -138,8 +139,17 @@ export function buildWidgetSnapshot({ assignments, exams, courses, t, locale, pa
     // v1.15 — "light" | "dark" | "black"; see resolveWidgetPalette. A
     // native layer older than this ignores the field and stays cream.
     palette,
+    // v1.22 (StudyDesk#246): the widget works out "Today" / "Tomorrow" and the
+    // dot when it draws, from `dueDate`, so they stay right on days the app is
+    // not opened. These are the words and the formatted date it picks from.
+    words: { today: t('widget.today'), tomorrow: t('widget.tomorrow') },
     nextUp: top
-      ? { title: top.title, subtitle: topSubtitle, urgency: topWhen.urgency }
+      ? {
+        title: top.title,
+        subtitle: topSubtitle,
+        urgency: topWhen.urgency,
+        ...(top.dueDate ? { dueDate: top.dueDate, dateText: topWhen.dateText, course: courses?.[top.courseId]?.name || '' } : {}),
+      }
       : null,
     upcoming: ordered.slice(0, MAX_UPCOMING).map((item) => {
       const d = describe(item);
@@ -148,6 +158,8 @@ export function buildWidgetSnapshot({ assignments, exams, courses, t, locale, pa
         when: d.when,
         urgency: d.urgency,
         kind: item.kind,
+        dueDate: d.dueDate,
+        dateText: d.dateText,
       };
     }),
     // StudyDesk#258: Upcoming's empty state, in the app's language, when the
