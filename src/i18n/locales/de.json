@@ -1334,5 +1334,27 @@
     "web": "Web-App öffnen",
     "windows": "Windows-App laden",
     "dismiss": "Verstanden"
+  },
+  "ai": {
+    "keyLabel": "Gemini-API-Schlüssel",
+    "model": "Modell",
+    "modelHint": "Standard: {{model}}. Ändere es, wenn Google dieses Modell einstellt.",
+    "test": "Testen",
+    "testing": "Wird getestet…",
+    "testOk": "Der Schlüssel funktioniert.",
+    "needKey": "Füge deinen eigenen Gemini-Schlüssel hinzu, um KI einzuschalten.",
+    "keyHelp": "Einen kostenlosen Schlüssel gibt es unter aistudio.google.com. Er wird nur auf diesem Gerät gespeichert und nur an Google gesendet.",
+    "terms": "Anfragen gehen von diesem Gerät direkt an Google, zu den Bedingungen deines eigenen Google-Kontos. Googles kostenlose Stufe kann Gesendetes zur Verbesserung ihrer Modelle nutzen und wird in der EU, im Vereinigten Königreich und in der Schweiz nicht angeboten.",
+    "err": {
+      "no-key": "Füge in den Einstellungen deinen Gemini-Schlüssel hinzu, um diese Zusammenfassung zu erhalten.",
+      "invalid-key": "Google hat den Schlüssel abgelehnt. Prüfe ihn in den Einstellungen.",
+      "quota": "Das Kontingent deines Schlüssels ist aufgebraucht. Versuche es später erneut.",
+      "model": "Google kennt dieses Modell nicht. Prüfe den Modellnamen in den Einstellungen.",
+      "network": "Google ist nicht erreichbar. Prüfe deine Verbindung.",
+      "other": "Die KI-Anfrage ist fehlgeschlagen. Versuche es später erneut."
+    },
+    "notSet": "Nicht festgelegt",
+    "set": "Festlegen",
+    "clear": "Löschen"
   }
 }

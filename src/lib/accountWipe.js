@@ -9,6 +9,7 @@ import * as outbox from './outbox.js';
 import { clearEntitlement } from './entitlement.js';
 import { clearAvatarCache } from './profile.js';
 import { markLocalDataReplaced } from './deviceOwner.js';
+import { clearAiSettings } from './aiKey.js';
 
 export const ACCOUNT_LOCAL_KEYS = [
   'studydesk-calendar-feeds',
@@ -22,6 +23,9 @@ export function wipeAccountLocalData() {
   outbox.clear();
   clearEntitlement();
   clearAvatarCache();
+  // v1.22 (limecore#122): the AI key is this person's, and so is the consent
+  // it carries (RESET_AFTER_SIGNOUT turns the switch off).
+  void clearAiSettings();
   for (const k of ACCOUNT_LOCAL_KEYS) {
     try { localStorage.removeItem(k); } catch { /* private mode */ }
   }

@@ -1343,5 +1343,27 @@
     "web": "Ouvrir l'application web",
     "windows": "Télécharger l'application Windows",
     "dismiss": "Compris"
+  },
+  "ai": {
+    "keyLabel": "Clé API Gemini",
+    "model": "Modèle",
+    "modelHint": "Par défaut : {{model}}. Changez-le si Google retire ce modèle.",
+    "test": "Tester",
+    "testing": "Test en cours…",
+    "testOk": "La clé fonctionne.",
+    "needKey": "Ajoutez votre propre clé Gemini pour activer l’IA.",
+    "keyHelp": "Obtenez une clé gratuite sur aistudio.google.com. Elle est stockée uniquement sur cet appareil et envoyée uniquement à Google.",
+    "terms": "Les requêtes vont de cet appareil directement à Google, selon les conditions de votre propre compte Google. L’offre gratuite de Google peut utiliser ce que vous envoyez pour améliorer ses modèles et n’est pas proposée dans l’UE, au Royaume-Uni ni en Suisse.",
+    "err": {
+      "no-key": "Ajoutez votre clé Gemini dans Réglages pour obtenir ce résumé.",
+      "invalid-key": "Google a refusé la clé. Vérifiez-la dans Réglages.",
+      "quota": "Le quota de votre clé est épuisé. Réessayez plus tard.",
+      "model": "Google ne connaît pas ce modèle. Vérifiez son nom dans Réglages.",
+      "network": "Impossible de joindre Google. Vérifiez votre connexion.",
+      "other": "La requête IA a échoué. Réessayez plus tard."
+    },
+    "notSet": "Non défini",
+    "set": "Définir",
+    "clear": "Effacer"
   }
 }

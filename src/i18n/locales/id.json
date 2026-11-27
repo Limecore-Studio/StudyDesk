@@ -1325,5 +1325,27 @@
     "web": "Buka aplikasi web",
     "windows": "Unduh aplikasi Windows",
     "dismiss": "Oke"
+  },
+  "ai": {
+    "keyLabel": "Kunci API Gemini",
+    "model": "Model",
+    "modelHint": "Bawaan: {{model}}. Ubah jika Google menghentikan model itu.",
+    "test": "Uji",
+    "testing": "Menguji…",
+    "testOk": "Kunci berfungsi.",
+    "needKey": "Tambahkan kunci Gemini milikmu untuk menyalakan AI.",
+    "keyHelp": "Dapatkan kunci gratis di aistudio.google.com. Kunci hanya disimpan di perangkat ini dan hanya dikirim ke Google.",
+    "terms": "Permintaan dikirim dari perangkat ini langsung ke Google, dengan ketentuan akun Google-mu sendiri. Tingkat gratis Google dapat memakai apa yang kamu kirim untuk menyempurnakan modelnya, dan tidak tersedia di UE, Inggris, atau Swiss.",
+    "err": {
+      "no-key": "Tambahkan kunci Gemini di Pengaturan untuk mendapatkan ringkasan ini.",
+      "invalid-key": "Google menolak kunci. Periksa di Pengaturan.",
+      "quota": "Kuota kuncimu habis. Coba lagi nanti.",
+      "model": "Google tidak mengenali model itu. Periksa nama model di Pengaturan.",
+      "network": "Tidak bisa menghubungi Google. Periksa koneksimu.",
+      "other": "Permintaan AI gagal. Coba lagi nanti."
+    },
+    "notSet": "Belum diatur",
+    "set": "Atur",
+    "clear": "Hapus"
   }
 }

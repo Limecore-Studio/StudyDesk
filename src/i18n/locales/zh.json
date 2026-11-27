@@ -1330,5 +1330,27 @@
     "web": "打开网页版",
     "windows": "下载 Windows 版",
     "dismiss": "知道了"
+  },
+  "ai": {
+    "keyLabel": "Gemini API 密钥",
+    "model": "模型",
+    "modelHint": "默认：{{model}}。如果 Google 停用该模型，请更改。",
+    "test": "测试",
+    "testing": "正在测试…",
+    "testOk": "密钥可用。",
+    "needKey": "添加你自己的 Gemini 密钥以开启 AI。",
+    "keyHelp": "在 aistudio.google.com 免费获取密钥。密钥只保存在此设备上，只发送给 Google。",
+    "terms": "请求从此设备直接发送给 Google，适用你自己 Google 账户的条款。Google 的免费层可能会用你发送的内容改进其模型，且在欧盟、英国和瑞士不提供。",
+    "err": {
+      "no-key": "在设置中添加 Gemini 密钥即可获取此摘要。",
+      "invalid-key": "Google 拒绝了该密钥。请在设置中检查。",
+      "quota": "你的密钥配额已用完。请稍后再试。",
+      "model": "Google 不认识该模型。请在设置中检查模型名称。",
+      "network": "无法连接到 Google。请检查网络。",
+      "other": "AI 请求失败。请稍后再试。"
+    },
+    "notSet": "未设置",
+    "set": "设置",
+    "clear": "清除"
   }
 }

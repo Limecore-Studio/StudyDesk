@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { analyseStudySession } from '../../lib/aiStudyDebrief.js';
+import { AI_ERRORS } from '../../lib/aiProvider.js';
 import { fmtTime } from '../../lib/dates.js';
 import { enterSubmit } from '../../lib/imeSubmit.js';
 import DateInput from '../../lib/DateInput.jsx';
@@ -39,22 +40,23 @@ export default function SaveSessionSheet({ pending, courses, onSave, onClose, ca
   const [invalid, setInvalid] = useState(null);
   // v1.3 (BUG-22) — optional focus quality. null = skipped (the default).
   const [focus, setFocus] = useState(null);
-  // v1.4 — optional AI debrief. The user types what they covered; the cloud
-  // Gemini proxy extracts structured fields. All null when skipped.
+  // v1.4 — optional AI debrief. The user types what they covered; Gemini, on
+  // the user's own key (v1.22, limecore#122), extracts structured fields. All
+  // null when skipped. `debriefError` is why it failed, so it can be fixed.
   const [debriefText, setDebriefText] = useState('');
   const [analysing, setAnalysing] = useState(false);
   const [debrief, setDebrief] = useState(null);
-  const [debriefError, setDebriefError] = useState(false);
+  const [debriefError, setDebriefError] = useState(null);
 
   async function runAnalyse() {
     const t = debriefText.trim();
     if (!t || analysing) return;
     setAnalysing(true);
-    setDebriefError(false);
+    setDebriefError(null);
     const result = await analyseStudySession(t);
     setAnalysing(false);
-    if (result) setDebrief(result);
-    else setDebriefError(true);
+    if (result.ok) setDebrief(result.debrief);
+    else setDebriefError(result.error);
   }
 
   // Every rejection here has to SAY something. Both guards below used to be a
@@ -233,7 +235,7 @@ export default function SaveSessionSheet({ pending, courses, onSave, onClose, ca
                   type="button"
                   className="btn-outline"
                   style={{ alignSelf: 'flex-start', marginTop: 2, fontSize: 12, padding: '4px 10px' }}
-                  onClick={() => { setDebrief(null); setDebriefError(false); }}
+                  onClick={() => { setDebrief(null); setDebriefError(null); }}
                 >
                   {t('ss.redo')}
                 </button>
@@ -258,8 +260,8 @@ export default function SaveSessionSheet({ pending, courses, onSave, onClose, ca
                     {analysing ? t('ss.analysing') : t('ss.analyse')}
                   </button>
                   {debriefError && (
-                    <span style={{ fontSize: 11, color: 'var(--muted)' }}>
-                      {t('ss.analyseFail')}
+                    <span role="status" style={{ fontSize: 11, color: 'var(--muted)' }}>
+                      {AI_ERRORS.includes(debriefError) ? t(`ai.err.${debriefError}`) : t('ss.analyseFail')}
                     </span>
                   )}
                 </div>

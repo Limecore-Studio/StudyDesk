@@ -1334,5 +1334,27 @@
     "web": "Open the web app",
     "windows": "Get the Windows app",
     "dismiss": "Got it"
+  },
+  "ai": {
+    "keyLabel": "Gemini API key",
+    "model": "Model",
+    "modelHint": "Default: {{model}}. Change it if Google retires that model.",
+    "test": "Test",
+    "testing": "Testing…",
+    "testOk": "The key works.",
+    "needKey": "Add your own Gemini key to turn AI on.",
+    "keyHelp": "Get a free key at aistudio.google.com. It is stored on this device only and sent only to Google.",
+    "terms": "Requests go from this device straight to Google, under your own Google account terms. Google’s free tier may use what you send to improve its models, and it is not offered in the EU, the UK or Switzerland.",
+    "err": {
+      "no-key": "Add your Gemini key in Settings to get this summary.",
+      "invalid-key": "Google refused the key. Check it in Settings.",
+      "quota": "Your key’s quota is used up. Try again later.",
+      "model": "Google does not know that model. Check the model name in Settings.",
+      "network": "Could not reach Google. Check your connection.",
+      "other": "The AI request failed. Try again later."
+    },
+    "notSet": "Not set",
+    "set": "Set",
+    "clear": "Clear"
   }
 }

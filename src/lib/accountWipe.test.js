@@ -8,6 +8,8 @@ const calls = vi.hoisted(() => []);
 vi.mock('./outbox.js', () => ({ clear: () => calls.push('outbox') }));
 vi.mock('./entitlement.js', () => ({ clearEntitlement: () => calls.push('entitlement') }));
 vi.mock('./profile.js', () => ({ clearAvatarCache: () => calls.push('avatar') }));
+// v1.22 (limecore#122): the user's own AI key goes with the account.
+vi.mock('./aiKey.js', () => ({ clearAiSettings: async () => { calls.push('ai'); } }));
 
 const store = new Map();
 beforeEach(() => {
@@ -28,7 +30,7 @@ describe('wipeAccountLocalData', () => {
     for (const k of ACCOUNT_LOCAL_KEYS) store.set(k, 'x');
     store.set('studydesk-grade-mode', 'custom');
     wipeAccountLocalData();
-    expect(calls.sort()).toEqual(['avatar', 'entitlement', 'outbox']);
+    expect(calls.sort()).toEqual(['ai', 'avatar', 'entitlement', 'outbox']);
     expect(ACCOUNT_LOCAL_KEYS.filter((k) => store.has(k))).toEqual([]);
     expect(store.get('studydesk-grade-mode')).toBe('custom');
   });
