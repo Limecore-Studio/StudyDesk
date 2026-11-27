@@ -61,8 +61,13 @@ function withTimeout(promise, ms = SSO_STEP_TIMEOUT_MS) {
 // got the whole family revoked on NCC's next start - the daily sign-out loop.
 // No path hands NCC's refresh token to this client any more. A failure is just
 // a failure: the user signs in normally, or opens Nexus once and comes back.
-async function adoptSession(bundle) {
-  const failed = { ok: false, reason: 'Nexus sign-in failed. Sign in normally.' };
+// v1.22 (limecore#113): every failure is a reason CODE, never a sentence. The
+// sentences were English in all 10 locales and sometimes carried GoTrue's raw
+// error text; AuthGate maps the code to a localised message and the detail
+// goes to the console. Codes: 'not-android' | 'unavailable' | 'no-session' |
+// 'malformed' | 'failed' | 'other-account' | 'nexus-stale' | 'superseded'.
+async function adoptSession(bundle, shouldAbort) {
+  const failed = { ok: false, reason: 'failed' };
   try {
     const invoked = await withTimeout(supabase.functions.invoke('suite-session', {
       body: { app: 'studydesk' },
@@ -71,6 +76,10 @@ async function adoptSession(bundle) {
     if (invoked.timedOut || invoked.error) return failed;
     const { data, error } = invoked.value || {};
     if (error || !data || !data.token_hash) return failed;
+    // v1.22 (limecore#113): the automatic inherit can be slow. If the user
+    // chose something else meanwhile (guest, or another account on AuthGate),
+    // that choice stands and no session is written.
+    if (shouldAbort && (await shouldAbort())) return { ok: false, reason: 'superseded' };
     // v1.11 - try each credential type rather than betting on one.
     // `suite-session` mints with `generateLink({ type: 'magiclink' })`, which
     // GoTrue files under `recovery_token`; which string `verifyOtp` wants for
@@ -115,31 +124,40 @@ export async function openNexus() {
  *
  *  v1.21.1 (limecore#101): an expired bundle makes no network call and
  *  returns `reason: 'nexus-stale'`. */
-export async function inheritFromNexus({ onlyUserId } = {}) {
-  if (!Capacitor.isNativePlatform()) {
-    return { ok: false, reason: 'Cross-app sign-in is only available on Android.' };
-  }
+export async function inheritFromNexus({ onlyUserId, shouldAbort } = {}) {
+  if (!Capacitor.isNativePlatform()) return { ok: false, reason: 'not-android' };
   let queryResult;
   try {
     queryResult = await SuiteSso.getNexusSession();
   } catch (e) {
-    return { ok: false, reason: 'SSO plugin unavailable: ' + e.message };
+    console.warn('[sso] plugin unavailable:', e?.message);
+    return { ok: false, reason: 'unavailable' };
   }
   if (!queryResult.available) {
-    return { ok: false, reason: queryResult.reason || 'No Nexus session available.' };
+    if (queryResult.reason) console.warn('[sso] no Nexus session:', queryResult.reason);
+    return { ok: false, reason: 'no-session' };
   }
   let bundle;
   try {
     bundle = JSON.parse(queryResult.bundleJson || '{}');
   } catch {
-    return { ok: false, reason: 'Nexus returned a malformed session bundle.' };
+    console.warn('[sso] malformed session bundle');
+    return { ok: false, reason: 'malformed' };
   }
   if (!bundle.access_token) {
-    return { ok: false, reason: 'Nexus session missing required tokens.' };
+    console.warn('[sso] session bundle missing tokens');
+    return { ok: false, reason: 'malformed' };
   }
   if (onlyUserId && tokenUserId(bundle.access_token) !== onlyUserId) {
     return { ok: false, reason: 'other-account' };
   }
   if (bundleIsStale(bundle)) return { ok: false, reason: 'nexus-stale' };
-  return adoptSession(bundle);
+  return adoptSession(bundle, shouldAbort);
+}
+
+/** The i18n key for a failure code from inheritFromNexus (limecore#113). */
+export function nexusErrorKey(reason) {
+  if (reason === 'not-android' || reason === 'unavailable') return 'auth.nexusErr.unavailable';
+  if (reason === 'no-session') return 'auth.nexusErr.noSession';
+  return 'auth.nexusErr.failed';
 }

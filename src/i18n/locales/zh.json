@@ -162,7 +162,12 @@
     "setPwSignOut": "改为退出登录",
     "errPwShort": "至少需要 {{n}} 个字符。",
     "errPwMismatch": "两次输入不一致。",
-    "errSetPassword": "新密码保存失败，请重试。"
+    "errSetPassword": "新密码保存失败，请重试。",
+    "nexusErr": {
+      "unavailable": "未安装 Nexus Command Center，或无法连接。",
+      "noSession": "请先登录 Nexus Command Center，然后重试。",
+      "failed": "Nexus 登录失败。请正常登录。"
+    }
   },
   "settings": {
     "errorReports": "发送错误报告",

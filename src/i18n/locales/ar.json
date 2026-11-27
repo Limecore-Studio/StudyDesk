@@ -91,7 +91,12 @@
     "setPwSignOut": "تسجيل الخروج بدلاً من ذلك",
     "errPwShort": "استخدم {{n}} أحرف على الأقل.",
     "errPwMismatch": "الكلمتان غير متطابقتين.",
-    "errSetPassword": "تعذّر حفظ كلمة المرور الجديدة. حاول مرة أخرى."
+    "errSetPassword": "تعذّر حفظ كلمة المرور الجديدة. حاول مرة أخرى.",
+    "nexusErr": {
+      "unavailable": "تطبيق Nexus Command Center غير مثبّت، أو تعذّر الوصول إليه.",
+      "noSession": "سجّل الدخول إلى Nexus Command Center أولاً، ثم حاول مجدداً.",
+      "failed": "فشل تسجيل الدخول عبر Nexus. سجّل الدخول بالطريقة المعتادة."
+    }
   },
   "app": {
     "name": "StudyDesk",

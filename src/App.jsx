@@ -430,7 +430,9 @@ export default function App() {
         // shows AuthGate next, which imports the same module, so this costs no
         // extra chunk; a failed load lands in the catch like a failed probe.
         const { inheritFromNexus } = await import("./lib/suiteSso.js");
-        const result = await inheritFromNexus({ onlyUserId: readOwner() || undefined });
+        // limecore#113: a guest choice or a sign-in made while this ran wins.
+        const shouldAbort = async () => isGuestMode() || !!(await supabase.auth.getSession()).data.session;
+        const result = await inheritFromNexus({ onlyUserId: readOwner() || undefined, shouldAbort });
         if (result.ok) return (await supabase.auth.getSession()).data.session;
       } catch (e) {
         console.warn("[studydesk] auto-inherit on init failed:", e);

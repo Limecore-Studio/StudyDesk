@@ -25,7 +25,7 @@ vi.mock('./supabase.js', () => ({
 }));
 vi.mock('./deviceOwner.js', () => ({ tokenUserId: () => 'user-a' }));
 
-const { inheritFromNexus, bundleIsStale } = await import('./suiteSso.js');
+const { inheritFromNexus, bundleIsStale, nexusErrorKey } = await import('./suiteSso.js');
 
 const nowSec = () => Math.floor(Date.now() / 1000);
 const bundle = (expiresAt) => ({
@@ -87,5 +87,30 @@ describe('inheritFromNexus (limecore#101)', () => {
     h.bundle = bundle(nowSec() + 600);
     expect((await inheritFromNexus({ onlyUserId: 'user-b' })).reason).toBe('other-account');
     expect(h.invoke).not.toHaveBeenCalled();
+  });
+});
+
+// v1.22 (limecore#113)
+describe('inheritFromNexus: a choice made meanwhile wins, failures are codes', () => {
+  it('writes no session when the user chose something else while it ran', async () => {
+    h.bundle = bundle(nowSec() + 3600);
+    h.invoke.mockResolvedValue({ data: { token_hash: 'th' }, error: null });
+    const result = await inheritFromNexus({ shouldAbort: async () => true });
+    expect(result).toEqual({ ok: false, reason: 'superseded' });
+    expect(h.verifyOtp).not.toHaveBeenCalled();
+  });
+  it('still signs in when nothing else was chosen', async () => {
+    h.bundle = bundle(nowSec() + 3600);
+    h.invoke.mockResolvedValue({ data: { token_hash: 'th' }, error: null });
+    expect((await inheritFromNexus({ shouldAbort: async () => false })).ok).toBe(true);
+  });
+  it('a failed exchange is a code that maps to a localised key, with no raw text', async () => {
+    h.bundle = bundle(nowSec() + 3600);
+    h.invoke.mockResolvedValue({ data: null, error: { message: 'GoTrue: raw english' } });
+    const result = await inheritFromNexus();
+    expect(result).toEqual({ ok: false, reason: 'failed' });
+    expect(nexusErrorKey(result.reason)).toBe('auth.nexusErr.failed');
+    expect(nexusErrorKey('no-session')).toBe('auth.nexusErr.noSession');
+    expect(nexusErrorKey('unavailable')).toBe('auth.nexusErr.unavailable');
   });
 });

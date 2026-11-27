@@ -91,7 +91,12 @@
     "setPwSignOut": "Keluar saja",
     "errPwShort": "Gunakan minimal {{n}} karakter.",
     "errPwMismatch": "Keduanya tidak sama.",
-    "errSetPassword": "Kata sandi baru gagal disimpan. Coba lagi."
+    "errSetPassword": "Kata sandi baru gagal disimpan. Coba lagi.",
+    "nexusErr": {
+      "unavailable": "Nexus Command Center tidak terpasang, atau tidak dapat dihubungi.",
+      "noSession": "Masuk ke Nexus Command Center terlebih dahulu, lalu coba lagi.",
+      "failed": "Masuk lewat Nexus gagal. Masuk dengan cara biasa."
+    }
   },
   "app": {
     "name": "StudyDesk",

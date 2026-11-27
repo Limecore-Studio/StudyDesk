@@ -162,7 +162,12 @@
     "setPwSignOut": "Stattdessen abmelden",
     "errPwShort": "Verwende mindestens {{n}} Zeichen.",
     "errPwMismatch": "Die beiden stimmen nicht überein.",
-    "errSetPassword": "Das neue Passwort konnte nicht gespeichert werden. Versuche es erneut."
+    "errSetPassword": "Das neue Passwort konnte nicht gespeichert werden. Versuche es erneut.",
+    "nexusErr": {
+      "unavailable": "Nexus Command Center ist nicht installiert oder nicht erreichbar.",
+      "noSession": "Melde dich zuerst bei Nexus Command Center an und versuche es dann erneut.",
+      "failed": "Anmeldung über Nexus fehlgeschlagen. Melde dich normal an."
+    }
   },
   "settings": {
     "errorReports": "Fehlerberichte senden",
