@@ -2,7 +2,8 @@
 # commit SHA, so a moved or hijacked tag cannot change what CI runs. This keeps
 # those pins current: Dependabot opens a PR when an action releases, and the
 # `# vX.Y.Z` comment next to each SHA is what it updates alongside it.
-# GitHub Actions only. npm upgrades are planned by hand (majors are v1.18).
+# npm and Gradle below are security updates only; version upgrades are
+# planned by hand (majors were v1.18).
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -13,3 +14,23 @@ updates:
     target-branch: develop
     schedule:
       interval: monthly
+
+  # v1.22 (limecore#98): npm and Gradle too, so a published advisory in a
+  # shipped dependency (Capacitor, Electron, ...) raises a security PR instead
+  # of going unnoticed until the next manual audit. Version bumps stay planned
+  # by hand: `open-pull-requests-limit: 0` turns routine version-update PRs off,
+  # while security updates (which the owner enables in the repo's Security
+  # settings, together with Dependabot alerts) still use this entry.
+  - package-ecosystem: npm
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+
+  - package-ecosystem: gradle
+    directory: /android
+    target-branch: develop
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
