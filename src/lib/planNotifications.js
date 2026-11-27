@@ -5,6 +5,9 @@ import { dueDayReminderAt, dueMoment, rankOpenDeadlines } from "./dueAt.js";
 import { studyStartDate } from "./deadlines.js";
 import { ACTION_DONE_ID } from "./notificationActions.js";
 
+/** How long an overdue item may still lead the Next Up digest. */
+export const DIGEST_OVERDUE_DAYS = 3;
+
 // ── Notifications ─────────────────────────────────────────────────────────────
 // Action-type IDs for tap-action buttons. Registered once at app start via
 // registerActionTypes() and attached per-notification via actionTypeId.
@@ -198,17 +201,23 @@ export function buildReminders(exams, assignments, courses, plannedSessions, pla
   // ── Daily 9am Next Up digest — fires every day for next 30 days ──
   // v1.18.1 (StudyDesk#151): the widget's ranking (local dates, due times,
   // exams first on a tie), so the digest and the widget name the same item.
-  const topItem = rankOpenDeadlines(assignments, exams)[0];
-  if (topItem) {
+  // StudyDesk#246: each day's digest names what is next ON THAT DAY. Ranked
+  // once, the oldest overdue item won every morning for a month (a feed import
+  // brings months of past deadlines), and a deadline that passed was still
+  // named weeks later. Overdue counts for DIGEST_OVERDUE_DAYS, then drops out.
+  const ranked = rankOpenDeadlines(assignments, exams);
+  for (let day = 0; day < 30; day++) {
+    const at = new Date(now); at.setHours(9,0,0,0); at.setDate(at.getDate() + day);
+    if (at.getTime() <= now) continue;
+    const floor = at.getTime() - DIGEST_OVERDUE_DAYS * 86400000;
+    const topItem = ranked.find((x) => (dueMoment(x.dueDate, x.dueTime)?.getTime() ?? -Infinity) >= floor);
+    if (!topItem) continue;
     const topCourse = courses[topItem.courseId];
     const topLabel = topCourse ? `${topItem.title} — ${topCourse.name}` : topItem.title;
-    for (let day = 0; day < 30; day++) {
-      const at = new Date(now); at.setHours(9,0,0,0); at.setDate(at.getDate() + day);
-      // Keyed by the day it fires on, so tomorrow's digest keeps its ID as
-      // the days roll forward.
-      const dayKey = `${at.getFullYear()}-${at.getMonth() + 1}-${at.getDate()}`;
-      if (at.getTime() > now) notes.push({ key: `digest:${dayKey}`, title: t('notif.digestTitle'), body: topLabel, schedule: { at }, ...style });
-    }
+    // Keyed by the day it fires on, so tomorrow's digest keeps its ID as
+    // the days roll forward.
+    const dayKey = `${at.getFullYear()}-${at.getMonth() + 1}-${at.getDate()}`;
+    notes.push({ key: `digest:${dayKey}`, title: t('notif.digestTitle'), body: topLabel, schedule: { at }, ...style });
   }
 
   // ── Exam-specific notifications ──
