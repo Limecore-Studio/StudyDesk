@@ -5,7 +5,7 @@ import { Browser } from '@capacitor/browser';
 import { App as CapApp } from '@capacitor/app';
 import { supabase, OAUTH_REDIRECT_URL } from '../../lib/supabase.js';
 import { desktop, DESKTOP_REDIRECT_URL } from '../../lib/desktop.js';
-import { inheritFromNexus, openNexus } from '../../lib/suiteSso.js';
+import { inheritFromNexus, openNexus, nexusErrorKey } from '../../lib/suiteSso.js';
 import '../../i18n/passwordStrings.js'; // auth.nexusStale / nexusOpen (loaded on demand)
 import { setGuestMode } from '../../lib/guestMode.js';
 import { translateAuthError, callbackErrorMessage } from '../../lib/authErrors.js';
@@ -219,7 +219,8 @@ export default function AuthGate() {
       const result = await inheritFromNexus();
       if (result.reason === 'nexus-stale') setNexusStale(true);
       else if (!result.ok) {
-        setErr(result.reason || t('auth.errNexus'));
+        // limecore#113: a code, shown in the app's language.
+        setErr(t(nexusErrorKey(result.reason)));
       }
       // On success, supabase.auth.onAuthStateChange fires and App.jsx
       // takes over — no further action needed here.

@@ -163,7 +163,12 @@
     "setPwSignOut": "Se déconnecter plutôt",
     "errPwShort": "Utilisez au moins {{n}} caractères.",
     "errPwMismatch": "Les deux ne correspondent pas.",
-    "errSetPassword": "Le nouveau mot de passe n'a pas pu être enregistré. Réessayez."
+    "errSetPassword": "Le nouveau mot de passe n'a pas pu être enregistré. Réessayez.",
+    "nexusErr": {
+      "unavailable": "Nexus Command Center n’est pas installé ou est injoignable.",
+      "noSession": "Connectez-vous d’abord à Nexus Command Center, puis réessayez.",
+      "failed": "La connexion via Nexus a échoué. Connectez-vous normalement."
+    }
   },
   "settings": {
     "errorReports": "Envoyer les rapports d’erreur",

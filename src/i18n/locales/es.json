@@ -163,7 +163,12 @@
     "setPwSignOut": "Cerrar sesión en su lugar",
     "errPwShort": "Usa al menos {{n}} caracteres.",
     "errPwMismatch": "Las dos no coinciden.",
-    "errSetPassword": "No se pudo guardar la contraseña nueva. Inténtalo otra vez."
+    "errSetPassword": "No se pudo guardar la contraseña nueva. Inténtalo otra vez.",
+    "nexusErr": {
+      "unavailable": "Nexus Command Center no está instalado o no se pudo contactar.",
+      "noSession": "Inicia sesión primero en Nexus Command Center y vuelve a intentarlo.",
+      "failed": "El inicio de sesión con Nexus falló. Inicia sesión de la forma habitual."
+    }
   },
   "settings": {
     "errorReports": "Enviar informes de errores",

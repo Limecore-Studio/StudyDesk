@@ -91,7 +91,12 @@
     "setPwSignOut": "Sair em vez disso",
     "errPwShort": "Use pelo menos {{n}} caracteres.",
     "errPwMismatch": "As duas não coincidem.",
-    "errSetPassword": "Não foi possível salvar a nova senha. Tente de novo."
+    "errSetPassword": "Não foi possível salvar a nova senha. Tente de novo.",
+    "nexusErr": {
+      "unavailable": "O Nexus Command Center não está instalado ou não foi possível contactá-lo.",
+      "noSession": "Inicie sessão no Nexus Command Center primeiro e tente novamente.",
+      "failed": "O início de sessão pelo Nexus falhou. Inicie sessão normalmente."
+    }
   },
   "app": {
     "name": "StudyDesk",

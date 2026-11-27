@@ -162,7 +162,12 @@
     "setPwSignOut": "Kirjaudu sen sijaan ulos",
     "errPwShort": "Käytä vähintään {{n}} merkkiä.",
     "errPwMismatch": "Salasanat eivät täsmää.",
-    "errSetPassword": "Uuden salasanan tallennus ei onnistunut. Yritä uudelleen."
+    "errSetPassword": "Uuden salasanan tallennus ei onnistunut. Yritä uudelleen.",
+    "nexusErr": {
+      "unavailable": "Nexus Command Centeriä ei ole asennettu tai siihen ei saatu yhteyttä.",
+      "noSession": "Kirjaudu ensin Nexus Command Centeriin ja yritä sitten uudelleen.",
+      "failed": "Nexus-kirjautuminen epäonnistui. Kirjaudu tavalliseen tapaan."
+    }
   },
   "settings": {
     "errorReports": "Lähetä virheraportit",

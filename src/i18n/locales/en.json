@@ -162,7 +162,12 @@
     "setPwSignOut": "Sign out instead",
     "errPwShort": "Use at least {{n}} characters.",
     "errPwMismatch": "Those two don't match.",
-    "errSetPassword": "Couldn't save the new password. Try again."
+    "errSetPassword": "Couldn't save the new password. Try again.",
+    "nexusErr": {
+      "unavailable": "Nexus Command Center is not installed, or could not be reached.",
+      "noSession": "Sign in to Nexus Command Center first, then try again.",
+      "failed": "Nexus sign-in failed. Sign in normally."
+    }
   },
   "settings": {
     "errorReports": "Send error reports",
