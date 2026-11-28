@@ -272,7 +272,12 @@ export async function downloadExport(state, session) {
   const json = JSON.stringify(payload, null, 2);
   const name = `studydesk-export-${new Date().toISOString().slice(0, 10)}.json`;
   if (Capacitor.isNativePlatform()) {
-    const { saved } = await SaveFile.save({ name, data: json, mimeType: 'application/json' });
+    // StudyDesk#319: pick first (the call that waits on the picker carries
+    // only the name), then write. Carrying the data through the picker made
+    // Android kill the app over its saved-state limit, leaving an empty file.
+    const { uri } = await SaveFile.pick({ name, mimeType: 'application/json' });
+    if (!uri) return null;
+    const { saved } = await SaveFile.write({ uri, data: json });
     return saved ? name : null;
   }
   const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));

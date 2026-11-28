@@ -19,3 +19,20 @@ describe('export save', () => {
     expect(mb('FILE_CAP')).toBeLessThanOrEqual(mb('TOTAL_CAP'));
   });
 });
+
+// StudyDesk#319, confirmed on the S24: TransactionTooLargeException with
+// capacitorLastPluginCallOptions at 2 MB. The data must never ride the call
+// that waits on the picker.
+describe('export pick-then-write', () => {
+  const js = readFileSync(new URL('./dataRights.js', import.meta.url), 'utf8');
+  const java = readFileSync(new URL('../../android/app/src/main/java/com/StudyDesk/app/SaveFilePlugin.java', import.meta.url), 'utf8');
+  it('the picker call carries only the name', () => {
+    expect(js).toMatch(/SaveFile\.pick\(\{ name, mimeType: 'application\/json' \}\)/);
+    expect(js).not.toMatch(/SaveFile\.save\(\{ name, data/);
+  });
+  it('the data goes in a separate write call to the picked uri', () => {
+    expect(js).toMatch(/SaveFile\.write\(\{ uri, data: json \}\)/);
+    expect(java).toMatch(/public void pick\(PluginCall call\)/);
+    expect(java).toMatch(/public void write\(PluginCall call\)/);
+  });
+});
