@@ -58,17 +58,100 @@ public class SaveFilePlugin extends Plugin {
             return;
         }
         String data = call.getString("data", "");
-        // Off the main thread: an export can be a few MB, and a cloud
-        // provider's stream may block on the network.
         new Thread(() -> {
-            try (OutputStream out = getContext().getContentResolver().openOutputStream(uri, "w")) {
-                if (out == null) throw new java.io.IOException("No output stream.");
-                out.write(data.getBytes(StandardCharsets.UTF_8));
+            // StudyDesk#319: the picker has already created an EMPTY file. The
+            // write is streamed in chunks (no second full copy via getBytes),
+            // and ANY failure, including OutOfMemoryError (an Error, which the
+            // old catch (Exception) let kill the thread silently), removes that
+            // empty file and rejects, so the app says it failed instead of
+            // leaving a blank export behind.
+            boolean ok = false;
+            try (OutputStream raw = getContext().getContentResolver().openOutputStream(uri, "wt")) {
+                if (raw == null) throw new java.io.IOException("No output stream.");
+                java.io.Writer out = new java.io.BufferedWriter(new java.io.OutputStreamWriter(raw, StandardCharsets.UTF_8), 64 * 1024);
+                int step = 64 * 1024;
+                for (int i = 0; i < data.length(); i += step) {
+                    out.write(data, i, Math.min(step, data.length() - i));
+                }
                 out.flush();
+                ok = true;
+            } catch (Throwable e) {
+                ok = false;
+            }
+            if (ok) {
                 JSObject saved = new JSObject();
                 saved.put("saved", true);
                 call.resolve(saved);
-            } catch (Exception e) {
+            } else {
+                try { android.provider.DocumentsContract.deleteDocument(getContext().getContentResolver(), uri); } catch (Throwable ignored) { }
+                call.reject("Could not write the file.");
+            }
+        }).start();
+    }
+
+    // ── StudyDesk#319, second half: pick, then write ─────────────────────
+    //
+    // save() carried the whole export (megabytes) in the call that waits on
+    // the picker. While the picker is open, Capacitor keeps that call in the
+    // activity's saved state, and a Bundle over ~1 MB throws
+    // TransactionTooLargeException: the app was killed, the picker's result
+    // had nowhere to go, and the empty file it had created stayed with no
+    // error. pick() carries only the name; write() gets the data afterwards,
+    // in a call that never waits on another activity.
+
+    @PluginMethod
+    public void pick(PluginCall call) {
+        String name = call.getString("name");
+        if (name == null || name.isEmpty()) {
+            call.reject("name is required.");
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType(call.getString("mimeType", "application/json"));
+        intent.putExtra(Intent.EXTRA_TITLE, name);
+        startActivityForResult(call, intent, "onPickedUri");
+    }
+
+    @ActivityCallback
+    private void onPickedUri(PluginCall call, ActivityResult result) {
+        if (call == null) return;
+        Intent picked = result.getData();
+        Uri uri = picked != null ? picked.getData() : null;
+        JSObject out = new JSObject();
+        out.put("uri", result.getResultCode() == Activity.RESULT_OK && uri != null ? uri.toString() : null);
+        call.resolve(out);
+    }
+
+    @PluginMethod
+    public void write(PluginCall call) {
+        String uriString = call.getString("uri");
+        String data = call.getString("data");
+        if (uriString == null || data == null) {
+            call.reject("uri and data are required.");
+            return;
+        }
+        Uri uri = Uri.parse(uriString);
+        new Thread(() -> {
+            boolean ok = false;
+            try (OutputStream raw = getContext().getContentResolver().openOutputStream(uri, "wt")) {
+                if (raw == null) throw new java.io.IOException("No output stream.");
+                java.io.Writer out = new java.io.BufferedWriter(new java.io.OutputStreamWriter(raw, StandardCharsets.UTF_8), 64 * 1024);
+                int step = 64 * 1024;
+                for (int i = 0; i < data.length(); i += step) {
+                    out.write(data, i, Math.min(step, data.length() - i));
+                }
+                out.flush();
+                ok = true;
+            } catch (Throwable e) {
+                ok = false;
+            }
+            if (ok) {
+                JSObject saved = new JSObject();
+                saved.put("saved", true);
+                call.resolve(saved);
+            } else {
+                try { android.provider.DocumentsContract.deleteDocument(getContext().getContentResolver(), uri); } catch (Throwable ignored) { }
                 call.reject("Could not write the file.");
             }
         }).start();

@@ -149,7 +149,10 @@ export async function serverOnlyData(userId) {
 // downloaded in the app. Every storage policy scopes a user to `<user_id>/`.
 export const STORAGE_BUCKETS = ['avatars', 'notebook', 'assignment-attachments'];
 export const FILE_CAP = 10 * 1024 * 1024;
-export const TOTAL_CAP = 25 * 1024 * 1024;
+// StudyDesk#319: 12 MB, not 25. Base64 and JSON make that ~16 MB of text,
+// which crosses the native bridge as one string; 25 MB (~34 MB of text) could
+// exhaust the WebView and Java heaps on a phone and left a blank file.
+export const TOTAL_CAP = 12 * 1024 * 1024;
 
 async function listFolder(bucket, prefix, out, depth = 0) {
   if (depth > 4) return;
@@ -269,7 +272,12 @@ export async function downloadExport(state, session) {
   const json = JSON.stringify(payload, null, 2);
   const name = `studydesk-export-${new Date().toISOString().slice(0, 10)}.json`;
   if (Capacitor.isNativePlatform()) {
-    const { saved } = await SaveFile.save({ name, data: json, mimeType: 'application/json' });
+    // StudyDesk#319: pick first (the call that waits on the picker carries
+    // only the name), then write. Carrying the data through the picker made
+    // Android kill the app over its saved-state limit, leaving an empty file.
+    const { uri } = await SaveFile.pick({ name, mimeType: 'application/json' });
+    if (!uri) return null;
+    const { saved } = await SaveFile.write({ uri, data: json });
     return saved ? name : null;
   }
   const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));

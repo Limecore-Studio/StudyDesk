@@ -11,12 +11,14 @@ const h = vi.hoisted(() => ({
   stored: null,
   cleared: vi.fn(async () => {}),
   owner: null,
-  save: vi.fn(async () => ({ saved: true })),
+  // StudyDesk#319: pick the file (name only), then write the data to it.
+  pick: vi.fn(async () => ({ uri: 'content://picked/1' })),
+  write: vi.fn(async () => ({ saved: true })),
 }));
 
 vi.mock('@capacitor/core', () => ({
   Capacitor: { isNativePlatform: () => true },
-  registerPlugin: () => ({ save: h.save }),
+  registerPlugin: () => ({ pick: h.pick, write: h.write }),
 }));
 
 vi.mock('./supabase.js', () => ({
@@ -123,7 +125,8 @@ describe('downloadExport (limecore#103)', () => {
   }
 
   beforeEach(() => {
-    h.save.mockClear();
+    h.pick.mockClear();
+    h.write.mockClear();
     const store = new Map(Object.entries({
       limecore_lang: 'fi',
       'studydesk-supabase-session': JSON.stringify({ access_token: ACCESS, refresh_token: REFRESH }),
@@ -134,10 +137,16 @@ describe('downloadExport (limecore#103)', () => {
 
   it('saves through the native picker and reports the name only once written', async () => {
     expect(await downloadExport({}, null)).toMatch(/^studydesk-export-\d{4}-\d\d-\d\d\.json$/);
-    expect(h.save).toHaveBeenCalledWith(expect.objectContaining({ mimeType: 'application/json' }));
-    h.save.mockResolvedValueOnce({ saved: false });
+    expect(h.pick).toHaveBeenCalledWith({ name: expect.stringMatching(/^studydesk-export-/), mimeType: 'application/json' });
+    // The picker call never carries the data (StudyDesk#319).
+    expect(h.pick.mock.calls[0][0]).not.toHaveProperty('data');
+    expect(h.write).toHaveBeenCalledWith(expect.objectContaining({ uri: 'content://picked/1' }));
+    // A cancelled picker writes nothing and says nothing.
+    h.pick.mockResolvedValueOnce({ uri: null });
+    h.write.mockClear();
     expect(await downloadExport({}, null)).toBeNull();
-    h.save.mockRejectedValueOnce(new Error('Could not write the file.'));
+    expect(h.write).not.toHaveBeenCalled();
+    h.write.mockRejectedValueOnce(new Error('Could not write the file.'));
     await expect(downloadExport({}, null)).rejects.toThrow('Could not write the file.');
   });
 
@@ -155,7 +164,7 @@ describe('downloadExport (limecore#103)', () => {
       gradeMode: 'ib', customScale: null,
     };
     await downloadExport(state, session);
-    const exported = JSON.parse(h.save.mock.calls[0][0].data);
+    const exported = JSON.parse(h.write.mock.calls[0][0].data);
     expect(exported.account.userId).toBe('user-a');   // the account is there…
     const hits = [];
     walk(exported, '$', hits);
